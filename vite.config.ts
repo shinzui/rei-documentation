@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+	base: process.env.GITHUB_ACTIONS ? "/rei-documentation/" : "/",
 	server: {
 		port: 3000,
 	},
