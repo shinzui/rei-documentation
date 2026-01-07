@@ -12,9 +12,13 @@ const distDir = join(process.cwd(), "dist/client");
 function processHtmlFile(filePath) {
 	let html = readFileSync(filePath, "utf-8");
 
-	// Add base path to asset URLs
+	// Add base path to asset URLs in HTML attributes
 	html = html.replace(/href="\/assets\//g, `href="${basePath}/assets/`);
 	html = html.replace(/src="\/assets\//g, `src="${basePath}/assets/`);
+
+	// Fix asset paths in inline JavaScript (TanStack Router manifest, imports)
+	html = html.replace(/"\/assets\//g, `"${basePath}/assets/`);
+	html = html.replace(/import\('\/assets\//g, `import('${basePath}/assets/`);
 
 	// Fix internal navigation links (docs, api, root)
 	html = html.replace(/href="\/docs\//g, `href="${basePath}/docs/`);
@@ -23,7 +27,6 @@ function processHtmlFile(filePath) {
 	html = html.replace(/href="\/"/g, `href="${basePath}/"`);
 
 	// Fix links in JavaScript (for client-side navigation)
-	// These appear in inline scripts and data attributes
 	html = html.replace(/"url":"\/docs\//g, `"url":"${basePath}/docs/`);
 	html = html.replace(/"url":"\/"/g, `"url":"${basePath}/`);
 
