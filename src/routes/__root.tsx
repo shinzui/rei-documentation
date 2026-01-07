@@ -19,7 +19,7 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "rei - Intentional Time Management",
+				title: "怜 rei - Intentional Time Management",
 			},
 			{
 				name: "description",
