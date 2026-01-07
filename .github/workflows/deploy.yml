@@ -38,8 +38,10 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Generate SPA shell index.html
+      - name: Post-process HTML for GitHub Pages base path
         run: node scripts/generate-spa-shell.mjs
+        env:
+          BASE_PATH: /rei-documentation
 
       - name: Copy index.html to 404.html for SPA routing
         run: cp dist/client/index.html dist/client/404.html

@@ -1,41 +1,43 @@
 #!/usr/bin/env node
-import { existsSync, readdirSync, writeFileSync } from "node:fs";
+/**
+ * Post-process built HTML files to add base path prefix to asset URLs.
+ * Run this after `pnpm build` when deploying to a subpath like GitHub Pages.
+ */
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+const basePath = process.env.BASE_PATH || "/rei-documentation";
 const distDir = join(process.cwd(), "dist/client");
-const assetsDir = join(distDir, "assets");
 
-if (!existsSync(assetsDir)) {
-	console.error("Error: dist/client/assets not found. Run build first.");
-	process.exit(1);
+function processHtmlFile(filePath) {
+	let html = readFileSync(filePath, "utf-8");
+
+	// Add base path to asset URLs (href="/assets/..." and src="/assets/...")
+	html = html.replace(/href="\/assets\//g, `href="${basePath}/assets/`);
+	html = html.replace(/src="\/assets\//g, `src="${basePath}/assets/`);
+
+	// Also fix modulepreload links
+	html = html.replace(
+		/href="\/assets\/([^"]+)"/g,
+		`href="${basePath}/assets/$1"`,
+	);
+
+	writeFileSync(filePath, html);
+	console.log(`Processed: ${filePath}`);
 }
 
-const assets = readdirSync(assetsDir);
-const mainJs = assets.find((f) => f.startsWith("main-") && f.endsWith(".js"));
-const appCss = assets.find((f) => f.startsWith("app-") && f.endsWith(".css"));
-
-if (!mainJs) {
-	console.error("Error: main-*.js not found in assets");
-	process.exit(1);
+// Process all HTML files in dist/client
+function processDirectory(dir) {
+	const entries = readdirSync(dir, { withFileTypes: true });
+	for (const entry of entries) {
+		const fullPath = join(dir, entry.name);
+		if (entry.isDirectory()) {
+			processDirectory(fullPath);
+		} else if (entry.name.endsWith(".html")) {
+			processHtmlFile(fullPath);
+		}
+	}
 }
 
-const basePath = process.env.GITHUB_ACTIONS ? "/rei-documentation" : "";
-
-const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>怜 rei - Intentional Time Management</title>
-  <meta name="description" content="Documentation for rei, a CLI for intentional time management and personal productivity" />
-  ${appCss ? `<link rel="stylesheet" href="${basePath}/assets/${appCss}" />` : ""}
-</head>
-<body class="flex flex-col min-h-screen">
-  <div id="root"></div>
-  <script type="module" src="${basePath}/assets/${mainJs}"></script>
-</body>
-</html>
-`;
-
-writeFileSync(join(distDir, "index.html"), html);
-console.log("Generated index.html");
+processDirectory(distDir);
+console.log("Done processing HTML files for base path:", basePath);

@@ -5,10 +5,7 @@ import mdx from "fumadocs-mdx/vite";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
-const basePath = process.env.GITHUB_ACTIONS ? "/rei-documentation" : "";
-
 export default defineConfig({
-	base: basePath ? `${basePath}/` : "/",
 	server: {
 		port: 3000,
 	},
@@ -19,29 +16,22 @@ export default defineConfig({
 			projects: ["./tsconfig.json"],
 		}),
 		tanstackStart({
-			router: {
-				basepath: basePath || "/",
-			},
 			spa: {
 				enabled: true,
 				prerender: {
 					outputPath: "index.html",
-					crawlLinks: !basePath,
+					enabled: true,
+					crawlLinks: true,
 				},
 			},
-			prerender: {
-				failOnError: !basePath,
-			},
-			pages: basePath
-				? []
-				: [
-						{
-							path: "/docs",
-						},
-						{
-							path: "/api/search",
-						},
-					],
+			pages: [
+				{
+					path: "/docs",
+				},
+				{
+					path: "/api/search",
+				},
+			],
 		}),
 		react(),
 	],
