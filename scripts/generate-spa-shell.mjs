@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Post-process built HTML files to add base path prefix to asset URLs.
+ * Post-process built HTML files to add base path prefix to all URLs.
  * Run this after `pnpm build` when deploying to a subpath like GitHub Pages.
  */
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -12,15 +12,20 @@ const distDir = join(process.cwd(), "dist/client");
 function processHtmlFile(filePath) {
 	let html = readFileSync(filePath, "utf-8");
 
-	// Add base path to asset URLs (href="/assets/..." and src="/assets/...")
+	// Add base path to asset URLs
 	html = html.replace(/href="\/assets\//g, `href="${basePath}/assets/`);
 	html = html.replace(/src="\/assets\//g, `src="${basePath}/assets/`);
 
-	// Also fix modulepreload links
-	html = html.replace(
-		/href="\/assets\/([^"]+)"/g,
-		`href="${basePath}/assets/$1"`,
-	);
+	// Fix internal navigation links (docs, api, root)
+	html = html.replace(/href="\/docs\//g, `href="${basePath}/docs/`);
+	html = html.replace(/href="\/docs"/g, `href="${basePath}/docs"`);
+	html = html.replace(/href="\/api\//g, `href="${basePath}/api/`);
+	html = html.replace(/href="\/"/g, `href="${basePath}/"`);
+
+	// Fix links in JavaScript (for client-side navigation)
+	// These appear in inline scripts and data attributes
+	html = html.replace(/"url":"\/docs\//g, `"url":"${basePath}/docs/`);
+	html = html.replace(/"url":"\/"/g, `"url":"${basePath}/`);
 
 	writeFileSync(filePath, html);
 	console.log(`Processed: ${filePath}`);
