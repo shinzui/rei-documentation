@@ -1,0 +1,72 @@
+---
+title: rei focus
+description: Manage focus areas for time allocation
+icon: Crosshair
+---
+
+Focus areas help you categorize and track different types of activities.
+
+## Subcommands
+
+### import
+
+Import a pre-built focus template.
+
+```bash
+rei focus import <template>
+```
+
+**Templates:**
+- `anatomy-of-equanimity` — Five areas: Connect, Read, Study, Play, Create
+
+**Example:**
+
+```bash
+rei focus import anatomy-of-equanimity
+```
+
+### create
+
+Create a custom focus area.
+
+```bash
+rei focus create [options]
+```
+
+**Options:**
+- `--name <name>` — Name of the focus area (required)
+- `--description <text>` — Description of what this focus includes
+
+**Example:**
+
+```bash
+rei focus create --name "Exercise" --description "Physical activity and health"
+```
+
+### list
+
+List all focus areas.
+
+```bash
+rei focus list [options]
+```
+
+**Options:**
+- `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+- `--all` — Include retired focus areas
+
+### show
+
+Show focus area details.
+
+```bash
+rei focus show [id]
+```
+
+### retire
+
+Retire a focus area.
+
+```bash
+rei focus retire [id]
+```

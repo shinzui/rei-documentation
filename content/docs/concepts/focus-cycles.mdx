@@ -1,0 +1,98 @@
+---
+title: Focus & Cycles
+description: Organizing your time through focus areas and daily cycles
+icon: Clock
+---
+
+Focus areas and cycles help you allocate time intentionally across different types of work.
+
+## What is a Focus?
+
+A focus is a category of activity you want to track. Examples:
+
+- **Create** — Making new things
+- **Study** — Learning and research
+- **Connect** — Relationship building
+- **Play** — Recreation and rest
+- **Read** — Books and articles
+
+## The Anatomy of Equanimity Template
+
+Rei includes a pre-built template based on "The Anatomy of Equanimity":
+
+```bash
+rei focus import anatomy-of-equanimity
+```
+
+This creates five focus areas:
+- **Connect** — Relationships and community
+- **Read** — Books, articles, learning materials
+- **Study** — Deeper learning and practice
+- **Play** — Recreation, games, rest
+- **Create** — Making things, writing, building
+
+## Managing Focus Areas
+
+```bash
+# Create a custom focus area
+rei focus create --name "Exercise" --description "Physical activity"
+
+# List all focus areas
+rei focus list
+
+# Show focus area details
+rei focus show <id>
+
+# Retire a focus area
+rei focus retire <id>
+```
+
+## What is a Cycle?
+
+A cycle is a bounded time period (typically a day) for tracking which focus areas you engaged with.
+
+```bash
+# Start today's cycle
+rei cycle start
+
+# See current cycle status
+rei cycle status
+```
+
+## Recording Focus
+
+During a cycle, record which focus areas you engaged with:
+
+```bash
+# Select a focus for the current cycle
+rei cycle select-focus <focus-id>
+```
+
+At the end of the day:
+
+```bash
+# Complete the cycle
+rei cycle complete
+
+# Or abandon if the day went sideways
+rei cycle abandon
+```
+
+## Why Track Focus?
+
+Tracking focus helps you:
+
+1. **See patterns** — Where does your time actually go?
+2. **Balance** — Are you neglecting important areas?
+3. **Adjust** — Make intentional changes based on data
+4. **Reflect** — "I haven't Created in a week" prompts action
+
+## Focus vs Intentions
+
+| Focus | Intentions |
+|-------|------------|
+| Categories of activity | Specific commitments |
+| Recurring/ongoing | Have completion |
+| "What type of work" | "What am I trying to achieve" |
+
+Both work together. An intention like "Write a book" involves focus areas like Create, Study, and Read.

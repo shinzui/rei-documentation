@@ -1,0 +1,69 @@
+---
+title: rei blocker
+description: Track what's preventing progress
+icon: Ban
+---
+
+Blockers track what's preventing the next meaningful action on an intention.
+
+## Subcommands
+
+### declare
+
+Declare a blocker for an intention.
+
+```bash
+rei blocker declare <intention-id> <description>
+```
+
+**Arguments:**
+- `<intention-id>` — The blocked intention
+- `<description>` — What's blocking progress
+
+**Examples:**
+
+```bash
+# Waiting on something external
+rei blocker declare intention_01h455vb4pex "Waiting for API access approval"
+
+# Internal blocker
+rei blocker declare intention_01h455vb4pex "Need to learn React before proceeding"
+
+# Resource constraint
+rei blocker declare intention_01h455vb4pex "Need to set up development environment"
+```
+
+### resolve
+
+Resolve a blocker.
+
+```bash
+rei blocker resolve [id]
+```
+
+If ID is not provided and fzf is installed, you'll get an interactive picker.
+
+### list
+
+List unresolved blockers.
+
+```bash
+rei blocker list [options]
+```
+
+**Options:**
+- `-f, --format <format>` — Output format
+
+## Viewing Blocked Intentions
+
+See all intentions with blockers:
+
+```bash
+rei intention blocked
+```
+
+This helps you identify what's stuck and why.
+
+## Blockers in Daily View
+
+Blockers appear in `rei today` to remind you what's preventing progress on your intentions.

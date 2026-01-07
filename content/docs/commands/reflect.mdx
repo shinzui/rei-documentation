@@ -1,0 +1,88 @@
+---
+title: rei reflect
+description: Create and manage reflections
+icon: BookText
+---
+
+Reflections capture your interpretations and learnings from past work.
+
+## Subcommands
+
+### today
+
+Create a reflection for today.
+
+```bash
+rei reflect today
+```
+
+Opens your editor to write a reflection on today's work.
+
+### week
+
+Create a weekly reflection.
+
+```bash
+rei reflect week
+```
+
+Opens your editor for a broader weekly reflection.
+
+### intention
+
+Create a reflection for a specific intention.
+
+```bash
+rei reflect intention [id]
+```
+
+### pending
+
+Show pending (incomplete) reflections.
+
+```bash
+rei reflect pending
+```
+
+### history
+
+Show reflection history.
+
+```bash
+rei reflect history [options]
+```
+
+**Options:**
+- `--limit <n>` — Number of reflections to show
+
+### open
+
+Open an existing reflection for editing.
+
+```bash
+rei reflect open [id]
+```
+
+### complete
+
+Mark a reflection as complete.
+
+```bash
+rei reflect complete [id]
+```
+
+### skip
+
+Skip a pending reflection.
+
+```bash
+rei reflect skip [id]
+```
+
+## Workflow
+
+1. Create a reflection with `rei reflect today` or `rei reflect week`
+2. Write your thoughts in your editor
+3. Save and close the editor
+4. The reflection is saved but pending
+5. Use `rei reflect complete` when you're done

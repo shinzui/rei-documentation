@@ -1,0 +1,103 @@
+---
+title: Habits
+description: Building consistent practice through recurring activities
+icon: Repeat
+---
+
+Habits in rei represent recurring activities with lifecycle management. Unlike one-time tasks, habits are about building consistent practice over time.
+
+## What is a Habit?
+
+A habit is a recurring activity you commit to. It has:
+
+- **Name** — What you call this habit
+- **Purpose** — Why you're doing it
+- **Action** — What you actually do each time
+- **Schedule** — How often (daily, weekly, specific days)
+
+## Creating Habits
+
+```bash
+# Daily habit
+rei habit create \
+  --name "Morning Pages" \
+  --purpose "Build writing fluency" \
+  --daily \
+  --action "Write 3 pages"
+
+# Weekly habit
+rei habit create \
+  --name "Weekly Review" \
+  --purpose "Reflect on progress" \
+  --weekly \
+  --action "Review intentions and plan next week"
+
+# Specific days
+rei habit create \
+  --name "Exercise" \
+  --purpose "Stay healthy" \
+  --weekdays Mon,Wed,Fri \
+  --action "30 minutes workout"
+```
+
+## Linking to Intentions
+
+Habits become more meaningful when connected to intentions:
+
+```bash
+rei habit link-intention <habit-id> <intention-id>
+```
+
+This connection:
+- Provides context for why you're doing the habit
+- Shows habit progress in intention views
+- Helps during reflection
+
+## Habit Lifecycle
+
+Habits have their own lifecycle:
+
+| State | Description |
+|-------|-------------|
+| **Active** | Currently tracking this habit |
+| **Paused** | Temporarily stopped (e.g., vacation) |
+| **Retired** | Permanently ended |
+
+```bash
+# Pause a habit
+rei habit pause <id>
+
+# Resume a paused habit
+rei habit resume <id>
+
+# Retire a habit permanently
+rei habit retire <id>
+```
+
+## Tracking Adherence
+
+View your habit status:
+
+```bash
+# See today's habits
+rei habit status
+
+# See habit details with adherence
+rei habit show <id>
+```
+
+The status shows:
+- Which habits are due today
+- Your adherence percentage
+- Current streak
+
+## Habits vs Intentions
+
+| Habits | Intentions |
+|--------|------------|
+| Recurring activities | One-time commitments |
+| Focus on practice | Focus on outcomes |
+| "I write daily" | "I published a book" |
+| Process-oriented | Goal-oriented |
+
+Both work together: habits build the practice that enables intentions to be achieved.

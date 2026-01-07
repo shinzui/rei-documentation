@@ -1,0 +1,73 @@
+---
+title: rei cycle
+description: Manage daily cycles for focus tracking
+icon: Clock
+---
+
+Cycles are bounded time periods (typically a day) for tracking which focus areas you engaged with.
+
+## Subcommands
+
+### start
+
+Start a new cycle for today.
+
+```bash
+rei cycle start
+```
+
+### status
+
+Show current cycle status.
+
+```bash
+rei cycle status
+```
+
+Shows:
+- Whether a cycle is active
+- Which focus areas have been selected
+- Time remaining in the cycle
+
+### select-focus
+
+Select a focus area for the current cycle.
+
+```bash
+rei cycle select-focus [focus-id]
+```
+
+Records that you engaged with this focus area today.
+
+### complete
+
+Complete the current cycle.
+
+```bash
+rei cycle complete
+```
+
+Marks the cycle as successfully finished.
+
+### abandon
+
+Abandon the current cycle.
+
+```bash
+rei cycle abandon
+```
+
+Use when the day didn't go as planned and tracking isn't meaningful.
+
+## Typical Workflow
+
+```bash
+# Morning: start the day
+rei cycle start
+
+# Throughout the day: record focus areas
+rei cycle select-focus <focus-id>
+
+# End of day: complete the cycle
+rei cycle complete
+```

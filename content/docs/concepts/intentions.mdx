@@ -1,0 +1,102 @@
+---
+title: Intentions
+description: The core building block of rei - commitments to meaningful change
+icon: Target
+---
+
+Intentions are the core building blocks of rei. Unlike tasks, intentions represent meaningful commitments to change something in the world.
+
+## What is an Intention?
+
+An intention is not just a task—it's a commitment to a change you want to see happen. Tasks are disposable and interchangeable; intentions have identity and meaning.
+
+**Examples:**
+- "Learn to play piano" (not "Practice piano for 30 minutes")
+- "Build a personal website" (not "Write HTML files")
+- "Become a better writer" (not "Write 500 words")
+
+## Intention Hierarchy
+
+Intentions can have parent-child relationships, allowing you to organize work by meaning:
+
+```
+Connect with like-minded people (parent)
+└── Become a better writer (child)
+    └── Publish first blog post (grandchild)
+```
+
+The parent provides context. When you're deep in the details, the parent reminds you *why* it matters.
+
+## Status Lifecycle
+
+Intentions have one of four statuses:
+
+| Status | Description |
+|--------|-------------|
+| **Active** | Currently being worked on. Shown in daily dashboard. |
+| **Future** | Planned but not yet active. Hidden until activated. |
+| **Completed** | Successfully finished. Terminal state. |
+| **Abandoned** | No longer pursuing. Terminal state with optional reason. |
+
+### Lifecycle Flow
+
+```
+           ┌─────────────────────┐
+           │                     │
+   create  ▼      defer          │  activate
+    ───► Active ◄────────► Future ◄────┘
+           │
+           │ complete/abandon
+           ▼
+       Terminal
+```
+
+- New intentions start as **Active** by default
+- Use `defer` to move to **Future** (also defers children)
+- Use `activate` to move back to **Active**
+- Use `complete` or `abandon` for terminal states
+
+## Context
+
+Context separates different life domains (e.g., work vs personal):
+
+```bash
+rei intention create "Quarterly planning" --context work
+rei intention create "Learn Korean" --context personal
+```
+
+Filter your view by context:
+
+```bash
+rei today --context work
+```
+
+<Callout type="info">
+Context can only be set on root intentions. Children inherit context from their root ancestor.
+</Callout>
+
+## Horizon
+
+Horizon provides a time frame estimate:
+
+```bash
+rei intention create "Learn Haskell" --horizon 3m
+rei intention create "Fix bug" --horizon 1d
+```
+
+Common horizons:
+- `1d` — one day
+- `1w` — one week
+- `1m` — one month
+- `1y` — one year
+- Custom text like `"Q1 2024"`
+
+## Related Concepts
+
+Intentions connect to other primitives:
+
+- **Actions** — record work done toward an intention
+- **Outcomes** — record evidence of progress
+- **Blockers** — track what's preventing progress
+- **Dependencies** — mark intentions that depend on others
+- **Habits** — link recurring practices to intentions

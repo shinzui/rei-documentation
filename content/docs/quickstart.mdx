@@ -1,0 +1,126 @@
+---
+title: Quick Start
+description: Get up and running with rei in 5 minutes
+icon: Rocket
+---
+
+This guide walks you through using rei with a realistic example. By the end, you'll understand how rei's primitives work together to support intentional progress over time.
+
+## Prerequisites
+
+- [Nix](https://nixos.org/download.html) for the development environment
+- Optionally, the `claude` CLI for AI coaching features
+
+## Installation
+
+```bash
+git clone https://github.com/shinzui/rei.git
+cd rei
+nix develop
+cabal build all
+```
+
+## Starting Services
+
+```bash
+just process-up           # Start database
+just run-migrations       # Apply database migrations
+```
+
+## Example: Becoming a Better Writer
+
+This example follows a real goal: becoming a better writer. It's:
+
+- **Long-lived** — not finished in a sprint
+- **Identity-shaping** — about who you become, not just what you produce
+- **Habit-driven** — progress comes from consistency, not heroics
+
+### Step 1: Start with Meaning
+
+Rei organizes work by *meaning*, not checklists. Start with the *why*:
+
+```bash
+rei intention create "Connect with like-minded people and grow professionally" --context personal
+```
+
+This creates your **parent intention**—the deeper purpose.
+
+### Step 2: Create a Child Intention
+
+Now create the intention that serves that meaning:
+
+```bash
+rei intention create "Become a better writer" --parent <parent-id>
+```
+
+View the hierarchy:
+
+```bash
+rei intention tree
+```
+
+```
+Connect with like-minded people and grow professionally
+└── Become a better writer
+```
+
+### Step 3: Create a Habit
+
+Writing improves through daily practice. Create a habit:
+
+```bash
+rei habit create \
+  --name "Daily Writing" \
+  --purpose "Build fluency and clarity" \
+  --daily \
+  --action "Write freely"
+```
+
+Link the habit to your intention for context:
+
+```bash
+rei habit link-intention <habit-id> <intention-id>
+```
+
+### Step 4: Record Your Work
+
+After a writing session, record it:
+
+```bash
+rei action record "Wrote morning pages for 20 minutes" --duration 20m
+```
+
+### Step 5: Record Outcomes
+
+When something meaningful happens, record the evidence:
+
+```bash
+rei outcome record <intention-id> "Published first blog post"
+```
+
+### Step 6: Reflect
+
+At the end of the day, reflect on what happened:
+
+```bash
+rei reflect today
+```
+
+This opens your editor to capture insights about your progress.
+
+### Step 7: Check Your Dashboard
+
+See everything at a glance:
+
+```bash
+rei today
+```
+
+This shows your active intentions, pending habits, recent actions, and any blockers.
+
+## Next Steps
+
+<Cards>
+  <Card title="Core Concepts" href="/docs/concepts" description="Deep dive into rei's philosophy" />
+  <Card title="Commands Reference" href="/docs/commands" description="Complete command documentation" />
+</Cards>

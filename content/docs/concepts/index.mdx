@@ -1,0 +1,67 @@
+---
+title: Core Concepts
+description: Understanding rei's philosophy and primitives
+icon: Lightbulb
+---
+
+Rei is built around **intentional action over time**. Unlike task managers that focus on what you do, rei focuses on *why* you do it and *what changes* as a result.
+
+## The Nine Primitives
+
+Everything in rei is built from nine composable primitives:
+
+### Work Primitives
+
+| Primitive | Purpose |
+|-----------|---------|
+| **Intention** | A commitment to a meaningful change in the world |
+| **Action** | The concrete work you perform |
+| **Outcome** | Observable evidence that something changed |
+| **Blocker** | What prevents the next meaningful action |
+| **Dependency** | Another intention that constrains this one |
+
+### Practice Primitives
+
+| Primitive | Purpose |
+|-----------|---------|
+| **Habit** | A recurring activity with lifecycle management |
+| **Reflection** | Deliberate interpretation of past work |
+
+### Time Primitives
+
+| Primitive | Purpose |
+|-----------|---------|
+| **Focus** | A category of activity for daily time allocation |
+| **Cycle** | A bounded time period for tracking focus selections |
+
+## Key Principles
+
+### 1. Event-Sourced Truth
+
+State is derived, never mutated directly. Every change is recorded as an immutable event. This means:
+
+- Complete history of everything that happened
+- No data loss from updates or deletes
+- Ability to rebuild views from events
+
+### 2. Intention-Centered
+
+Organize work by meaning, not checklists. An intention is not a task—it's a commitment to change something in the world. Tasks are disposable; intentions have identity.
+
+### 3. Evidence-Based Review
+
+Outcomes and reflections beat memory. Instead of checking boxes, you record evidence of progress and reflect on what it means.
+
+### 4. Local-First & Transparent
+
+Files are yours; nothing is hidden. Your workspace is a folder of markdown files. The database stores events, but knowledge lives in files you control.
+
+### 5. Agent Coaching Without Magic
+
+AI agents nudge based on facts, not magic. They read your data and offer perspective, but they never change your state. You remain in control.
+
+<Cards>
+  <Card title="Intentions" href="/docs/concepts/intentions" description="The core of rei's philosophy" />
+  <Card title="Habits" href="/docs/concepts/habits" description="Building consistent practice" />
+  <Card title="Reflections" href="/docs/concepts/reflections" description="Making sense of your progress" />
+</Cards>

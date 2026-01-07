@@ -1,0 +1,125 @@
+---
+title: rei habit
+description: Manage recurring habits and track adherence
+icon: Repeat
+---
+
+Habits represent recurring activities with lifecycle management.
+
+## Subcommands
+
+### create
+
+Create a new habit.
+
+```bash
+rei habit create [options]
+```
+
+**Options:**
+- `--name <name>` — Name of the habit (required)
+- `--purpose <text>` — Why you're doing this habit
+- `--action <text>` — What you do each time
+- `--daily` — Schedule for every day
+- `--weekly` — Schedule for once a week
+- `--weekdays <days>` — Specific days (e.g., `Mon,Wed,Fri`)
+
+**Examples:**
+
+```bash
+# Daily habit
+rei habit create \
+  --name "Morning Pages" \
+  --purpose "Build writing fluency" \
+  --daily \
+  --action "Write 3 pages"
+
+# Weekly habit
+rei habit create \
+  --name "Weekly Review" \
+  --purpose "Reflect on progress" \
+  --weekly \
+  --action "Review and plan"
+
+# Specific days
+rei habit create \
+  --name "Exercise" \
+  --purpose "Stay healthy" \
+  --weekdays Mon,Wed,Fri \
+  --action "30 minute workout"
+```
+
+### list
+
+List all habits.
+
+```bash
+rei habit list [options]
+```
+
+**Options:**
+- `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+- `--all` — Include paused and retired habits
+
+### show
+
+Show habit details.
+
+```bash
+rei habit show [id]
+```
+
+### status
+
+Show today's habit status.
+
+```bash
+rei habit status
+```
+
+Shows which habits are due today and adherence statistics.
+
+### link-intention
+
+Link a habit to an intention.
+
+```bash
+rei habit link-intention <habit-id> <intention-id>
+```
+
+### update-schedule
+
+Change the habit schedule.
+
+```bash
+rei habit update-schedule [id] [options]
+```
+
+**Options:**
+- `--daily` — Change to daily
+- `--weekly` — Change to weekly
+- `--weekdays <days>` — Change to specific days
+
+### pause
+
+Temporarily pause a habit.
+
+```bash
+rei habit pause [id]
+```
+
+### resume
+
+Resume a paused habit.
+
+```bash
+rei habit resume [id]
+```
+
+### retire
+
+Permanently retire a habit.
+
+```bash
+rei habit retire [id]
+```

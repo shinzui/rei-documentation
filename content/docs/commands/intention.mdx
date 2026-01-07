@@ -1,0 +1,160 @@
+---
+title: rei intention
+description: Manage intentions - the core building blocks of rei
+icon: Target
+---
+
+Intentions are the core building blocks of rei, representing goals, projects, or commitments you want to accomplish.
+
+## Subcommands
+
+### create
+
+Create a new intention.
+
+```bash
+rei intention create <title> [options]
+```
+
+**Arguments:**
+- `<title>` — The title of the intention (use `-` to read from stdin)
+
+**Options:**
+- `-p, --parent <id>` — Parent intention ID (creates a sub-intention)
+- `-h, --horizon <horizon>` — Time horizon (e.g., `1d`, `1w`, `1m`, `1y`)
+- `-c, --context <context>` — Context label (e.g., `work`, `personal`)
+
+**Examples:**
+
+```bash
+# Create a top-level intention
+rei intention create "Build personal website"
+
+# Create a sub-intention
+rei intention create "Design homepage" --parent intention_01h455vb4pex
+
+# Create with a time horizon
+rei intention create "Learn Haskell" --horizon 3m
+
+# Create with context
+rei intention create "Quarterly planning" --context work
+```
+
+### list
+
+List intentions by status.
+
+```bash
+rei intention list [options]
+```
+
+**Options:**
+- `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+- `-c, --context <context>` — Filter by context
+- `--future` — Show only Future (deferred) intentions
+- `--all` — Show both Active and Future intentions
+
+### show
+
+Show details of a specific intention.
+
+```bash
+rei intention show [id] [options]
+```
+
+**Options:**
+- `--full` — Show full details including actions, outcomes, blockers
+- `--json` — Output as JSON (requires `--full`)
+
+### tree
+
+Show intention hierarchy as a tree.
+
+```bash
+rei intention tree [options]
+```
+
+**Options:**
+- `-c, --context <context>` — Filter by context
+
+### complete
+
+Mark an intention as completed.
+
+```bash
+rei intention complete [id]
+```
+
+### abandon
+
+Abandon an intention.
+
+```bash
+rei intention abandon [id] [--reason <text>]
+```
+
+### defer
+
+Move an intention to Future status.
+
+```bash
+rei intention defer [id]
+```
+
+### activate
+
+Move a Future intention back to Active.
+
+```bash
+rei intention activate [id]
+```
+
+### blocked
+
+Show intentions that have unresolved blockers.
+
+```bash
+rei intention blocked [options]
+```
+
+### timeline
+
+Show chronological event history for an intention.
+
+```bash
+rei intention timeline [id]
+```
+
+### get-help
+
+Get AI-assisted help for an intention.
+
+```bash
+rei intention get-help [id]
+```
+
+### set-context / clear-context
+
+Set or clear the context for a root intention.
+
+```bash
+rei intention set-context [id] <context>
+rei intention clear-context [id]
+```
+
+### set-horizon / clear-horizon
+
+Set or clear the time horizon.
+
+```bash
+rei intention set-horizon [id] <horizon>
+rei intention clear-horizon [id]
+```
+
+### guidance
+
+Set custom AI guidance for an intention.
+
+```bash
+rei intention guidance [id] <text>
+```

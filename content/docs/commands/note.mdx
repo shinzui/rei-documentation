@@ -1,0 +1,79 @@
+---
+title: rei note
+description: Create and manage markdown notes
+icon: FileText
+---
+
+Notes are markdown files stored in your workspace. They can contain free-form thoughts, meeting notes, ideas, and more.
+
+## Subcommands
+
+### new
+
+Create a new note.
+
+```bash
+rei note new [options]
+```
+
+**Options:**
+- `-t, --title <title>` — Note title
+- `--tags <tags>` — Comma-separated tags
+
+Opens your editor to write the note content.
+
+**Examples:**
+
+```bash
+# Simple note
+rei note new --title "Meeting Notes"
+
+# Note with tags
+rei note new --title "Project Ideas" --tags "ideas,work"
+```
+
+### list
+
+List all notes.
+
+```bash
+rei note list [options]
+```
+
+**Options:**
+- `-f, --format <format>` — Output format
+- `--tag <tag>` — Filter by tag
+
+### open
+
+Open a note for editing.
+
+```bash
+rei note open [id]
+```
+
+If ID is not provided and fzf is installed, you'll get an interactive picker.
+
+## Task Extraction
+
+Notes can contain markdown checkboxes that rei recognizes as tasks:
+
+```markdown
+## Meeting Notes
+
+- [x] Send follow-up email
+- [ ] Schedule next meeting
+- [ ] Review proposal
+```
+
+Extract tasks from a note:
+
+```bash
+rei note extract-tasks [id]
+```
+
+## Workspace
+
+Notes are stored as markdown files in your workspace directory (default: `~/rei-workspace/notes/`).
+
+You can edit them directly with any text editor or use `rei note open`.

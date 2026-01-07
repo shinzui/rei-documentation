@@ -1,0 +1,73 @@
+---
+title: Installation
+description: Install rei on your system
+icon: Download
+---
+
+## Prerequisites
+
+- [Nix](https://nixos.org/download.html) for reproducible environment
+- [fzf](https://github.com/junegunn/fzf) (optional, for interactive selection)
+- [just](https://github.com/casey/just) command runner
+
+## Setup
+
+### Clone and Build
+
+```bash
+# Clone the repository
+git clone https://github.com/shinzui/rei.git
+cd rei
+
+# Enter the Nix development shell
+nix develop
+
+# Build rei
+cabal build all
+```
+
+### Start the Database
+
+Rei uses MessageDB (PostgreSQL) for event storage:
+
+```bash
+# Start PostgreSQL container
+just process-up
+
+# Run database migrations
+just run-migrations
+```
+
+### Verify Installation
+
+```bash
+# Check version
+rei version
+
+# View system info
+rei info
+```
+
+## Shell Completions
+
+Enable tab completion for your shell:
+
+```bash
+# Bash
+rei completions bash >> ~/.bashrc
+
+# Zsh
+rei completions zsh >> ~/.zshrc
+
+# Fish
+rei completions fish > ~/.config/fish/completions/rei.fish
+```
+
+Restart your shell or source the config file to enable completions.
+
+## Next Steps
+
+<Cards>
+  <Card title="Configuration" href="/docs/configuration" description="Configure rei for your workflow" />
+  <Card title="Quick Start" href="/docs/quickstart" description="Learn rei with a hands-on example" />
+</Cards>

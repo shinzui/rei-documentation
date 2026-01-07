@@ -1,0 +1,109 @@
+---
+title: AI Coaching
+description: Get perspective and guidance from AI agents
+icon: Bot
+---
+
+Rei includes AI coaching features that help you gain perspective on your work without taking control away from you.
+
+## Philosophy
+
+AI agents in rei:
+
+- **Read your data** — They see your intentions, actions, reflections
+- **Offer perspective** — They ask questions and suggest approaches
+- **Never mutate state** — Only you can change your data
+- **Nudge, don't nag** — Helpful prompts, not guilt trips
+
+## Agent Commands
+
+### Coaching
+
+Get general coaching based on your current state:
+
+```bash
+rei agent coach
+```
+
+Focus on today's context:
+
+```bash
+rei agent coach --today
+```
+
+### Nudges
+
+Get a quick suggestion for what to do next:
+
+```bash
+rei agent nudge
+```
+
+### Review
+
+Deep dive on a specific intention:
+
+```bash
+rei agent review <intention-id>
+```
+
+### Reflection Help
+
+AI-assisted reflection prompts:
+
+```bash
+rei agent reflect today
+rei agent reflect week
+```
+
+## Intention-Level Guidance
+
+You can attach custom guidance to specific intentions:
+
+```bash
+rei intention guidance <id> "Remind me to focus on quality over quantity"
+```
+
+This guidance is included when the agent reviews that intention.
+
+## Configuration
+
+### LLM Backend
+
+Rei supports two backends:
+
+**claude-cli** (default) — Uses the Claude CLI if installed:
+
+```bash
+export REI_LLM_BACKEND=claude-cli
+```
+
+**anthropic-api** — Direct API access:
+
+```bash
+export REI_LLM_BACKEND=anthropic-api
+export REI_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Model Override
+
+Override the default model:
+
+```bash
+export REI_LLM_MODEL=claude-3-opus-20240229
+```
+
+## When to Use AI Coaching
+
+Good times:
+- Feeling stuck on an intention
+- End of day/week reflection
+- Making a decision about priorities
+- Need fresh perspective
+
+Not a replacement for:
+- Doing the work
+- Making your own decisions
+- Your own judgment and values
+
+The agent is a thinking partner, not an oracle.

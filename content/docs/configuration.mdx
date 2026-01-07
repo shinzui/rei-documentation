@@ -1,0 +1,122 @@
+---
+title: Configuration
+description: Configure rei for your workflow
+icon: Settings
+---
+
+Rei uses two configuration sources:
+
+1. **YAML config file** — User preferences (workspace path, editor, display settings)
+2. **Environment variables** — Infrastructure settings (database, LLM backend)
+
+## Config File
+
+### Loading Order
+
+Rei checks for a config file in priority order (first found wins):
+
+| Priority | Location | Description |
+|----------|----------|-------------|
+| 1 | `$REI_CONFIG` | Custom path via environment variable |
+| 2 | `./rei.yaml` | Local config in current directory |
+| 3 | `~/.config/rei/config.yaml` | XDG standard location |
+| 4 | `~/.rei/config.yaml` | Legacy fallback |
+
+If no config file is found, defaults are used.
+
+### Default Values
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `workspace.path` | `~/rei-workspace` | Where markdown files are stored |
+| `display.color` | `auto` | Color output: `auto`, `always`, `never` |
+| `display.date_format` | `%Y-%m-%d` | Date format (strftime) |
+| `display.time_format` | `%H:%M` | Time format (strftime) |
+| `editor` | None | Falls back to `$EDITOR` env var |
+
+### Example Config File
+
+Save as `~/.config/rei/config.yaml`:
+
+```yaml title="~/.config/rei/config.yaml"
+workspace:
+  path: ~/rei-workspace
+
+editor: nvim
+
+display:
+  color: auto
+  date_format: "%Y-%m-%d"
+  time_format: "%H:%M"
+```
+
+<Callout type="info">
+The `~` prefix is expanded to your home directory.
+</Callout>
+
+## Environment Variables
+
+### Required: Database
+
+Rei requires MessageDB for event storage.
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `PG_CONNECTION_STRING` | Database connection string | Yes |
+
+```bash
+export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
+```
+
+### Optional: AI Agent
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_LLM_BACKEND` | LLM backend (`claude-cli` or `anthropic-api`) | `claude-cli` |
+| `REI_ANTHROPIC_API_KEY` | Anthropic API key (required for `anthropic-api`) | - |
+| `REI_LLM_MODEL` | Model override | - |
+
+### LLM Backend Options
+
+**claude-cli** (default)
+
+Uses the Claude CLI (`claude`) installed on your system. No API key required.
+
+```bash
+export REI_LLM_BACKEND=claude-cli
+```
+
+**anthropic-api**
+
+Uses the Anthropic API directly. Requires an API key.
+
+```bash
+export REI_LLM_BACKEND=anthropic-api
+export REI_ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Optional: Connection Pool
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PG_POOL_SIZE` | Connection pool size | 10 |
+| `PG_POOL_TIMEOUT` | Pool acquisition timeout (seconds) | 10 |
+| `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time (seconds) | 600 |
+| `PG_POOL_MAX_CONNECTION_LIFETIME` | Max connection lifetime (seconds) | 1800 |
+
+## Complete Example
+
+```bash title=".envrc"
+# Database (required)
+export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
+
+# AI (optional - uses claude-cli by default)
+export REI_LLM_BACKEND=anthropic-api
+export REI_ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+# Pool tuning (optional)
+export PG_POOL_SIZE=20
+
+# Editor fallback (if not set in config.yaml)
+export EDITOR=vim
+```

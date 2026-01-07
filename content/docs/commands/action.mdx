@@ -1,0 +1,58 @@
+---
+title: rei action
+description: Record actions taken toward intentions
+icon: Play
+---
+
+Actions record the concrete work you do toward your intentions.
+
+## Subcommands
+
+### record
+
+Record an action.
+
+```bash
+rei action record <description> [options]
+```
+
+**Arguments:**
+- `<description>` — What you did
+
+**Options:**
+- `-i, --intention <id>` — Link to a specific intention
+- `-d, --duration <duration>` — How long it took (e.g., `30m`, `1h`, `1h30m`)
+- `--at <timestamp>` — When it happened (defaults to now)
+
+**Examples:**
+
+```bash
+# Simple action
+rei action record "Wrote morning pages"
+
+# With duration
+rei action record "Worked on homepage design" --duration 45m
+
+# Linked to intention
+rei action record "Drafted blog post outline" \
+  --intention intention_01h455vb4pex \
+  --duration 30m
+
+# At a specific time
+rei action record "Team meeting" --at "2024-01-15 10:00"
+```
+
+## Duration Format
+
+Durations can be specified as:
+- `30m` — 30 minutes
+- `1h` — 1 hour
+- `1h30m` — 1 hour 30 minutes
+- `90m` — 90 minutes
+
+## Viewing Actions
+
+Actions appear in:
+- `rei today` — Today's dashboard
+- `rei intention show --full` — When viewing an intention
+- `rei intention timeline` — Chronological history

@@ -1,0 +1,54 @@
+---
+title: rei outcome
+description: Record observable evidence of progress
+icon: Trophy
+---
+
+Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results.
+
+## Subcommands
+
+### record
+
+Record an outcome for an intention.
+
+```bash
+rei outcome record <intention-id> <description>
+```
+
+**Arguments:**
+- `<intention-id>` — The intention this outcome belongs to
+- `<description>` — What evidence of progress you observed
+
+**Examples:**
+
+```bash
+# Record publishing a blog post
+rei outcome record intention_01h455vb4pex "Published first blog post"
+
+# Record a milestone
+rei outcome record intention_01h455vb4pex "Reached 1000 words in draft"
+
+# Record external validation
+rei outcome record intention_01h455vb4pex "Received positive feedback from reader"
+```
+
+## Actions vs Outcomes
+
+| Actions | Outcomes |
+|---------|----------|
+| What you did | What changed |
+| Effort | Results |
+| "Wrote for 30 minutes" | "Published blog post" |
+| Process | Evidence |
+
+Both are valuable:
+- Actions track your investment of time and energy
+- Outcomes track the results of that investment
+
+## Viewing Outcomes
+
+Outcomes appear in:
+- `rei intention show --full` — When viewing an intention
+- `rei intention timeline` — Chronological history
+- Weekly reviews
