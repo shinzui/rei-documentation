@@ -5,7 +5,13 @@ import mdx from "fumadocs-mdx/vite";
 import { defineConfig } from "vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+// For GitHub Pages deployment, set BASE_PATH=/rei-documentation
+const basePath = process.env.BASE_PATH || "";
+
 export default defineConfig({
+	define: {
+		__BASE_PATH__: JSON.stringify(basePath),
+	},
 	server: {
 		port: 3000,
 	},

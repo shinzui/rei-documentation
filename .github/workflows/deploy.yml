@@ -37,6 +37,8 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          BASE_PATH: /rei-documentation
 
       - name: Post-process HTML for GitHub Pages base path
         run: node scripts/generate-spa-shell.mjs
