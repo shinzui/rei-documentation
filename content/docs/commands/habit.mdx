@@ -4,7 +4,7 @@ description: Manage recurring habits and track adherence
 icon: Repeat
 ---
 
-Habits represent recurring activities with lifecycle management.
+Create and manage habits. Habits are recurring practices you want to cultivate.
 
 ## Subcommands
 
@@ -17,37 +17,41 @@ rei habit create [options]
 ```
 
 **Options:**
-- `--name <name>` — Name of the habit (required)
-- `--purpose <text>` — Why you're doing this habit
-- `--action <text>` — What you do each time
-- `--daily` — Schedule for every day
-- `--weekly` — Schedule for once a week
-- `--weekdays <days>` — Specific days (e.g., `Mon,Wed,Fri`)
+- `-n, --name <name>` — Habit name (required)
+- `-p, --purpose <purpose>` — Why you're cultivating this habit (required)
+- `-d, --daily` — Make this a daily habit
+- `-w, --weekly <day>` — Make this a weekly habit on a specific day (e.g., `monday`)
+- `--weekly-on <days>` — Make this a habit on specific days of the week (e.g., `mon,wed,fri`)
+- `-a, --action <template>` — Default action template text
 
 **Examples:**
 
 ```bash
-# Daily habit
+# Create a daily habit
 rei habit create \
-  --name "Morning Pages" \
-  --purpose "Build writing fluency" \
+  --name "Morning Writing" \
+  --purpose "Build creative fluency" \
   --daily \
-  --action "Write 3 pages"
+  --action "Write freely for 30 minutes"
 
-# Weekly habit
+# Create a weekly habit (single day)
 rei habit create \
   --name "Weekly Review" \
-  --purpose "Reflect on progress" \
-  --weekly \
-  --action "Review and plan"
+  --purpose "Maintain awareness of progress" \
+  --weekly sunday
 
-# Specific days
+# Create a habit for specific days of the week
 rei habit create \
-  --name "Exercise" \
-  --purpose "Stay healthy" \
-  --weekdays Mon,Wed,Fri \
-  --action "30 minute workout"
+  --name "Gym Sessions" \
+  --purpose "Build physical strength" \
+  --weekly-on mon,wed,fri
 ```
+
+**Notes:**
+- Use `--daily` for every day habits
+- Use `--weekly <day>` for once-a-week habits
+- Use `--weekly-on <days>` for multiple specific days (e.g., MWF schedule)
+- Day names can be abbreviated: `mon`, `tue`, `wed`, `thu`, `fri`, `sat`, `sun`
 
 ### list
 
@@ -58,62 +62,258 @@ rei habit list [options]
 ```
 
 **Options:**
-- `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+- `-c, --context <context>` — Filter by context
+- `--json` — Output as JSON
 - `--all` — Include paused and retired habits
+
+**Examples:**
+
+```bash
+# List all habits
+rei habit list
+
+# List habits filtered by context
+rei habit list --context personal
+
+# Output as JSON (for scripting)
+rei habit list --json
+```
 
 ### show
 
-Show habit details.
+Show details of a specific habit.
 
 ```bash
-rei habit show [id]
+rei habit show [habit-id] [options]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+
+**Options:**
+- `--full` — Show full details including actions, focus, and linked intention
+- `--json` — Output as JSON (requires `--full`)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Show basic habit info
+rei habit show habit_01abc...
+
+# Show full details with actions and focus
+rei habit show habit_01abc... --full
+
+# Output full details as JSON (for scripting)
+rei habit show habit_01abc... --full --json
 ```
 
 ### status
 
-Show today's habit status.
+Show the current status of all habits.
 
 ```bash
-rei habit status
+rei habit status [options]
 ```
 
-Shows which habits are due today and adherence statistics.
+**Options:**
+- `--json` — Output as JSON
+
+Displays adherence rates and recent completion history for all active habits.
+
+**Examples:**
+
+```bash
+# Show habit status
+rei habit status
+
+# Output as JSON (for scripting)
+rei habit status --json
+```
+
+### rename
+
+Rename a habit.
+
+```bash
+rei habit rename [habit-id] <new-name>
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `<new-name>` — New name for the habit
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Rename with explicit ID
+rei habit rename habit_01abc... "Daily Meditation"
+
+# Let fzf pick the habit
+rei habit rename "Daily Meditation"
+```
+
+**Notes:**
+- Cannot rename retired habits
+- Operation is idempotent (renaming to the same name is a no-op)
+
+### record-action
+
+Record an action for a habit with simplified workflow.
+
+```bash
+rei habit record-action [habit-id] [description]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `[description]` — Action description (optional, uses habit's action template if not provided)
+
+**Options:**
+- `-a, --actor <actor>` — Actor that created this action (e.g., `claude-code`, `user`)
+- `-t, --at <time>` — When action was performed (optional, defaults to now)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Relative Time:**
+
+The `--at` option accepts human-readable relative time expressions:
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+**Examples:**
+
+```bash
+# Select habit with fzf and provide description
+rei habit record-action "Completed 30 minutes of writing"
+
+# Provide habit ID and description
+rei habit record-action habit_01abc... "Morning session completed"
+
+# Use habit's action template as description (select via fzf)
+rei habit record-action
+
+# Record an action that happened 2 hours ago
+rei habit record-action "Morning meditation" --at "2 hours ago"
+
+# Record yesterday's habit completion
+rei habit record-action habit_01abc... -t yesterday
+```
+
+### update-action-template
+
+Update or clear a habit's action template.
+
+```bash
+rei habit update-action-template [habit-id] [template]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `[template]` — New action template text (optional)
+
+**Options:**
+- `--clear` — Clear the action template
+
+**Examples:**
+
+```bash
+# Update template with fzf selection
+rei habit update-action-template "Write freely for 30 minutes"
+
+# Update template for specific habit
+rei habit update-action-template habit_01abc... "Morning meditation complete"
+
+# Clear the template
+rei habit update-action-template habit_01abc... --clear
+```
+
+### update-schedule
+
+Update the schedule for an existing habit.
+
+```bash
+rei habit update-schedule [habit-id] [options]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+
+**Options:**
+- `-d, --daily` — Change to a daily habit
+- `-w, --weekly <day>` — Change to a weekly habit on a specific day
+- `--weekly-on <days>` — Change to specific days of the week
+
+**Examples:**
+
+```bash
+# Change to daily
+rei habit update-schedule habit_01abc... --daily
+
+# Change to specific days
+rei habit update-schedule habit_01abc... --weekly-on tue,thu,sat
+```
 
 ### link-intention
 
 Link a habit to an intention.
 
 ```bash
-rei habit link-intention <habit-id> <intention-id>
+rei habit link-intention [habit-id] [intention-id]
 ```
 
-### update-schedule
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `[intention-id]` — Intention ID (optional if fzf is available)
 
-Change the habit schedule.
+> **FZF Support:** If IDs are not provided, fzf will prompt for selection.
+
+**Notes:**
+- Linked habits inherit context from the intention's root ancestor
+- When recording actions for a linked habit, they're automatically associated with the intention
+- A habit can only be linked to one intention at a time
+
+### unlink-intention
+
+Unlink a habit from its intention.
 
 ```bash
-rei habit update-schedule [id] [options]
+rei habit unlink-intention [habit-id]
 ```
 
-**Options:**
-- `--daily` — Change to daily
-- `--weekly` — Change to weekly
-- `--weekdays <days>` — Change to specific days
+### set-context / clear-context
+
+Set or clear a context label on an unlinked habit.
+
+```bash
+rei habit set-context [habit-id] <context>
+rei habit clear-context [habit-id]
+```
+
+**Notes:**
+- Context can only be set on unlinked habits
+- Linked habits inherit context from their intention's root ancestor
 
 ### pause
 
 Temporarily pause a habit.
 
 ```bash
-rei habit pause [id]
+rei habit pause [habit-id]
 ```
+
+Paused habits don't appear in daily dashboards or contribute to adherence tracking.
 
 ### resume
 
 Resume a paused habit.
 
 ```bash
-rei habit resume [id]
+rei habit resume [habit-id]
 ```
 
 ### retire
@@ -121,5 +321,31 @@ rei habit resume [id]
 Permanently retire a habit.
 
 ```bash
-rei habit retire [id]
+rei habit retire [habit-id]
 ```
+
+**Notes:**
+- Retirement is a terminal state — retired habits cannot be resumed
+- Historical data is preserved for reflection
+
+## Blockers
+
+Habits support blockers, which represent obstacles preventing you from practicing the habit.
+
+### Declaring a blocker
+
+```bash
+rei blocker declare --habit habit_01abc... "Gym closed for renovation"
+```
+
+When a blocker is declared on an active habit, the habit is **automatically paused**.
+
+### Resolving a blocker
+
+```bash
+rei blocker resolve --habit habit_01abc... blocker_01xyz...
+```
+
+When the **last blocker** on a habit is resolved, the habit **automatically resumes**.
+
+See [`rei blocker`](/docs/commands/blocker) for complete blocker command documentation.

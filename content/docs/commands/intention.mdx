@@ -6,6 +6,24 @@ icon: Target
 
 Intentions are the core building blocks of rei, representing goals, projects, or commitments you want to accomplish.
 
+## Intention Status
+
+Intentions have one of four statuses:
+
+| Status | Description |
+|--------|-------------|
+| **Active** | Currently being worked on. Shown in daily dashboard and reviews. |
+| **Future** | Planned but not yet active. Hidden from today view until activated. |
+| **Completed** | Successfully finished. Terminal state. |
+| **Abandoned** | No longer pursuing. Terminal state with optional reason. |
+
+**Lifecycle:**
+- New intentions start as **Active** by default
+- Use `--future` flag during creation for deferred intentions
+- Use `defer` to move an Active intention to **Future** (defers children too)
+- Use `activate` to move a Future intention back to **Active**
+- Use `complete` or `abandon` for terminal states
+
 ## Subcommands
 
 ### create
@@ -23,6 +41,7 @@ rei intention create <title> [options]
 - `-p, --parent <id>` — Parent intention ID (creates a sub-intention)
 - `-h, --horizon <horizon>` — Time horizon (e.g., `1d`, `1w`, `1m`, `1y`)
 - `-c, --context <context>` — Context label (e.g., `work`, `personal`)
+- `--future` — Create as Future (deferred) instead of Active
 
 **Examples:**
 
@@ -38,7 +57,21 @@ rei intention create "Learn Haskell" --horizon 3m
 
 # Create with context
 rei intention create "Quarterly planning" --context work
+
+# Create from stdin
+echo "Write documentation" | rei intention create -
+
+# Create as Future (deferred) intention
+rei intention create "Plan vacation" --future
+
+# Create a Future intention with horizon
+rei intention create "Q2 project planning" --future --horizon 3m
 ```
+
+**Notes:**
+- Context can only be set on root intentions (those without a parent)
+- Child intentions inherit context from their root ancestor
+- Use `--future` to create intentions you want to plan now but activate later
 
 ### list
 
@@ -54,6 +87,25 @@ rei intention list [options]
 - `--future` — Show only Future (deferred) intentions
 - `--all` — Show both Active and Future intentions
 
+**Examples:**
+
+```bash
+# Default: list active intentions only
+rei intention list
+
+# List future intentions only
+rei intention list --future
+
+# List both active and future intentions
+rei intention list --all
+
+# Filter by context
+rei intention list --context work
+
+# Combine status and context filters
+rei intention list --future --context work
+```
+
 ### show
 
 Show details of a specific intention.
@@ -63,8 +115,20 @@ rei intention show [id] [options]
 ```
 
 **Options:**
-- `--full` — Show full details including actions, outcomes, blockers
+- `--full` — Show full details including actions, outcomes, blockers, notes
 - `--json` — Output as JSON (requires `--full`)
+
+> **FZF Support:** If ID is not provided, an interactive picker will let you select from active intentions.
+
+**Full view includes:**
+- Intention details (title, horizon, context, status)
+- Recent actions taken (with associated notes, links, and docs)
+- Recorded outcomes
+- Active blockers
+- Dependencies
+- Associated notes (with titles if available)
+- Attached links and documents
+- Child intentions
 
 ### tree
 
@@ -90,8 +154,15 @@ rei intention complete [id]
 Abandon an intention.
 
 ```bash
-rei intention abandon [id] [--reason <text>]
+rei intention abandon [id] [options]
 ```
+
+**Options:**
+- `-r, --reason <reason>` — Optional reason for abandoning
+
+**Notes:**
+- Abandonment is a terminal state — abandoned intentions cannot be reactivated
+- Recording a reason helps with future reflection on what didn't work
 
 ### defer
 
@@ -101,6 +172,12 @@ Move an intention to Future status.
 rei intention defer [id]
 ```
 
+**Notes:**
+- Deferred intentions move to **Future** status and are hidden from daily views
+- **Cascade behavior:** Deferring a parent automatically defers all active children
+- Future intentions allow structural changes (parent, horizon, context) but block operational changes
+- Use `activate` to bring a Future intention back to Active status
+
 ### activate
 
 Move a Future intention back to Active.
@@ -108,6 +185,10 @@ Move a Future intention back to Active.
 ```bash
 rei intention activate [id]
 ```
+
+**Notes:**
+- Only Future intentions can be activated
+- **Tree coherence:** Cannot activate an intention if its parent is still Future
 
 ### blocked
 
@@ -125,6 +206,19 @@ Show chronological event history for an intention.
 rei intention timeline [id]
 ```
 
+**Example output:**
+
+```
+Timeline: Learn Haskell
+
+2024-12-01  Created
+2024-12-01  Action: Set up development environment
+2024-12-03  Action: Completed first tutorial
+2024-12-05  Blocker: Can't understand monads
+2024-12-07  Blocker resolved
+2024-12-10  Outcome: Built first CLI tool
+```
+
 ### get-help
 
 Get AI-assisted help for an intention.
@@ -133,6 +227,13 @@ Get AI-assisted help for an intention.
 rei intention get-help [id]
 ```
 
+Launches an interactive Claude Code session with full context about the intention.
+
+**What it does:**
+1. Gathers comprehensive context about the intention
+2. Launches Claude Code interactively with research tools
+3. Helps you make progress by analyzing blockers and suggesting next steps
+
 ### set-context / clear-context
 
 Set or clear the context for a root intention.
@@ -140,6 +241,18 @@ Set or clear the context for a root intention.
 ```bash
 rei intention set-context [id] <context>
 rei intention clear-context [id]
+```
+
+**Notes:**
+- Context can only be set on root intentions
+- Child intentions and linked habits inherit context from the root
+
+### contexts
+
+List all contexts currently in use.
+
+```bash
+rei intention contexts
 ```
 
 ### set-horizon / clear-horizon
@@ -151,10 +264,19 @@ rei intention set-horizon [id] <horizon>
 rei intention clear-horizon [id]
 ```
 
+**Horizon formats:**
+- `1d` — 1 day
+- `1w` — 1 week
+- `1m` — 1 month
+- `1y` — 1 year
+- Custom text like `"end of quarter"`
+
 ### guidance
 
-Set custom AI guidance for an intention.
+Edit AI guidance for an intention (opens in $EDITOR).
 
 ```bash
-rei intention guidance [id] <text>
+rei intention guidance [id]
 ```
+
+This opens your configured editor to edit custom guidance that the AI coach uses when reviewing this intention.

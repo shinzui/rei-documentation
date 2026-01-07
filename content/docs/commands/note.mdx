@@ -4,7 +4,21 @@ description: Create and manage markdown notes
 icon: FileText
 ---
 
-Notes are markdown files stored in your workspace. They can contain free-form thoughts, meeting notes, ideas, and more.
+Create and manage markdown notes attached to entities.
+
+## Features
+
+### Automatic Title Extraction
+
+Notes automatically extract their title from the first `# ` (H1) heading in the markdown content. The title is displayed in note listings and stored for querying.
+
+### Task Extraction
+
+Notes can contain markdown task lists (`- [ ]` and `- [x]`). Tasks are:
+- Automatically discovered when notes are created or updated
+- Tracked with content-based hashing for idempotency
+- Propagated to their parent entities (intention, action, outcome, or reflection)
+- Synchronized bidirectionally (completing a task in the note updates the entity)
 
 ## Subcommands
 
@@ -17,63 +31,157 @@ rei note new [options]
 ```
 
 **Options:**
-- `-t, --title <title>` — Note title
-- `--tags <tags>` — Comma-separated tags
+- `-i, --intention <id>` — Attach to intention (optional if fzf is available)
+- `-a, --action <id>` — Attach to action
+- `-o, --outcome <id>` — Attach to outcome
+- `-r, --reflection <id>` — Attach to reflection
+- `-h, --habit <id>` — Attach to habit
+- `-t, --tag <tag>` — Add tag (repeatable)
+- `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
+- `--stdin` — Read content from stdin instead of opening editor
 
-Opens your editor to write the note content.
+Notes require an anchor entity (intention or habit), and can optionally be attached to a sub-entity (action, outcome, or reflection) when anchored to an intention.
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
 **Examples:**
 
 ```bash
-# Simple note
-rei note new --title "Meeting Notes"
+# Create a note for an intention
+rei note new -i intention_01h455vb4pex
 
-# Note with tags
-rei note new --title "Project Ideas" --tags "ideas,work"
+# Let fzf pick the intention interactively
+rei note new
+
+# Create a note for an action with tags
+rei note new -i intention_01h455vb4pex -a action_01h455vb4pex -t decision -t architecture
+
+# Create a note for a reflection
+rei note new -i intention_01h455vb4pex -r reflection_01h455vb4pex
+
+# Create a note for a habit
+rei note new --habit habit_01h455vb4pex
 ```
 
 ### list
 
-List all notes.
+List notes with their titles.
 
 ```bash
 rei note list [options]
 ```
 
 **Options:**
-- `-f, --format <format>` — Output format
-- `--tag <tag>` — Filter by tag
+- `-i, --intention <id>` — Filter by intention (includes notes on sub-entities)
+- `-a, --action <id>` — Filter by action
+- `-o, --outcome <id>` — Filter by outcome
+- `-r, --reflection <id>` — Filter by reflection
+- `-h, --habit <id>` — Filter by habit
+- `-t, --tag <tag>` — Filter by tag
+
+> **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
+
+**Intention Filter — Smart Aggregation:**
+
+When filtering by intention (`-i`), the command shows **all notes within that intention's scope**, including:
+- Notes attached directly to the intention
+- Notes attached to actions under that intention
+- Notes attached to outcomes under that intention
+- Notes attached to reflections under that intention
+
+Notes are grouped by anchor type for readability.
+
+**Examples:**
+
+```bash
+# List all notes for an intention (includes notes on actions, outcomes, reflections)
+rei note list -i intention_01h455vb4pex
+
+# List notes for a specific action only
+rei note list -a action_01h455vb4pex
+
+# List notes for a habit
+rei note list --habit habit_01h455vb4pex
+
+# List all notes with a specific tag
+rei note list --tag architecture
+
+# Use fzf to select an entity interactively
+rei note list
+```
 
 ### open
 
-Open a note for editing.
+Open a note in your editor.
 
 ```bash
-rei note open [id]
+rei note open [note-id]
 ```
 
-If ID is not provided and fzf is installed, you'll get an interactive picker.
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
 
-## Task Extraction
+> **FZF Support:** If note ID is not provided, an interactive picker will let you select from existing notes.
 
-Notes can contain markdown checkboxes that rei recognizes as tasks:
+**Behavior:**
+1. Opens the note file in your `$EDITOR`
+2. After editing, computes content hash and compares with stored hash
+3. If content changed, emits a `NoteContentUpdated` event
+4. Title and tasks are re-extracted automatically
 
-```markdown
-## Meeting Notes
+### add-tags
 
-- [x] Send follow-up email
-- [ ] Schedule next meeting
-- [ ] Review proposal
-```
-
-Extract tasks from a note:
+Add tags to an existing note.
 
 ```bash
-rei note extract-tasks [id]
+rei note add-tags [note-id] -t <tag> [-t <tag>...]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `-t, --tag <tag>` — Tag to add (required, repeatable)
+
+**Examples:**
+
+```bash
+# Add a single tag
+rei note add-tags note_01h455vb4pex -t decision
+
+# Add multiple tags
+rei note add-tags note_01h455vb4pex -t architecture -t important
+
+# Use fzf to select note
+rei note add-tags -t todo
+```
+
+### remove-tags
+
+Remove tags from an existing note.
+
+```bash
+rei note remove-tags [note-id] -t <tag> [-t <tag>...]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `-t, --tag <tag>` — Tag to remove (required, repeatable)
+
+**Examples:**
+
+```bash
+# Remove a single tag
+rei note remove-tags note_01h455vb4pex -t draft
+
+# Remove multiple tags
+rei note remove-tags note_01h455vb4pex -t temporary -t wip
 ```
 
 ## Workspace
 
-Notes are stored as markdown files in your workspace directory (default: `~/rei-workspace/notes/`).
+Notes are stored as markdown files in your workspace directory (default: `.rei/notes/`).
 
 You can edit them directly with any text editor or use `rei note open`.

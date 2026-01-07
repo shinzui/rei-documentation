@@ -1,0 +1,51 @@
+---
+title: Changelog
+description: Documentation updates and feature additions
+icon: History
+---
+
+Track documentation updates synchronized from the rei source repository.
+
+## 2026-01-07
+
+### New Command: Task Management
+
+Added full documentation for `rei task` commands:
+
+- `rei task list` — List tasks with filtering options (`--all`, `--include-completed`, `--due-today`, `--overdue`)
+- `rei task complete` — Mark tasks complete (syncs to markdown files)
+- `rei task reopen` — Reopen completed tasks
+- `rei task due` — Set or clear due dates with flexible formats
+
+### Habit Enhancements
+
+- **`rei habit rename`** — Rename existing habits
+- **`rei habit record-action`** — Simplified action recording with `--at` relative time support
+- **`rei habit update-action-template`** — Update or clear action templates
+- **`rei habit show --full`** — View full details including actions and focus
+- **JSON output** — Added `--json` flag to `show`, `list`, and `status` commands
+- **Blocker integration** — Habits auto-pause when blockers declared, auto-resume when resolved
+
+### Intention Enhancements
+
+- **`rei intention create --future`** — Create deferred intentions directly
+- **`rei intention contexts`** — List all contexts in use
+- **Status lifecycle** — Documented Active/Future/Completed/Abandoned states
+
+### Action Enhancements
+
+- **`rei action update-description`** — Update action descriptions after recording
+- **Relative time** — Full documentation for `--at` option (`2 hours ago`, `yesterday`, `-30m`)
+- **Duration formats** — Documented all formats (`30m`, `1h30m`, `1.5h`, etc.)
+
+### Note Enhancements
+
+- **`--habit` flag** — Attach notes to habits with `rei note new --habit` and `rei note list --habit`
+- **Smart aggregation** — `rei note list -i` shows all notes within an intention's scope
+- **Tag commands** — Added `add-tags` and `remove-tags` subcommands
+
+---
+
+## Earlier Updates
+
+Documentation site launched with coverage of core rei concepts and commands.

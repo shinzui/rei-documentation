@@ -1,0 +1,163 @@
+---
+title: rei task
+description: Manage tasks discovered from notes
+icon: CheckSquare
+---
+
+Manage tasks discovered from notes and markdown files. Tasks are extracted from checkbox items (`- [ ]` / `- [x]`) in notes attached to intentions, actions, outcomes, and reflections.
+
+## Subcommands
+
+### list
+
+List tasks for an entity.
+
+```bash
+rei task list [options]
+```
+
+**Options:**
+- `-i, --intention <id>` — List tasks for an intention
+- `-a, --action <id>` — List tasks for an action
+- `-o, --outcome <id>` — List tasks for an outcome
+- `-r, --reflection <id>` — List tasks for a reflection
+- `--all` — List all tasks across all entities (makes entity selection optional)
+- `--include-completed` — Include completed tasks in output
+- `--due-before <date>` — Filter tasks due before DATE (YYYY-MM-DD)
+- `--due-after <date>` — Filter tasks due after DATE (YYYY-MM-DD)
+- `--due-today` — Show only tasks due today
+- `--overdue` — Show only overdue tasks
+- `--sort-due` — Sort by due date (earliest first)
+
+> **FZF Support:** If no entity ID is provided and `--all` is not specified, an interactive picker will let you select from available entities.
+
+**Examples:**
+
+```bash
+# List tasks for an intention
+rei task list -i intention_01abc...
+
+# List tasks including completed ones
+rei task list -i intention_01abc... --include-completed
+
+# List all tasks across all entities
+rei task list --all
+
+# List all tasks including completed
+rei task list --all --include-completed
+
+# Show tasks due today
+rei task list --due-today
+
+# Show all overdue tasks sorted by due date
+rei task list --all --overdue --sort-due
+
+# Show tasks due before a specific date
+rei task list --due-before 2026-01-15
+
+# Interactive selection with fzf
+rei task list
+```
+
+**Output:**
+- Pending tasks shown with `[ ]`
+- Completed tasks shown with `[x]`
+- Due date indicators: `[OVERDUE Nd]`, `[DUE TODAY]`, `[DUE TOMORROW]`
+
+### complete
+
+Mark a task as complete.
+
+```bash
+rei task complete <task-id>
+```
+
+**Arguments:**
+- `<task-id>` — Task ID (required)
+
+**Notes:**
+- Automatically syncs checkbox state to the original markdown file(s)
+- Updates all notes containing the task
+
+### reopen
+
+Reopen a completed task.
+
+```bash
+rei task reopen <task-id>
+```
+
+**Arguments:**
+- `<task-id>` — Task ID (required)
+
+**Notes:**
+- Automatically syncs checkbox state to the original markdown file(s)
+
+### due
+
+Set or clear a task's due date.
+
+```bash
+rei task due <task-id> [date]
+```
+
+**Arguments:**
+- `<task-id>` — Task ID (required)
+- `[date]` — Due date (optional, see formats below)
+
+**Options:**
+- `--clear` — Clear the due date
+
+**Date formats:**
+- `YYYY-MM-DD` — Absolute date (e.g., `2026-01-15`)
+- `today` — Today's date
+- `tomorrow` — Tomorrow's date
+- `+Nd` — N days from today (e.g., `+3d` for 3 days)
+- `+Nw` — N weeks from today (e.g., `+1w` for 1 week)
+
+**Examples:**
+
+```bash
+# Set due date to specific date
+rei task due task_01abc... 2026-01-15
+
+# Set due date to tomorrow
+rei task due task_01abc... tomorrow
+
+# Set due date to 3 days from now
+rei task due task_01abc... +3d
+
+# Set due date to 2 weeks from now
+rei task due task_01abc... +2w
+
+# Clear the due date
+rei task due task_01abc... --clear
+```
+
+## How Tasks Work
+
+Tasks are automatically discovered when you:
+1. Create or update a note attached to an entity (intention, action, outcome, reflection)
+2. The note contains markdown checkbox items
+
+**Checkbox syntax:**
+
+```markdown
+- [ ] This is a pending task
+- [x] This is a completed task
+```
+
+When you complete/reopen a task via the CLI, Rei automatically updates the checkbox in the original markdown file(s).
+
+## Due Date Display
+
+When listing tasks, due dates are displayed with helpful indicators:
+
+| Status | Display |
+|--------|---------|
+| Overdue by N days | `[OVERDUE Nd]` (highlighted) |
+| Due today | `[DUE TODAY]` |
+| Due tomorrow | `[DUE TOMORROW]` |
+| Future due date | Shows date only |
+
+Completed tasks don't show overdue indicators.

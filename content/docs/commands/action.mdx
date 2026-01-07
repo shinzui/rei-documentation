@@ -1,58 +1,116 @@
 ---
 title: rei action
 description: Record actions taken toward intentions
-icon: Play
+icon: Zap
 ---
 
-Actions record the concrete work you do toward your intentions.
+Record actions taken toward intentions. Actions are the concrete steps and work you do.
 
 ## Subcommands
 
 ### record
 
-Record an action.
+Record an action for an intention.
 
 ```bash
-rei action record <description> [options]
+rei action record [description] [options]
 ```
 
 **Arguments:**
-- `<description>` — What you did
+- `[description]` — Description of the action (optional, can be provided via stdin)
 
 **Options:**
-- `-i, --intention <id>` — Link to a specific intention
-- `-d, --duration <duration>` — How long it took (e.g., `30m`, `1h`, `1h30m`)
-- `--at <timestamp>` — When it happened (defaults to now)
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--habit <id>` — Link to a habit (optional)
+- `-t, --at <time>` — When action was completed (optional, defaults to now)
+- `-d, --duration <duration>` — How long the action took (optional)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Time Semantics:**
+
+When recording an action with a duration:
+- `--at` specifies when the action was **completed** (defaults to now)
+- `--duration` specifies how long the action **took**
+- The start time is implicitly `completed_at - duration`
+
+**Relative Time (--at):**
+
+The `--at` option accepts human-readable relative time expressions:
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+**Duration Formats (--duration):**
+
+The `--duration` option accepts human-friendly duration expressions:
+- Minutes: `30m`, `30min`, `30 minutes`
+- Hours: `1h`, `1hr`, `2 hours`
+- Combined: `1h30m`, `1h 30m`
+- Decimal: `1.5h`, `0.5h`
+- Bare number: `90` (interpreted as minutes)
 
 **Examples:**
 
 ```bash
-# Simple action
-rei action record "Wrote morning pages"
+# Record with description as argument
+rei action record -i intention_01h455vb4pex "Implemented user authentication"
 
-# With duration
-rei action record "Worked on homepage design" --duration 45m
+# Let fzf pick the intention interactively
+rei action record "Implemented user authentication"
 
-# Linked to intention
-rei action record "Drafted blog post outline" \
-  --intention intention_01h455vb4pex \
-  --duration 30m
+# Record with duration
+rei action record "Wrote unit tests" --duration 45m
 
-# At a specific time
-rei action record "Team meeting" --at "2024-01-15 10:00"
+# Record with duration (combined format)
+rei action record "Code review" -d 1h30m
+
+# Record with description via stdin (useful for multi-line)
+echo "Refactored the entire module" | rei action record -i intention_01h455vb4pex
+
+# Record a habit-linked action with duration
+rei action record --habit habit_01h455vb4pex "Wrote 500 words" -d 30m
+
+# Record an action that finished 2 hours ago, took 45 minutes
+rei action record "Fixed the bug" --at "2 hours ago" --duration 45m
+
+# Record an action from yesterday (short form)
+rei action record "Reviewed the PR" -t yesterday -d 1h
+
+# Record using short form time
+rei action record "Wrote documentation" -t "-30m" -d 20m
 ```
 
-## Duration Format
+### update-description
 
-Durations can be specified as:
-- `30m` — 30 minutes
-- `1h` — 1 hour
-- `1h30m` — 1 hour 30 minutes
-- `90m` — 90 minutes
+Update the description of an existing action.
+
+```bash
+rei action update-description [action-id] [description]
+```
+
+**Arguments:**
+- `[action-id]` — Action ID (optional if fzf is available)
+- `[description]` — New description (optional, can be provided via stdin)
+
+> **FZF Support:** If the action ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Update with explicit ID and description
+rei action update-description action_01h455vb4pex "Revised implementation approach"
+
+# Let fzf pick the action
+rei action update-description "Revised implementation approach"
+
+# Provide description via stdin
+echo "Multi-line description here" | rei action update-description action_01h455vb4pex
+```
 
 ## Viewing Actions
 
 Actions appear in:
-- `rei today` — Today's dashboard
+- `rei today` — Today's dashboard (displays durations when present)
 - `rei intention show --full` — When viewing an intention
 - `rei intention timeline` — Chronological history
