@@ -1,73 +1,204 @@
 ---
 title: rei cycle
-description: Manage daily cycles for focus tracking
-icon: Clock
+description: Manage focus cycles for tracking daily focus selections
+icon: RefreshCw
 ---
 
-Cycles are bounded time periods (typically a day) for tracking which focus areas you engaged with.
+Manage focus cycles. A cycle is a bounded time period for tracking daily focus selections.
 
 ## Subcommands
 
 ### start
 
-Start a new cycle for today.
+Start a new cycle.
 
 ```bash
-rei cycle start
+rei cycle start [options]
 ```
+
+**Options:**
+- `-l, --length <days>` — Cycle length in days (required)
+- `-n, --name <name>` — Optional name for the cycle
+- `-d, --start-date <date>` — Start date (defaults to today, format: YYYY-MM-DD)
+
+**Examples:**
+
+```bash
+# Start a 10-day cycle
+rei cycle start --length 10
+
+# Start a named 7-day cycle
+rei cycle start --length 7 --name "Week 1"
+
+# Start a cycle with a specific start date
+rei cycle start --length 10 --start-date 2025-01-01
+```
+
+**Notes:**
+- Only one cycle can be active at a time
+- Starting a new cycle when one is active will fail
 
 ### status
 
-Show current cycle status.
+Show the status of the active cycle.
 
 ```bash
 rei cycle status
 ```
 
-Shows:
-- Whether a cycle is active
-- Which focus areas have been selected
-- Time remaining in the cycle
+**Output:**
+
+```
+Active Cycle:
+  ID: cycle_01abc...
+  Start: 2025-01-01
+  End: 2025-01-10
+  Length: 10 days
+  Progress: 3/10 days with focus selected
+
+Daily Focus Selections:
+  2025-01-01: focus_01abc... (Connect)
+  2025-01-02: focus_01def... (Study)
+  2025-01-03: focus_01ghi... (Create)
+```
 
 ### select-focus
 
-Select a focus area for the current cycle.
+Select a focus for today (or change a previous day's selection).
 
 ```bash
-rei cycle select-focus [focus-id]
+rei cycle select-focus [focus-id] [options]
 ```
 
-Records that you engaged with this focus area today.
+**Arguments:**
+- `[focus-id]` — Focus ID (optional, interactive selection if omitted)
+
+**Options:**
+- `-d, --date <date>` — Date to set focus for (defaults to today, format: YYYY-MM-DD)
+
+**Examples:**
+
+```bash
+# Interactive selection for today
+rei cycle select-focus
+
+# Direct selection for today
+rei cycle select-focus focus_01abc...
+
+# Set focus for a past date
+rei cycle select-focus focus_01abc... --date 2025-01-01
+```
+
+**Notes:**
+- Can only select focus for dates within the cycle bounds
+- Can only select focus for today or past dates (no future planning)
+- Selecting a new focus for a date that already has one will change it
 
 ### complete
 
-Complete the current cycle.
+Mark the active cycle as completed.
 
 ```bash
 rei cycle complete
 ```
 
-Marks the cycle as successfully finished.
+**Notes:**
+- Completed cycles are terminal — they cannot be modified
+- You can complete a cycle before all days have focus selections
 
 ### abandon
 
-Abandon the current cycle.
+Abandon the active cycle.
 
 ```bash
 rei cycle abandon
 ```
 
-Use when the day didn't go as planned and tracking isn't meaningful.
+**Notes:**
+- Abandoned cycles are terminal — they cannot be modified
+- Use this when you want to start fresh without completing the current cycle
+
+### list
+
+List all cycles.
+
+```bash
+rei cycle list
+```
+
+**Output:**
+
+```
+Cycles (3):
+
+  [*] 2025-01-11 - 2025-01-20 (cycle_01xyz...)
+  [✓] 2025-01-01 - 2025-01-10 (cycle_01abc...)
+  [x] "Failed Attempt" 2024-12-20 - 2024-12-29 (cycle_01def...)
+```
+
+Status indicators:
+- `[*]` — Active
+- `[✓]` — Completed
+- `[x]` — Abandoned
+
+### show
+
+Show details of a specific cycle.
+
+```bash
+rei cycle show <cycle-id>
+```
+
+**Arguments:**
+- `<cycle-id>` — Cycle ID (required)
+
+**Output:**
+
+```
+Cycle: cycle_01abc...
+  Name: Week 1
+  Status: Completed
+  Start: 2025-01-01
+  End: 2025-01-07
+  Length: 7 days
+  Days with focus: 7/7
+  Created: 2025-01-01 08:00:00 UTC
+  Completed: 2025-01-07 22:00:00 UTC
+
+Daily Focus Selections:
+  2025-01-01: focus_01abc... (Connect)
+  2025-01-02: focus_01def... (Study)
+  ...
+```
 
 ## Typical Workflow
 
 ```bash
-# Morning: start the day
-rei cycle start
+# 1. Set up focus areas (one-time)
+rei focus import anatomy-of-equanimity
 
-# Throughout the day: record focus areas
-rei cycle select-focus <focus-id>
+# 2. Start a cycle
+rei cycle start --length 10 --name "January Cycle"
 
-# End of day: complete the cycle
+# 3. Each day, select your focus
+rei cycle select-focus
+
+# 4. Check your progress
+rei cycle status
+
+# 5. At the end, complete the cycle
 rei cycle complete
+
+# 6. Start a new cycle
+rei cycle start --length 10
 ```
+
+## Integration with Focus Areas
+
+Cycles work with focus areas to track daily time allocation:
+
+- Focus areas define *what* categories of activity exist
+- Cycles define *when* you're tracking (bounded time periods)
+- Daily selections record *which* focus you chose each day
+
+This creates a rhythm of intentional daily focus without rigid scheduling.
