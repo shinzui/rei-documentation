@@ -1,0 +1,167 @@
+---
+title: rei support
+description: Manage support relationships between intentions
+icon: Link2
+---
+
+Manage support relationships between intentions. Support relationships indicate that one intention helps or enables another, without creating a strict dependency.
+
+## Concept
+
+Unlike dependencies (which block progress), supports are informational relationships that help you understand how your intentions relate to each other. For example:
+- "Learn Haskell" **supports** "Build personal website" (learning helps but doesn't block)
+- "Exercise regularly" **supports** "Improve focus at work"
+
+Support relationships appear in the `intention show --full` output under "Supports" and "Supported By" sections.
+
+## Subcommands
+
+### add
+
+Add a support relationship between two intentions.
+
+```bash
+rei support add [options]
+```
+
+**Options:**
+- `-f, --from <id>` — The supporting intention (uses FZF if not provided)
+- `-t, --to <id>` — The intention being supported (uses FZF if not provided)
+- `-n, --note <text>` — Optional description of the support relationship
+- `-a, --actor <actor>` — Actor that created this entity (e.g., `claude-code`, `user`)
+
+> **FZF Support:** If `--from` or `--to` are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select intentions.
+>
+> **Interactive Toggle:** Press `ctrl-f` in the FZF picker to toggle between viewing only active intentions and viewing all intentions (active + future). This lets you quickly find future intentions without restarting the command.
+
+**Valid Intentions:**
+
+Support relationships can be declared on both **Active** and **Future** intentions. This allows you to plan support relationships for work you haven't started yet. Completed and Abandoned intentions cannot have supports added.
+
+**Examples:**
+
+```bash
+# Add support with explicit IDs
+rei support add --from intention_abc123 --to intention_def456
+
+# Add support with a note
+rei support add --from intention_abc123 --to intention_def456 --note "Learning enables implementation"
+
+# Let FZF guide selection
+rei support add
+```
+
+**Notes:**
+- An intention cannot support itself
+- Both intentions must exist
+- The support relationship is directional: "from" supports "to"
+
+### remove
+
+Remove a support relationship.
+
+```bash
+rei support remove [options] <support-id>
+```
+
+**Arguments:**
+- `<support-id>` — The support ID to remove (required)
+
+**Options:**
+- `-f, --from <id>` — The supporting intention (uses FZF if not provided)
+
+> **FZF Support:** If `--from` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select the supporting intention.
+
+**Examples:**
+
+```bash
+# Remove with explicit IDs
+rei support remove --from intention_abc123 support_xyz789
+
+# Let FZF select the intention
+rei support remove support_xyz789
+```
+
+### show
+
+Show what an intention supports (outgoing support relationships).
+
+```bash
+rei support show [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Show with explicit ID
+rei support show intention_abc123
+
+# Let FZF pick the intention
+rei support show
+```
+
+**Output:**
+
+```
+What intention_abc123 supports:
+  → intention_def456
+    ID: support_xyz789
+    Note: Learning enables implementation
+    Declared: 2026-01-09 10:30:00
+```
+
+### supported-by
+
+Show what supports an intention (incoming support relationships).
+
+```bash
+rei support supported-by [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Show with explicit ID
+rei support supported-by intention_def456
+
+# Let FZF pick the intention
+rei support supported-by
+```
+
+**Output:**
+
+```
+What supports intention_def456:
+  ← intention_abc123
+    ID: support_xyz789
+    Note: Learning enables implementation
+    Declared: 2026-01-09 10:30:00
+```
+
+## Viewing Supports in Intention Details
+
+Support relationships also appear when viewing intention details with `--full`:
+
+```bash
+rei intention show intention_abc123 --full
+```
+
+The output includes:
+
+```
+─── Supports ───────────────────────────────────────────────────────────────────
+  -> Build personal website - Learning enables implementation
+
+─── Supported By ───────────────────────────────────────────────────────────────
+  <- Study functional programming
+```

@@ -126,6 +126,8 @@ rei intention show [id] [options]
 - Recorded outcomes
 - Active blockers
 - Dependencies
+- Supports (what this intention supports)
+- Supported By (what supports this intention)
 - Associated notes (with titles if available)
 - Attached links and documents
 - Child intentions
@@ -139,7 +141,38 @@ rei intention tree [options]
 ```
 
 **Options:**
+- `-f, --future` — Show future intentions with their parent chains
+- `-a, --all` — Show both active and future intentions with status indicators
+- `--completed` — Show completed intentions with their parent chains
 - `-c, --context <context>` — Filter by context
+
+**Examples:**
+
+```bash
+# Default: show active intentions only
+rei intention tree
+
+# Show future intentions (with ancestor chains for context)
+rei intention tree --future
+
+# Show both active and future intentions
+rei intention tree --all
+
+# Show completed intentions (with ancestor chains for context)
+rei intention tree --completed
+
+# Filter by context
+rei intention tree --context work
+
+# Combine flags
+rei intention tree --future --context personal
+```
+
+**Output:**
+- Default view shows only active intentions in tree format
+- `--future` shows future intentions with their active parent chains (future items highlighted in cyan)
+- `--completed` shows completed intentions with their parent chains (completed items highlighted in green)
+- `--all` shows active and future together, with `(future)` indicators on deferred items
 
 ### complete
 

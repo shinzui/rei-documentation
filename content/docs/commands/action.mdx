@@ -34,12 +34,20 @@ When recording an action with a duration:
 - `--duration` specifies how long the action **took**
 - The start time is implicitly `completed_at - duration`
 
-**Relative Time (--at):**
+**Time Expressions (--at):**
 
-The `--at` option accepts human-readable relative time expressions:
+The `--at` option accepts both relative time expressions and absolute ISO 8601 timestamps:
+
+*Relative times:*
 - Keywords: `now`, `today`, `yesterday`, `tomorrow`
 - Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
 - Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+*Absolute timestamps (ISO 8601):*
+- UTC: `2024-01-15T14:30:00Z`
+- With timezone offset: `2024-01-15T14:30:00+09:00`, `2024-01-15T14:30:00-05:00`
+- Space separator: `2024-01-15 14:30:00Z`
+- Local time (uses system timezone): `2024-01-15T14:30:00`
 
 **Duration Formats (--duration):**
 

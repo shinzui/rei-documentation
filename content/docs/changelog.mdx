@@ -6,6 +6,40 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-09
+
+### New Command: Support Relationships
+
+Manage support relationships between intentions with the new `rei support` command:
+
+- `rei support add` — Declare that one intention supports another
+- `rei support show` — View what an intention supports
+- `rei support supported-by` — View what supports an intention
+- `rei support remove` — Remove a support relationship
+
+Support relationships are informational (unlike dependencies which block progress), helping you understand how intentions relate. For example: "Learn Haskell" **supports** "Build personal website".
+
+### Action Enhancements
+
+- **ISO 8601 timestamps** — The `--at` option now accepts absolute timestamps in addition to relative times:
+  - UTC: `2024-01-15T14:30:00Z`
+  - With timezone: `2024-01-15T14:30:00+09:00`
+  - Local time: `2024-01-15T14:30:00`
+
+### Intention Enhancements
+
+- **`rei intention tree`** — New filtering options:
+  - `--future` — Show future intentions with parent chains
+  - `--all` — Show both active and future intentions
+  - `--completed` — Show completed intentions with parent chains
+- **`rei intention show --full`** — Now displays "Supports" and "Supported By" sections
+
+### FZF Enhancements
+
+- **Interactive Toggle** — Press `ctrl-f` in FZF pickers to toggle between active-only and all intentions (active + future)
+
+---
+
 ## 2026-01-08
 
 ### New Command: Neglected Intentions

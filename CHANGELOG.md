@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `724e0a8` (2026-01-08)
+**Last Source Commit Reviewed:** `a999540` (2026-01-09)
 
 ---
 
 ## Changelog
+
+### 2026-01-09
+
+**Reviewed commits:** `724e0a8` through `a999540`
+
+**Files updated:**
+- `action.mdx` — Added ISO 8601 absolute timestamp support for `--at` option
+- `intention.mdx` — Added tree command options (`--future`, `--all`, `--completed`), added Supports/Supported By to full view
+- `support.mdx` — **NEW** — Full support command documentation
+- `commands/index.mdx` — Added support command to Core Commands, added FZF interactive toggle documentation
+
+**Features documented:**
+- ISO 8601 timestamp support for action recording (`2024-01-15T14:30:00Z`, timezone offsets)
+- Support relationships between intentions (`support add`, `show`, `supported-by`, `remove`)
+- FZF interactive toggle (`ctrl-f` to switch between active/all intentions)
+- Intention tree view options (future, all, completed filtering)
+
+**Navigation updated:**
+- Added `support` to commands navigation in meta.json
+
+---
 
 ### 2026-01-08
 
