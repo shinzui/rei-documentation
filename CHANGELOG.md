@@ -5,11 +5,30 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `3aafe3c` (2026-01-07)
+**Last Source Commit Reviewed:** `724e0a8` (2026-01-08)
 
 ---
 
 ## Changelog
+
+### 2026-01-08
+
+**Reviewed commits:** `3aafe3c` through `724e0a8`
+
+**Files updated:**
+- `action.mdx` — Added `update-occurred-at` command for correcting action timestamps
+- `habit.mdx` — Added `--duration` option to `record-action`, added `update-action-occurred-at` command
+- `commands/index.mdx` — Added `neglected` command to dashboard commands section, enhanced `today` dashboard description
+
+**Features documented:**
+- Action timestamp correction (`action update-occurred-at`)
+- Habit action duration tracking (`habit record-action --duration`)
+- Habit action timestamp correction (`habit update-action-occurred-at`)
+- Neglected intentions finder (`neglected --days --context`)
+- Enhanced today dashboard (Completed Today section)
+- Enhanced info command (workspace, notes, reflections, database status)
+
+---
 
 ### 2026-01-07
 

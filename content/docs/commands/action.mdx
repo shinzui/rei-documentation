@@ -108,7 +108,49 @@ rei action update-description "Revised implementation approach"
 echo "Multi-line description here" | rei action update-description action_01h455vb4pex
 ```
 
-## Viewing Actions
+### update-occurred-at
+
+Update when an action occurred. Useful for correcting mistakes when the wrong time was initially recorded.
+
+```bash
+rei action update-occurred-at <time> [options]
+```
+
+**Arguments:**
+- `<time>` — When the action occurred (required, relative time expression)
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select from available options.
+
+**Relative Time:**
+
+The time argument accepts human-readable relative time expressions:
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+> **Note:** When using short forms starting with `-` (like `-2h`), use `--` to separate options from the argument: `rei action update-occurred-at -- -2h`
+
+**Examples:**
+
+```bash
+# Update with explicit IDs
+rei action update-occurred-at --action action_01h455vb4pex --intention intention_01xyz "2 hours ago"
+
+# Let fzf pick the action and intention
+rei action update-occurred-at "yesterday"
+
+# Update to 30 minutes ago
+rei action update-occurred-at --action action_01h455vb4pex --intention intention_01xyz "30 minutes ago"
+
+# Using short form (note the -- separator)
+rei action update-occurred-at --action action_01h455vb4pex --intention intention_01xyz -- "-2h"
+```
+
+## Related Commands
 
 Actions appear in:
 - `rei today` — Today's dashboard (displays durations when present)

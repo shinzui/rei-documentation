@@ -6,6 +6,38 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-08
+
+### New Command: Neglected Intentions
+
+Find intentions that haven't had any activity in a specified number of days:
+
+- `rei neglected` — Find intentions with no activity in 10+ days (default)
+- `rei neglected --days 30` — Customize the threshold
+- `rei neglected --context work` — Filter by context
+
+Output shows color-coded severity based on inactivity duration.
+
+### Action Enhancements
+
+- **`rei action update-occurred-at`** — Correct when an action occurred after recording
+  - Supports relative time expressions (`2 hours ago`, `yesterday`, `-2h`)
+  - FZF integration for selecting action and intention
+
+### Habit Enhancements
+
+- **`rei habit record-action --duration`** — Track how long habit actions took
+  - Supports all duration formats (`30m`, `1h30m`, `1.5h`, etc.)
+- **`rei habit update-action-occurred-at`** — Correct timestamps for habit actions
+  - FZF integration for selecting habit then action
+
+### Dashboard Enhancements
+
+- **`rei today`** — Now shows **Completed Today** section with intentions finished today
+- **`rei info`** — Enhanced to show workspace path, note count, reflection count, and database status
+
+---
+
 ## 2026-01-07
 
 ### New Command: Task Management

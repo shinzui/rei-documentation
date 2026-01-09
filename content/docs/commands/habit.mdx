@@ -175,6 +175,7 @@ rei habit record-action [habit-id] [description]
 **Options:**
 - `-a, --actor <actor>` — Actor that created this action (e.g., `claude-code`, `user`)
 - `-t, --at <time>` — When action was performed (optional, defaults to now)
+- `-d, --duration <duration>` — How long the action took (optional)
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
 
@@ -184,6 +185,15 @@ The `--at` option accepts human-readable relative time expressions:
 - Keywords: `now`, `today`, `yesterday`, `tomorrow`
 - Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
 - Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+**Duration Formats:**
+
+The `--duration` option accepts human-friendly duration expressions:
+- Minutes: `30m`, `30min`, `30 minutes`
+- Hours: `1h`, `1hr`, `2 hours`
+- Combined: `1h30m`, `1h 30m`
+- Decimal: `1.5h`, `0.5h`
+- Bare number: `90` (interpreted as minutes)
 
 **Examples:**
 
@@ -197,11 +207,20 @@ rei habit record-action habit_01abc... "Morning session completed"
 # Use habit's action template as description (select via fzf)
 rei habit record-action
 
+# Pipe description from stdin
+echo "Writing session notes..." | rei habit record-action habit_01abc...
+
 # Record an action that happened 2 hours ago
 rei habit record-action "Morning meditation" --at "2 hours ago"
 
 # Record yesterday's habit completion
 rei habit record-action habit_01abc... -t yesterday
+
+# Record with duration
+rei habit record-action "Morning meditation" --duration 20m
+
+# Record with both time and duration
+rei habit record-action "Evening workout" --at "3 hours ago" -d 45m
 ```
 
 ### update-action-template
@@ -231,6 +250,49 @@ rei habit update-action-template habit_01abc... "Morning meditation complete"
 # Clear the template
 rei habit update-action-template habit_01abc... --clear
 ```
+
+### update-action-occurred-at
+
+Update when a habit action occurred. Useful for correcting mistakes when the wrong time was initially recorded.
+
+```bash
+rei habit update-action-occurred-at [habit-id] <time> [options]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `<time>` — When the action occurred (required, relative time expression)
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select first the habit, then from the habit's actions.
+
+**Relative Time:**
+
+The time argument accepts human-readable relative time expressions:
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+> **Note:** When using short forms starting with `-` (like `-2h`), use `--` to separate options from the argument.
+
+**Examples:**
+
+```bash
+# Update with explicit IDs
+rei habit update-action-occurred-at habit_01abc... --action action_01xyz "2 hours ago"
+
+# Let fzf pick the habit and action
+rei habit update-action-occurred-at "yesterday"
+
+# Update specific habit's action to 30 minutes ago
+rei habit update-action-occurred-at habit_01abc... "30 minutes ago"
+```
+
+**Notes:**
+- Only works for habits that are linked to an intention
+- Updates the action's occurred_at timestamp in the linked intention's event stream
 
 ### update-schedule
 
