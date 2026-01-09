@@ -1,6 +1,6 @@
 ---
 title: Focus & Cycles
-description: Organizing your time through focus areas and daily cycles
+description: Organizing your time through focus areas and cycles
 icon: Clock
 ---
 
@@ -49,11 +49,14 @@ rei focus retire <id>
 
 ## What is a Cycle?
 
-A cycle is a bounded time period (typically a day) for tracking which focus areas you engaged with.
+A cycle is a bounded time period for tracking which focus areas you engaged with each day. You define the cycle length (e.g., 7 days, 10 days) and select one focus per day.
 
 ```bash
-# Start today's cycle
-rei cycle start
+# Start a 10-day cycle
+rei cycle start --length 10
+
+# Start a named 7-day cycle
+rei cycle start --length 7 --name "Week 1"
 
 # See current cycle status
 rei cycle status
@@ -61,20 +64,26 @@ rei cycle status
 
 ## Recording Focus
 
-During a cycle, record which focus areas you engaged with:
+Each day during a cycle, record which focus area you're engaging with:
 
 ```bash
-# Select a focus for the current cycle
+# Select a focus for today (interactive)
+rei cycle select-focus
+
+# Select a specific focus
 rei cycle select-focus <focus-id>
+
+# Update a past day's focus
+rei cycle select-focus <focus-id> --date 2025-01-05
 ```
 
-At the end of the day:
+At the end of the cycle:
 
 ```bash
 # Complete the cycle
 rei cycle complete
 
-# Or abandon if the day went sideways
+# Or abandon if you want to start fresh
 rei cycle abandon
 ```
 
