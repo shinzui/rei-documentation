@@ -5,11 +5,36 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `a999540` (2026-01-09)
+**Last Source Commit Reviewed:** `7b68f45` (2026-01-10)
 
 ---
 
 ## Changelog
+
+### 2026-01-10
+
+**Reviewed commits:** `a999540` through `7b68f45`
+
+**Files updated:**
+- `reminder.mdx` — **NEW** — Full reminder command documentation
+- `habit.mdx` — Added `tracker` subcommand, added Reminders section with `remind` shortcut
+- `intention.mdx` — Added `remind` shortcut command
+- `note.mdx` — Added `get-help` and `remind` subcommands
+- `outcome.mdx` — Enhanced `record` with FZF support, `--at` option, stdin support, and ISO 8601 timestamps
+- `commands/index.mdx` — Added reminder to Time Commands, added triggered reminders to dashboard description
+
+**Features documented:**
+- Reminder command (`reminder create`, `list`, `show`, `complete`, `snooze`, `cancel`, `reschedule`, `check`)
+- Reminder shortcuts (`intention remind`, `habit remind`, `note remind`)
+- Habit adherence tracker (`habit tracker --days`)
+- Note AI help (`note get-help`)
+- Outcome recording enhancements (FZF, relative time, ISO 8601, stdin)
+- Dashboard triggered reminders integration
+
+**Navigation updated:**
+- Added `reminder` to commands navigation
+
+---
 
 ### 2026-01-09
 

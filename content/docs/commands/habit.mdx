@@ -132,6 +132,37 @@ rei habit status
 rei habit status --json
 ```
 
+### tracker
+
+Show a visual adherence tracker for a habit over the last N days.
+
+```bash
+rei habit tracker [habit-id] [options]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+
+**Options:**
+- `-d, --days <days>` — Number of days to show (default: 30)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Show last 30 days (default)
+rei habit tracker habit_01abc...
+
+# Show last 60 days
+rei habit tracker habit_01abc... --days 60
+
+# Let fzf pick the habit
+rei habit tracker
+```
+
+The tracker displays a calendar-like grid showing which days had recorded actions, making it easy to visualize streaks and identify patterns.
+
 ### rename
 
 Rename a habit.
@@ -411,3 +442,34 @@ rei blocker resolve --habit habit_01abc... blocker_01xyz...
 When the **last blocker** on a habit is resolved, the habit **automatically resumes**.
 
 See [`rei blocker`](/docs/commands/blocker) for complete blocker command documentation.
+
+## Reminders
+
+### remind
+
+Create a reminder for a habit. This is a shortcut for `rei reminder create --habit`.
+
+```bash
+rei habit remind [habit-id] <description> --at <time>
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `<description>` — Reminder description
+
+**Options:**
+- `-t, --at <time>` — When to trigger the reminder (required)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Create a reminder for tomorrow
+rei habit remind habit_01abc... "Check streak progress" --at tomorrow
+
+# Let fzf pick the habit
+rei habit remind "Time to review habit" --at "1 week"
+```
+
+See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.

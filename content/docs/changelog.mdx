@@ -6,6 +6,51 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-10
+
+### New Command: Reminders
+
+Create and manage time-based reminders with the new `rei reminder` command:
+
+- `rei reminder create` — Create reminders for intentions, habits, actions, or notes
+- `rei reminder list` — List reminders with filtering (triggered, pending, by entity)
+- `rei reminder complete` — Mark a reminder as completed
+- `rei reminder snooze` — Snooze triggered reminders to a later time
+- `rei reminder cancel` — Cancel a reminder
+- `rei reminder reschedule` — Reschedule a pending reminder
+- `rei reminder check` — Quick view of triggered reminders
+
+Reminders support flexible time formats including relative expressions (`2 hours`, `tomorrow`) and ISO 8601 timestamps.
+
+### Reminder Shortcuts
+
+Create reminders directly from entity commands:
+
+- `rei intention remind` — Create reminder for an intention
+- `rei habit remind` — Create reminder for a habit
+- `rei note remind` — Create reminder for a note
+
+### Habit Enhancements
+
+- **`rei habit tracker`** — Visual adherence tracker showing a calendar grid of completed days
+  - Customize with `--days` option (default: 30 days)
+  - Great for visualizing streaks and patterns
+
+### Note Enhancements
+
+- **`rei note get-help`** — Get AI-assisted help with a note via Claude Code
+
+### Outcome Enhancements
+
+- **`rei outcome record`** — Enhanced with FZF support, stdin input, and `--at` option
+  - Record outcomes at specific times with relative or ISO 8601 timestamps
+
+### Dashboard Integration
+
+- Triggered reminders now appear in the `rei today` dashboard
+
+---
+
 ## 2026-01-09
 
 ### New Command: Support Relationships

@@ -180,6 +180,58 @@ rei note remove-tags note_01h455vb4pex -t draft
 rei note remove-tags note_01h455vb4pex -t temporary -t wip
 ```
 
+### get-help
+
+Get AI help with a note. This launches an interactive Claude Code session with context about the note.
+
+```bash
+rei note get-help [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Get help with a specific note
+rei note get-help note_01h455vb4pex
+
+# Use fzf to select note
+rei note get-help
+```
+
+### remind
+
+Create a reminder for a note. This is a shortcut for `rei reminder create --note`.
+
+```bash
+rei note remind [note-id] <description> --at <time>
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+- `<description>` — Reminder description
+
+**Options:**
+- `-t, --at <time>` — When to trigger the reminder (required)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Create a reminder for tomorrow
+rei note remind note_01abc... "Review and update" --at tomorrow
+
+# Let fzf pick the note
+rei note remind "Follow up on notes" --at "1 week"
+```
+
+See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
+
 ## Workspace
 
 Notes are stored as markdown files in your workspace directory (default: `.rei/notes/`).

@@ -13,24 +13,43 @@ Outcomes record observable evidence that something changed. Unlike actions (whic
 Record an outcome for an intention.
 
 ```bash
-rei outcome record <intention-id> <description>
+rei outcome record [description] [options]
 ```
 
 **Arguments:**
-- `<intention-id>` — The intention this outcome belongs to
-- `<description>` — What evidence of progress you observed
+- `[description]` — Description of the outcome (optional, can be provided via stdin)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `-t, --at <time>` — When the outcome was achieved (optional, defaults to now)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Relative Time:**
+
+The `--at` option accepts human-readable relative time expressions:
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+- ISO 8601: `2024-01-15T14:30:00Z`, `2024-01-15T14:30:00+09:00`
 
 **Examples:**
 
 ```bash
-# Record publishing a blog post
-rei outcome record intention_01h455vb4pex "Published first blog post"
+# Record an outcome with explicit intention
+rei outcome record -i intention_01h455vb4pex "Deployed to production successfully"
 
-# Record a milestone
-rei outcome record intention_01h455vb4pex "Reached 1000 words in draft"
+# Let fzf pick the intention interactively
+rei outcome record "Deployed to production successfully"
 
-# Record external validation
-rei outcome record intention_01h455vb4pex "Received positive feedback from reader"
+# Record via stdin
+echo "All tests passing, 95% coverage" | rei outcome record -i intention_01h455vb4pex
+
+# Record an outcome that happened 2 hours ago
+rei outcome record "Feature approved by client" --at "2 hours ago"
+
+# Record yesterday's outcome
+rei outcome record -i intention_01abc... "Milestone completed" -t yesterday
 ```
 
 ## Actions vs Outcomes

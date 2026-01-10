@@ -1,0 +1,223 @@
+---
+title: rei reminder
+description: Create and manage time-based reminders
+icon: Bell
+---
+
+Create and manage reminders for intentions, actions, habits, and notes. Reminders trigger at a scheduled time and appear in the `today` dashboard.
+
+## Subcommands
+
+### create
+
+Create a new reminder attached to an entity.
+
+```bash
+rei reminder create [description] --at <time> [options]
+```
+
+**Arguments:**
+- `[description]` — Description of the reminder (optional, can be provided via stdin)
+
+**Options:**
+- `-t, --at <time>` — When to trigger the reminder (required)
+- `-i, --intention <id>` — Attach to an intention
+- `-a, --action <id>` — Attach to an action
+- `--habit <id>` — Attach to a habit
+- `-n, --note <id>` — Attach to a note
+
+> **FZF Support:** If no entity flag is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select what to attach the reminder to.
+
+**Time Formats:**
+
+The `--at` option accepts:
+- Keywords: `now`, `today`, `tomorrow`
+- Natural expressions: `2 hours`, `30 minutes`, `1 day`
+- Short forms: `2h`, `30m`, `1d`
+- ISO 8601: `2024-01-15T14:30:00Z`, `2024-01-15T14:30:00+09:00`
+
+**Examples:**
+
+```bash
+# Create a reminder for tomorrow
+rei reminder create "Follow up on proposal" --at tomorrow --intention intention_01abc...
+
+# Create a reminder 2 hours from now (fzf will prompt for entity)
+rei reminder create "Check build status" --at "2 hours"
+
+# Create a reminder for a specific time
+rei reminder create "Meeting prep" --at "2024-01-15T14:00:00Z" -i intention_01abc...
+
+# Pipe description from stdin
+echo "Review PR comments" | rei reminder create --at tomorrow -i intention_01abc...
+```
+
+### list
+
+List reminders with various filters.
+
+```bash
+rei reminder list [options]
+```
+
+**Options:**
+- `--triggered` — Show only triggered reminders (due now)
+- `--pending` — Show only pending reminders (not yet due)
+- `--all` — Include completed and cancelled reminders
+- `-i, --intention <id>` — List reminders for an intention
+- `-a, --action <id>` — List reminders for an action
+- `--habit <id>` — List reminders for a habit
+- `-n, --note <id>` — List reminders for a note
+
+**Examples:**
+
+```bash
+# List all active reminders
+rei reminder list
+
+# List triggered reminders (due now)
+rei reminder list --triggered
+
+# List reminders for a specific intention
+rei reminder list -i intention_01abc...
+
+# Include completed and cancelled reminders
+rei reminder list --all
+```
+
+### show
+
+Show details of a specific reminder.
+
+```bash
+rei reminder show [reminder-id]
+```
+
+**Arguments:**
+- `[reminder-id]` — Reminder ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from reminders.
+
+### complete
+
+Mark a reminder as completed.
+
+```bash
+rei reminder complete [reminder-id]
+```
+
+**Arguments:**
+- `[reminder-id]` — Reminder ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active reminders.
+
+**Examples:**
+
+```bash
+# Complete a specific reminder
+rei reminder complete reminder_01abc...
+
+# Let fzf pick the reminder
+rei reminder complete
+```
+
+### snooze
+
+Snooze a triggered reminder to a later time.
+
+```bash
+rei reminder snooze [reminder-id] --until <time>
+```
+
+**Arguments:**
+- `[reminder-id]` — Reminder ID (optional if fzf is available)
+
+**Options:**
+- `-u, --until <time>` — Snooze until this time (required)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will show only triggered reminders.
+
+**Examples:**
+
+```bash
+# Snooze for 1 hour
+rei reminder snooze reminder_01abc... --until "1 hour"
+
+# Snooze until tomorrow
+rei reminder snooze --until tomorrow
+
+# Snooze for 30 minutes (fzf picks the reminder)
+rei reminder snooze --until "30 minutes"
+```
+
+### cancel
+
+Cancel a reminder.
+
+```bash
+rei reminder cancel [reminder-id]
+```
+
+**Arguments:**
+- `[reminder-id]` — Reminder ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active reminders.
+
+### reschedule
+
+Reschedule a pending reminder to a new time.
+
+```bash
+rei reminder reschedule [reminder-id] --to <time>
+```
+
+**Arguments:**
+- `[reminder-id]` — Reminder ID (optional if fzf is available)
+
+**Options:**
+- `--to <time>` — New scheduled time (required)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will show only pending reminders.
+
+**Examples:**
+
+```bash
+# Reschedule to next week
+rei reminder reschedule reminder_01abc... --to "1 week"
+
+# Reschedule to a specific date
+rei reminder reschedule --to "2024-01-20T09:00:00Z"
+```
+
+### check
+
+Show triggered reminders (due now). This is an alias for `list --triggered`.
+
+```bash
+rei reminder check
+```
+
+## Shortcut Commands
+
+For convenience, you can create reminders directly from intention, habit, and note commands:
+
+```bash
+# Create reminder for an intention
+rei intention remind [intention-id] "Follow up" --at tomorrow
+
+# Create reminder for a habit
+rei habit remind [habit-id] "Check streak" --at "1 week"
+
+# Create reminder for a note
+rei note remind [note-id] "Review notes" --at "3 days"
+```
+
+These shortcuts are equivalent to using `rei reminder create` with the appropriate entity flag.
+
+## Dashboard Integration
+
+Triggered reminders appear in the `rei today` dashboard under the "Triggered Reminders" section. This gives you visibility into reminders that are due without having to check separately.
+
+## Automatic Reminders
+
+Task due date reminders are created automatically when you set a due date on a task. These reminders trigger when the task becomes due.

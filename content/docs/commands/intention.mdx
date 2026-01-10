@@ -313,3 +313,32 @@ rei intention guidance [id]
 ```
 
 This opens your configured editor to edit custom guidance that the AI coach uses when reviewing this intention.
+
+### remind
+
+Create a reminder for an intention. This is a shortcut for `rei reminder create --intention`.
+
+```bash
+rei intention remind [intention-id] <description> --at <time>
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+- `<description>` — Reminder description
+
+**Options:**
+- `-t, --at <time>` — When to trigger the reminder (required)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Create a reminder for tomorrow
+rei intention remind intention_01abc... "Follow up on proposal" --at tomorrow
+
+# Let fzf pick the intention
+rei intention remind "Check progress" --at "1 week"
+```
+
+See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
