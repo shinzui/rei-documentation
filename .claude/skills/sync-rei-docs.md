@@ -7,11 +7,22 @@ Skill for syncing documentation from the rei source repository to this documenta
 **Location:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
 
 **Key doc locations in source:**
-- `docs/cli/` - CLI command reference (`.md` files)
-- `docs/architecture/` - Architecture documentation
-- `docs/design/` - Design documents
-- `docs/QUICKSTART.md` - Quickstart guide
-- `docs/CHANGELOG.md` - Documentation changelog with last reviewed commit
+
+### User Documentation (`docs/user/`)
+- `docs/user/cli/` - CLI command reference (`.md` files)
+- `docs/user/quickstart.md` - Quickstart guide
+- `docs/user/ai-integration.md` - AI integration guide
+- `docs/user/concepts.md` - Core concepts (anatomy of equanimity mapping)
+- `docs/user/CHANGELOG.md` - User-facing changelog
+
+### Developer Documentation (`docs/dev/`)
+- `docs/dev/architecture/` - System design and patterns
+- `docs/dev/modules/` - Per-module microdocs (12 modules)
+- `docs/dev/design/implemented/` - Implemented ADRs
+- `docs/dev/design/proposed/` - Proposed ADRs
+- `docs/dev/learnings/` - Engineering lessons
+- `docs/dev/roadmap/` - Project planning
+- `docs/dev/technical-debt/` - Technical debt tracking
 
 ## Documentation Repository (this repo)
 
@@ -49,24 +60,26 @@ cd /Users/shinzui/Keikaku/bokuno/rei-project/rei && git diff --name-only <last-c
 
 Map source files to documentation files:
 
-| Source (rei/docs/cli/*.md) | Target (rei-documentation/content/docs/commands/*.mdx) |
-|----------------------------|--------------------------------------------------------|
+| Source (rei/docs/user/cli/*.md) | Target (rei-documentation/content/docs/commands/*.mdx) |
+|---------------------------------|--------------------------------------------------------|
 | action.md | action.mdx |
 | agent.md | agent.mdx |
 | blocker.md | blocker.mdx |
 | cycle.md | cycle.mdx |
+| dependency.md | dependency.mdx |
+| doc.md | doc.mdx |
 | focus.md | focus.mdx |
 | habit.md | habit.mdx |
 | intention.md | intention.mdx |
+| knowledge.md | knowledge.mdx |
+| link.md | link.mdx |
 | note.md | note.mdx |
 | outcome.md | outcome.mdx |
 | reflect.md | reflect.mdx |
+| reminder.md | reminder.mdx |
+| subscription.md | subscription.mdx |
+| support.md | support.mdx |
 | task.md | task.mdx |
-| subscription.md | (may need to create subscription.mdx) |
-| dependency.md | (may need to create dependency.mdx) |
-| doc.md | (may need to create doc.mdx) |
-| link.md | (may need to create link.mdx) |
-| knowledge.md | (may need to create knowledge.mdx) |
 
 ### Step 4: Update Documentation
 
@@ -138,30 +151,31 @@ git log --oneline --since="1 week ago" -- docs/
 git diff --name-only <last-commit>..HEAD -- docs/
 
 # Read a specific source doc
-cat docs/cli/<command>.md
+cat docs/user/cli/<command>.md
 ```
 
 ## Icon Mapping
 
 Use these Lucide icons for command pages:
-- habit: `Repeat`
-- intention: `Target`
 - action: `Zap`
-- focus: `Crosshair`
-- cycle: `RefreshCw`
-- note: `FileText`
-- task: `ListTodo`
-- blocker: `Ban`
-- reflect: `BookText`
 - agent: `Bot`
-- outcome: `Trophy`
-- support: `Link2`
-- subscription: `Bell`
+- blocker: `Ban`
+- changelog: `History`
+- cycle: `RefreshCw`
 - dependency: `GitBranch`
 - doc: `File`
-- link: `ExternalLink`
+- focus: `Crosshair`
+- habit: `Repeat`
+- intention: `Target`
 - knowledge: `Lightbulb`
-- changelog: `History`
+- link: `ExternalLink`
+- note: `FileText`
+- outcome: `Trophy`
+- reflect: `BookText`
+- reminder: `Bell`
+- subscription: `BellRing`
+- support: `Link2`
+- task: `ListTodo`
 
 ## Notes
 
@@ -170,3 +184,4 @@ Use these Lucide icons for command pages:
 - Concepts pages may need manual curation beyond CLI docs
 - **Always update both changelogs** after each sync session
 - Website changelog should be user-friendly; repo changelog tracks git details
+- Developer docs (`docs/dev/`) are primarily for rei project contributors, not typical sync targets
