@@ -1,10 +1,10 @@
 ---
 title: rei note
-description: Create and manage markdown notes
+description: Create and manage markdown notes, including daily notes
 icon: FileText
 ---
 
-Create and manage markdown notes attached to entities.
+Create and manage markdown notes attached to entities, including daily notes.
 
 ## Features
 
@@ -62,6 +62,52 @@ rei note new -i intention_01h455vb4pex -r reflection_01h455vb4pex
 # Create a note for a habit
 rei note new --habit habit_01h455vb4pex
 ```
+
+### today
+
+Open or create today's daily note.
+
+```bash
+rei note today [options]
+```
+
+**Options:**
+- `-d, --date <YYYY-MM-DD>` — Date for the note (defaults to today)
+- `-t, --tag <tag>` — Add tag (repeatable)
+- `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
+
+Daily notes are anchored to a **JournalEntry** entity — each day gets its own unique ID. This allows notes to be properly linked to a specific day while reusing all the standard note infrastructure.
+
+**Behavior:**
+1. Determines the target day (today or from `--date` override)
+2. Gets or creates a JournalEntry for that day
+3. Checks if a note already exists for that journal entry
+4. If note exists → opens it in `$EDITOR`
+5. If no note exists → creates a new note and opens it in `$EDITOR`
+6. On save, emits events for async processing (title extraction, tasks)
+
+**Examples:**
+
+```bash
+# Open or create today's daily note
+rei note today
+
+# Create/open note for a specific date
+rei note today --date 2026-01-10
+
+# Create today's note with tags
+rei note today -t journal -t personal
+```
+
+**Use Cases:**
+- Daily journaling and planning
+- Quick capture of daily thoughts
+- Daily standup notes
+- Time-boxed reflection
+
+**Daily Note Task Due Dates:**
+
+Tasks added to daily notes automatically get a due date set to that day. For example, if you add `- [ ] Review PR` to your January 15th daily note, that task will have a due date of January 15th.
 
 ### list
 

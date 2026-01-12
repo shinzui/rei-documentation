@@ -6,6 +6,29 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-12
+
+### New Feature: Daily Notes
+
+Capture daily thoughts and tasks with the new `rei note today` command:
+
+- `rei note today` — Open or create today's daily note
+- `rei note today --date 2026-01-10` — Work with notes for specific dates
+- `rei note today -t journal` — Create notes with tags
+
+Daily notes are anchored to **JournalEntry** entities, giving each day its own identity. Tasks added to daily notes automatically receive a due date matching that day — perfect for daily task lists.
+
+### New Feature: Overview Notes for Intentions
+
+Designate a note as the overview for an intention to provide context and serve as an entry point:
+
+- `rei intention set-overview` — Designate a note as the overview for an intention
+- `rei intention clear-overview` — Remove the overview designation
+
+Overview notes appear prominently in `rei intention show --full` output, making it easy to capture and surface important context about your intentions.
+
+---
+
 ## 2026-01-11
 
 ### New Command: System Administration

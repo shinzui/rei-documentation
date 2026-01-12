@@ -5,11 +5,27 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `10c9fff` (2026-01-11)
+**Last Source Commit Reviewed:** `f4ab764` (2026-01-12)
 
 ---
 
 ## Changelog
+
+### 2026-01-12
+
+**Reviewed commits:** `10c9fff` through `f4ab764`
+
+**Files updated:**
+- `note.mdx` — Added `today` command for daily notes with automatic task due dates
+- `intention.mdx` — Added `set-overview` and `clear-overview` commands, added Overview Note to full view
+
+**Features documented:**
+- Daily notes (`rei note today`) with JournalEntry anchoring
+- Automatic due date assignment for tasks in daily notes
+- Overview note feature for intentions (`set-overview`, `clear-overview`)
+- Overview notes appear prominently in `intention show --full` output
+
+---
 
 ### 2026-01-11
 

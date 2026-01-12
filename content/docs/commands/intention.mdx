@@ -122,6 +122,7 @@ rei intention show [id] [options]
 
 **Full view includes:**
 - Intention details (title, horizon, context, status)
+- **Overview Note** (designated entry-point note, if set)
 - Recent actions taken (with associated notes, links, and docs)
 - Recorded outcomes
 - Active blockers
@@ -345,3 +346,57 @@ rei intention remind "Check progress" --at "1 week"
 ```
 
 See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
+
+### set-overview
+
+Designate a note as the overview note for an intention. The overview note serves as an entry point providing summary or context, and is displayed prominently in `show --full` output.
+
+```bash
+rei intention set-overview [intention-id] [options]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `-n, --note <note-id>` — Note ID to set as overview (optional if fzf is available)
+
+> **FZF Support:** If IDs are not provided, interactive pickers will let you select from active intentions and their associated notes.
+
+**Examples:**
+
+```bash
+# Set with explicit IDs
+rei intention set-overview intention_01abc... --note note_01xyz...
+
+# Let fzf pick both
+rei intention set-overview
+```
+
+**Notes:**
+- The note must be anchored to the target intention (not a different intention or a habit)
+- Only one note can be the overview at a time; setting a new one replaces the previous
+- Overview notes appear in a dedicated "Overview Note" section in `intention show --full`
+
+### clear-overview
+
+Remove the overview note designation from an intention.
+
+```bash
+rei intention clear-overview [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear with explicit ID
+rei intention clear-overview intention_01abc...
+
+# Let fzf pick the intention
+rei intention clear-overview
+```
