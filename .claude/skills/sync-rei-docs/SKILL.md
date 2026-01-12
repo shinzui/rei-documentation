@@ -1,3 +1,8 @@
+---
+name: sync-rei-docs
+description: Sync documentation from the rei source repository to this documentation site
+---
+
 # Sync Documentation from Source Repository
 
 Skill for syncing documentation from the rei source repository to this documentation site.
