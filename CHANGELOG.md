@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `7b68f45` (2026-01-10)
+**Last Source Commit Reviewed:** `10c9fff` (2026-01-11)
 
 ---
 
 ## Changelog
+
+### 2026-01-11
+
+**Reviewed commits:** `7b68f45` through `10c9fff`
+
+**Files updated:**
+- `system.mdx` — **NEW** — System commands for dormancy evaluation and fixes
+- `intention.mdx` — Added Tasks, Linked habits, and Reminders to full view display
+- `commands/index.mdx` — Added System Commands category with `rei system`
+
+**Features documented:**
+- System command (`rei system evaluate-dormancy`, `fix-dormancy`)
+- Hierarchy-aware dormancy evaluation (parents with active children aren't dormant)
+- Dormancy threshold configuration (`intention.dormancyThresholdDays`)
+- Intention full view now shows tasks, linked habits, and reminders
+
+**Notes:**
+- Source docs restructured into `docs/user/` and `docs/dev/` directories
+- Developer docs (`docs/dev/`) contain architecture, design, learnings, modules, roadmap, and technical debt documentation primarily for rei project contributors
+
+---
 
 ### 2026-01-10
 

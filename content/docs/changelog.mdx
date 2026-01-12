@@ -6,6 +6,23 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-11
+
+### New Command: System Administration
+
+Added `rei system` for administrative maintenance tasks:
+
+- `rei system evaluate-dormancy` — Mark inactive intentions as dormant based on configurable threshold
+- `rei system fix-dormancy` — Fix incorrectly dormant intentions using hierarchy-aware evaluation
+
+Dormancy is now hierarchy-aware: parent intentions with active children won't be marked dormant. Configure the inactivity threshold in your config file with `intention.dormancyThresholdDays`.
+
+### Intention Enhancements
+
+- **`rei intention show --full`** — Now displays Tasks, Linked habits, and Reminders sections
+
+---
+
 ## 2026-01-10
 
 ### New Command: Reminders
