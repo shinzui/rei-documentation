@@ -6,6 +6,32 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-13
+
+### New Command: Workspace Management
+
+Git integration for automatic versioning of workspace files:
+
+- `rei workspace git-check` — Check if workspace is a git repository
+- `rei workspace git-status` — Show git status of workspace files
+
+### New Command: Subscription Workers
+
+Run subscription workers that maintain read models from the event stream:
+
+- `rei subscription run all` — Run all subscription workers
+- `rei subscription run <worker>` — Run a specific worker
+
+New `git-commit` worker automatically commits workspace files with meaningful messages:
+- Notes, reflections, documents, and guidance files
+- Commit messages include entity metadata (title, anchor type, tags)
+
+### Note Enhancements
+
+- **`rei note get-help`** — Help notes now automatically include a wikilink back to the original note, creating navigable relationships
+
+---
+
 ## 2026-01-12
 
 ### New Feature: Wikilinks Between Notes

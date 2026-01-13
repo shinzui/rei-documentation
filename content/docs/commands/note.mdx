@@ -239,6 +239,10 @@ rei note get-help [note-id]
 
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
+**Behavior:**
+
+When the agent creates a help note, it automatically includes a wikilink back to the original note (if the original has a title). This creates a navigable relationship between the notes, and the link will appear in the original note's backlinks.
+
 **Examples:**
 
 ```bash

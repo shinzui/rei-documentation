@@ -1,0 +1,207 @@
+---
+title: rei workspace
+description: Workspace management commands for git integration and repository status
+icon: FolderGit2
+---
+
+Workspace management commands for git integration and repository status.
+
+## Overview
+
+Rei can integrate with Git to automatically commit workspace files (notes, reflections, documents, guidance) with meaningful commit messages derived from entity metadata. This requires running the `git-commit` subscription worker.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `git-check` | Check if workspace is a git repository |
+| `git-status` | Show git status of workspace files |
+
+## git-check
+
+Check whether the workspace directory is a Git repository. Results are cached for performance.
+
+```bash
+rei workspace git-check [options]
+```
+
+**Options:**
+- `--refresh` — Force re-detection, ignoring cache
+
+**Examples:**
+
+```bash
+# Check git repository status
+rei workspace git-check
+
+# Force refresh of cached status
+rei workspace git-check --refresh
+```
+
+**Output when in a git repo:**
+
+```
+Workspace is a Git repository
+Git root: /path/to/workspace
+Detected at: 2026-01-13 10:30
+```
+
+**Output when not a git repo:**
+
+```
+Workspace is not a Git repository
+```
+
+## git-status
+
+Show the Git status of workspace files (staged, unstaged, untracked).
+
+```bash
+rei workspace git-status
+```
+
+**Output:**
+
+```
+Git Status:
+ M notes/note_abc123.md
+?? notes/note_def456.md
+```
+
+Returns an error if the workspace is not a Git repository.
+
+## Git Commit Subscription
+
+The automatic git commit feature works via a subscription worker that listens to workspace file events.
+
+### Enabling Git Commits
+
+Run the `git-commit` subscription worker:
+
+```bash
+# Run just the git-commit worker
+rei subscription run git-commit
+
+# Or run all subscription workers (recommended)
+rei subscription run all
+```
+
+### How It Works
+
+When workspace files are created, updated, or deleted, the subscription:
+
+1. Checks if the workspace is a Git repository (cached)
+2. Queries entity metadata from read models
+3. Resolves anchor entity titles (intention, action, habit names)
+4. Generates a meaningful commit message
+5. Stages (or removes) and commits the file
+
+### Supported File Types
+
+The git-commit worker handles these types of workspace files:
+
+| File Type | Events | Example Commit Message |
+|-----------|--------|------------------------|
+| Notes | Create, Update, Delete | `Add note: "Sprint planning" (intention: Launch MVP)` |
+| Reflections | Schedule, Complete | `Add reflection: Weekly Review (intention: Project X)` |
+| Documents | Attach | `Add doc (intention: Launch MVP)` |
+| Guidance | Set, Remove | `Set guidance for "Launch MVP"` |
+
+### Commit Message Format
+
+Commit messages follow a structured format based on file type:
+
+**Notes:**
+
+```
+<action> note: "<note_title>" (<anchor_type>: <anchor_title>)
+
+[optional body with tags and actor]
+```
+
+Examples:
+
+```
+Add note: "Sprint planning" (intention: Launch MVP)
+Update note: "Tech decisions" (outcome: v1.0 Released)
+Delete note: "Old meeting notes" (intention: Legacy Project)
+Add daily note: 2026-01-12 (journal)
+```
+
+**Reflections:**
+
+```
+<action> reflection: <reflection_kind> (<anchor_type>: <anchor_title>)
+```
+
+Examples:
+
+```
+Add reflection: Weekly Review (intention: Project X)
+Complete reflection: Post-Mortem (blocker: API Outage)
+Add reflection: Daily Check-in (free-standing)
+```
+
+**Documents and Guidance:**
+
+```
+Add doc (<anchor_type>: <anchor_title>)
+Set guidance for "<intention_title>"
+Remove guidance from "<intention_title>"
+```
+
+Examples:
+
+```
+Add doc (intention: Launch MVP)
+Add doc (action: Design API)
+Set guidance for "Launch MVP"
+Remove guidance from "Old Project"
+```
+
+**Commit body (notes only):**
+
+When tags or actor are present, they appear in the commit body:
+
+```
+Add note: "Meeting notes" (intention: Q1 Planning)
+
+Tags: planning, team, sprint-1
+Actor: user
+```
+
+## Caching
+
+Git repository detection is cached in `.rei-git-cache.yaml` in the workspace root:
+
+```yaml
+cache_is_git_repo: true
+git_root: /path/to/workspace
+detected_at: 2026-01-13T10:30:00Z
+```
+
+**Cache behavior:**
+- Expires after 24 hours (configurable)
+- Use `--refresh` flag to force re-detection
+- Delete the cache file to trigger re-detection
+
+## Configuration
+
+Git integration can be configured in your `rei.yaml`:
+
+```yaml
+workspace:
+  git:
+    enabled: true                    # Enable/disable git commits (default: true)
+    commit_notes: true               # Commit note changes (default: true)
+    include_tags_in_message: true    # Include tags in commit body
+    include_actor_in_message: true   # Include actor in commit body
+    cache_expiry_hours: 24           # Cache validity in hours
+```
+
+## Notes
+
+- Git commits happen in the background via subscription (non-blocking)
+- Only local commits are made; pushing to remote is manual
+- Non-git workspaces work normally (git features silently disabled)
+- Subscription errors don't block other note processing

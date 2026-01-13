@@ -1,0 +1,159 @@
+---
+title: rei subscription
+description: Run subscription workers that maintain read models from the event stream
+icon: BellRing
+---
+
+Run subscription workers that maintain read models from the event stream.
+
+## Overview
+
+Rei uses event sourcing. Subscriptions process events and update read models (denormalized views) for efficient querying.
+
+## Subcommands
+
+### run
+
+Run subscription workers.
+
+```bash
+rei subscription run <worker>
+```
+
+**Workers:**
+- `all` — Run all subscription workers
+- `intention-read-model` — Process intention events
+- `habit-read-model` — Process habit events
+- `reflection-read-model` — Process reflection events
+- `focus-read-model` — Process focus events
+- `cycle-read-model` — Process cycle events
+- `journal-entry-read-model` — Process journal entry and task events (for daily notes)
+- `note-read-model` — Process note events to update notes table
+- `reference-read-model` — Project wikilink references to the database
+- `note-content-processor` — Extract titles, tasks, and wikilinks from note content
+- `task-propagation` — Propagate note tasks to parent entity streams
+- `daily-task-due-date` — Auto-set due dates for tasks in daily notes
+- `task-due-date-reminder` — Create reminders from task due dates
+- `health-reactor` — Awaken dormant intentions on note activity
+- `reminder-read-model` — Process reminder events
+- `git-commit` — Commit note files to git with meaningful messages
+
+**Examples:**
+
+```bash
+# Run all subscriptions (recommended for production)
+rei subscription run all
+
+# Run only intention read model updates
+rei subscription run intention-read-model
+```
+
+## Usage
+
+Subscriptions should be run as a background process:
+
+```bash
+# Run in background
+rei subscription run all &
+
+# Or with a process manager like systemd
+```
+
+## Note Processing Pipeline
+
+Notes use a multi-stage async processing model:
+
+```
+note-{noteId} stream
+        │
+        ├──▶ note-content-processor
+        │         │
+        │         ├─ Extract title → NoteTitleExtracted
+        │         ├─ Discover tasks → NoteTaskDiscovered, NoteTaskCompleted, etc.
+        │         └─ Discover wikilinks → NoteReferenceDiscovered
+        │
+        ├──▶ note-read-model
+        │         ├─ Update PostgreSQL notes table
+        │         └─ Auto-resolve wikilinks when titles match
+        │
+        ├──▶ reference-read-model
+        │         └─ Project wikilink references to note_references table
+        │
+        └──▶ task-propagation
+                  └─ Route NoteTask* events to entity streams
+                     (intention-{id}, journal_entry-{id}, etc.)
+                              │
+                              ▼
+journal_entry-{id} stream ───▶ daily-task-due-date
+                                      │
+                                      └─ TaskDiscovered → TaskDueDateSet
+                                         (due date = journal entry's day)
+```
+
+This separation allows the CLI to return immediately while subscriptions handle content parsing, wikilink extraction, task propagation, and auto due date setting in the background.
+
+## Daily Note Task Flow
+
+When you add a task to a daily note:
+
+1. `note-content-processor` discovers the task and emits `NoteTaskDiscovered`
+2. `task-propagation` routes it to the journal entry stream as `TaskDiscovered`
+3. `daily-task-due-date` sees the task and emits `TaskDueDateSet` with the day
+4. `journal-entry-read-model` updates the tasks table with the due date
+
+Tasks in daily notes automatically become due on that day.
+
+## Git Commit Integration
+
+The `git-commit` worker automatically commits workspace files to Git when they are created, updated, or deleted. It runs three concurrent handlers:
+
+### Notes
+
+```
+note-{noteId} stream
+        │
+        └──▶ git-commit (note handler)
+                  │
+                  ├─ NoteCreated → git add + commit "Add note: ..."
+                  ├─ NoteContentUpdated → git add + commit "Update note: ..."
+                  └─ NoteDeleted → git rm + commit "Delete note: ..."
+```
+
+### Reflections
+
+```
+reflection-{reflectionId} stream
+        │
+        └──▶ git-commit (reflection handler)
+                  │
+                  ├─ ReflectionScheduled → git add + commit "Add reflection: ..."
+                  └─ ReflectionCompleted → git add + commit "Complete reflection: ..."
+```
+
+### Documents and Guidance
+
+```
+intention-{intentionId} stream
+        │
+        └──▶ git-commit (intention handler)
+                  │
+                  ├─ DocAttached → git add + commit "Add doc (intention: ...)"
+                  ├─ GuidanceSet → git add + commit "Set guidance for ..."
+                  └─ GuidanceRemoved → git rm + commit "Remove guidance from ..."
+```
+
+### Commit Message Format
+
+Commit messages include entity metadata:
+- Note/reflection title (extracted from content)
+- Anchor type (intention, action, habit, etc.)
+- Anchor entity title (resolved from read models)
+- Tags and actor in commit body (for notes)
+
+See [`rei workspace`](/docs/commands/workspace) for configuration and CLI commands.
+
+## Notes
+
+- Subscriptions are idempotent — running them multiple times is safe
+- They track their position in the event stream
+- If interrupted, they resume from the last processed position

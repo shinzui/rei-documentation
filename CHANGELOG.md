@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f71875b` (2026-01-12)
+**Last Source Commit Reviewed:** `35c80b7` (2026-01-13)
 
 ---
 
 ## Changelog
+
+### 2026-01-13
+
+**Reviewed commits:** `f71875b` through `35c80b7`
+
+**Files created:**
+- `subscription.mdx` — **NEW** — Subscription workers documentation with git-commit worker details
+- `workspace.mdx` — **NEW** — Workspace git integration and management commands
+
+**Files updated:**
+- `note.mdx` — Added behavior note about help notes including wikilinks back to original note
+- `commands/index.mdx` — Added subscription and workspace to System Commands table
+
+**Features documented:**
+- Workspace git integration (`rei workspace git-check`, `git-status`)
+- Subscription workers (`rei subscription run`)
+- Git commit worker for automatic versioning of notes, reflections, documents, and guidance
+- Commit message format with entity metadata
+- Help note back-linking behavior for `rei note get-help`
+
+---
 
 ### 2026-01-12 (2)
 
