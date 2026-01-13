@@ -278,6 +278,95 @@ rei note remind "Follow up on notes" --at "1 week"
 
 See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
 
+### backlinks
+
+Show notes that link to a given note via wikilinks (`[[Note Title]]`).
+
+```bash
+rei note backlinks [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Output includes:**
+- Source note ID
+- Wikilink text (e.g., `[[Project Notes]]`)
+- Line number where the link appears
+- Display text if using alias syntax (`[[Target|Display Text]]`)
+- Discovery timestamp
+
+**Examples:**
+
+```bash
+# Show all notes linking to a specific note
+rei note backlinks note_01h455vb4pex
+
+# Use fzf to select note
+rei note backlinks
+```
+
+### broken-links
+
+Show unresolved wikilinks (references to notes that don't exist).
+
+```bash
+rei note broken-links [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Optional: filter by source note
+
+**Behavior:**
+- Without argument: shows all broken links across all notes
+- With note ID: shows only broken links from that specific note
+
+**Output includes:**
+- Source note ID
+- Target title (the text inside `[[...]]`)
+- Line number
+- Display text if using alias syntax
+
+**Examples:**
+
+```bash
+# Show all broken links
+rei note broken-links
+
+# Show broken links from a specific note
+rei note broken-links note_01h455vb4pex
+```
+
+**Use Cases:**
+- Finding orphaned references after renaming/deleting notes
+- Discovering notes that need to be created
+- Auditing note interconnections
+
+## Wikilinks
+
+Notes support wikilink syntax for linking between notes:
+
+```markdown
+See [[Project Notes]] for more details.
+
+Check [[Meeting Notes|the meeting notes]] from last week.
+```
+
+**Syntax:**
+- `[[Note Title]]` — Link to a note by title
+- `[[Note Title|Display Text]]` — Link with custom display text
+
+**Processing:**
+- Wikilinks are discovered when notes are created or updated
+- References are automatically resolved when a matching note title exists
+- If a note is deleted or renamed, references may become "broken"
+
+**Resolution:**
+- When a note's title is extracted, any unresolved references matching that title are automatically resolved
+- Use `rei note broken-links` to find unresolved references
+
 ## Workspace
 
 Notes are stored as markdown files in your workspace directory (default: `.rei/notes/`).

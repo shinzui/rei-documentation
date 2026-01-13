@@ -8,6 +8,24 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-01-12
 
+### New Feature: Wikilinks Between Notes
+
+Link notes together using familiar wiki-style syntax:
+
+- `[[Note Title]]` — Link to a note by its title
+- `[[Note Title|custom text]]` — Link with custom display text
+
+Wikilinks are automatically resolved when matching note titles exist. New commands help you navigate and maintain your note network:
+
+- `rei note backlinks` — See which notes link to a specific note
+- `rei note broken-links` — Find references to notes that don't exist yet
+
+### Reminder Enhancements
+
+- **`rei reminder check`** — Now automatically triggers due reminders, not just displays them. This ensures reminders transition from "pending" to "triggered" status when their scheduled time arrives.
+
+---
+
 ### New Feature: Daily Notes
 
 Capture daily thoughts and tasks with the new `rei note today` command:

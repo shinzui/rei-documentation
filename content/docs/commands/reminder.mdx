@@ -191,10 +191,29 @@ rei reminder reschedule --to "2024-01-20T09:00:00Z"
 
 ### check
 
-Show triggered reminders (due now). This is an alias for `list --triggered`.
+Show triggered reminders and automatically trigger any due reminders.
 
 ```bash
 rei reminder check
+```
+
+**Behavior:**
+1. Fetches all reminders that are due (scheduled time has passed)
+2. Triggers each due reminder (transitions from "pending" to "triggered" status)
+3. Displays all triggered reminders
+
+This is the recommended way to check for reminders — it ensures reminders are properly triggered when their scheduled time arrives, not just displayed. Previously triggered reminders are also shown.
+
+**Example output:**
+```
+Triggered 2 due reminder(s)
+Triggered Reminders (3):
+
+  reminder_01abc123...
+  Description: Review project proposal
+  For: intention_01xyz789... (My Project)
+  Scheduled: 2026-01-12 09:00
+  ...
 ```
 
 ## Shortcut Commands

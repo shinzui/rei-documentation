@@ -5,11 +5,28 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f4ab764` (2026-01-12)
+**Last Source Commit Reviewed:** `f71875b` (2026-01-12)
 
 ---
 
 ## Changelog
+
+### 2026-01-12 (2)
+
+**Reviewed commits:** `f4ab764` through `f71875b`
+
+**Files updated:**
+- `note.mdx` — Added `backlinks` and `broken-links` commands, added Wikilinks section
+- `reminder.mdx` — Updated `check` command to document on-demand triggering behavior
+
+**Features documented:**
+- Wikilinks syntax (`[[Note Title]]` and `[[Note Title|Display Text]]`)
+- `rei note backlinks` — View notes that link to a given note
+- `rei note broken-links` — Find unresolved wikilinks
+- Auto-resolution of wikilinks when matching note titles are extracted
+- `rei reminder check` now triggers due reminders on-demand (not just displays)
+
+---
 
 ### 2026-01-12
 
