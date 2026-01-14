@@ -8,6 +8,31 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-01-13
 
+### New Feature: Intention Activity Tracker
+
+Visualize your action history on an intention with the new `tracker` subcommand:
+
+- `rei intention tracker` — Show a visual activity tracker for an intention
+- `rei intention tracker --style heatmap` — Use GitHub-style heatmap visualization
+- `rei intention tracker --days 180` — Customize the time range
+- `rei intention tracker --include-children` — Include actions from child intentions
+
+Two display styles are available: **calendar** (default) shows a week-by-week grid with intensity markers, while **heatmap** shows a GitHub-style contribution graph.
+
+### Configuration: Git Auto-Commit Options
+
+New configuration options for fine-grained control over workspace git integration:
+
+- `git.enabled` — Master switch for git integration (default: true)
+- `git.commit_notes` — Auto-commit note changes (default: true)
+- `git.commit_reflections` — Auto-commit reflection changes (default: false)
+- `git.commit_docs` — Auto-commit attached documents (default: false)
+- `git.commit_guidance` — Auto-commit guidance prompt changes (default: false)
+
+See [Configuration](/docs/configuration) for the full list of git options.
+
+---
+
 ### New Command: Workspace Management
 
 Git integration for automatic versioning of workspace files:

@@ -400,3 +400,69 @@ rei intention clear-overview intention_01abc...
 # Let fzf pick the intention
 rei intention clear-overview
 ```
+
+### tracker
+
+Show a visual activity tracker for an intention. Displays action frequency over time in either calendar or heatmap style.
+
+```bash
+rei intention tracker [id] [options]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `-d, --days <n>` — Number of days to show (default: 90)
+- `-s, --style <style>` — Display style: `calendar` (default) or `heatmap`
+- `--include-children` — Include actions from child intentions
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Display Styles:**
+
+**calendar** (default) — Shows a week-by-week calendar with intensity levels:
+```
+Activity Tracker: Build personal website (90 days)
+
+Dec 30-05  ·  ·  ●  ○  ·  ·  ·
+Jan 06-12  ○  ·  ○  ◉  ○  ·  ·
+Jan 13-19  ·  ·  ○  ·  ·  ·  ·
+
+Legend: · (none)  ○ (1-2)  ● (3-4)  ◉ (5+)
+```
+
+**heatmap** — GitHub-style contribution graph using colored blocks:
+```
+Activity Tracker: Build personal website (90 days)
+Actions: 23 in 90 days (avg 0.3/day)
+
+[GitHub-style heatmap visualization]
+```
+
+**Examples:**
+
+```bash
+# Show tracker with default settings (90 days, calendar style)
+rei intention tracker intention_01h455vb4pex
+
+# Let fzf pick the intention
+rei intention tracker
+
+# Show last 30 days
+rei intention tracker -d 30
+
+# Use heatmap visualization
+rei intention tracker --style heatmap
+
+# Include child intention actions
+rei intention tracker --include-children
+
+# Combine options
+rei intention tracker -d 180 --style heatmap --include-children
+```
+
+**Notes:**
+- The tracker aggregates all actions recorded for the intention
+- `--include-children` recursively includes actions from all descendant intentions
+- Useful for visualizing work patterns and maintaining consistency

@@ -5,11 +5,26 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `35c80b7` (2026-01-13)
+**Last Source Commit Reviewed:** `7a7cc57` (2026-01-13)
 
 ---
 
 ## Changelog
+
+### 2026-01-13 (2)
+
+**Reviewed commits:** `35c80b7` through `7a7cc57`
+
+**Files updated:**
+- `intention.mdx` — Added `tracker` subcommand for visual activity tracking
+- `configuration.mdx` — Added git configuration options for auto-committing workspace files
+
+**Features documented:**
+- Intention activity tracker (`rei intention tracker`) with calendar and heatmap styles
+- Display options (`--days`, `--style`, `--include-children`)
+- Git configuration options (`git.enabled`, `git.commit_notes`, `git.commit_reflections`, `git.commit_docs`, `git.commit_guidance`, etc.)
+
+---
 
 ### 2026-01-13
 

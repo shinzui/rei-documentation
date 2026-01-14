@@ -33,6 +33,14 @@ If no config file is found, defaults are used.
 | `display.date_format` | `%Y-%m-%d` | Date format (strftime) |
 | `display.time_format` | `%H:%M` | Time format (strftime) |
 | `editor` | None | Falls back to `$EDITOR` env var |
+| `git.enabled` | `true` | Master switch for git integration |
+| `git.commit_notes` | `true` | Auto-commit note changes |
+| `git.commit_reflections` | `false` | Auto-commit reflection changes |
+| `git.commit_docs` | `false` | Auto-commit attached documents |
+| `git.commit_guidance` | `false` | Auto-commit guidance prompt changes |
+| `git.include_tags_in_message` | `true` | Include note tags in commit body |
+| `git.include_actor_in_message` | `true` | Include actor in commit body |
+| `git.cache_expiry_hours` | `24` | Hours to cache git repo detection |
 
 ### Example Config File
 
@@ -48,6 +56,13 @@ display:
   color: auto
   date_format: "%Y-%m-%d"
   time_format: "%H:%M"
+
+git:
+  enabled: true
+  commit_notes: true
+  commit_reflections: true
+  commit_docs: true
+  commit_guidance: true
 ```
 
 <Callout type="info">
