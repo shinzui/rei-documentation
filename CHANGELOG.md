@@ -5,11 +5,54 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `7a7cc57` (2026-01-13)
+**Last Source Commit Reviewed:** `159c9ea` (2026-01-15)
 
 ---
 
 ## Changelog
+
+### 2026-01-15
+
+**Reviewed commits:** `000187f` through `159c9ea`
+
+**Files created:**
+- `category.mdx` — **NEW** — Category command documentation for classifying entities
+
+**Files updated:**
+- `action.mdx` — Added `set-category` and `clear-category` subcommands
+- `intention.mdx` — Added `set-category` and `clear-category` subcommands
+- `note.mdx` — Added `set-category` and `clear-category` subcommands
+
+**Features documented:**
+- Categories feature (`rei category create`, `list`, `show`, `tree`, `retire`, `reactivate`, `link-focus`)
+- Hierarchical category slugs (e.g., `work/meeting`, `personal/health`)
+- Category assignment to actions (`action set-category`, `clear-category`)
+- Category assignment to notes (`note set-category`, `clear-category`)
+- Category assignment to intentions (`intention set-category`, `clear-category`)
+- Focus area integration for time tracking
+- Soft-delete with retire/reactivate pattern
+
+---
+
+### 2026-01-14
+
+**Reviewed commits:** `7a7cc57` through `000187f`
+
+**Files updated:**
+- `action.mdx` — Added `reassociate` subcommand for moving actions between intentions
+- `agent.mdx` — Added interactive mode (`-i/--interactive`) for all agent commands
+- `habit.mdx` — Major update with habit polarity (Build/Break), expanded cadence options (monthly, quarterly, yearly, every-N-days, flexible schedules, cue-based), and Break habit commands (`start-abstinence`, `log-occurrence`)
+- `cycle.mdx` — Added `extend` subcommand for extending active cycles
+
+**Features documented:**
+- Action reassociation (`rei action reassociate`) — move actions from one intention to another
+- Agent interactive mode — starts Claude Code session with pre-approved rei commands
+- Habit polarity — Build habits (cultivate) vs Break habits (avoid)
+- Expanded habit cadences — monthly, quarterly, yearly, every-N-days, free-weekly/monthly/quarterly/yearly, cue-based with targets
+- Break habit abstinence tracking (`start-abstinence`, `log-occurrence`)
+- Cycle extension (`rei cycle extend <days>`)
+
+---
 
 ### 2026-01-13 (2)
 

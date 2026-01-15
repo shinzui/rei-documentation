@@ -1,0 +1,279 @@
+---
+title: rei category
+description: Manage categories for classifying actions, notes, and intentions
+icon: Tags
+---
+
+Categories provide a flexible way to classify and organize actions, notes, and intentions. Categories form a hierarchical tree structure and can be linked to focus areas for time tracking.
+
+## Overview
+
+Categories are created with a name and optional parent. The system automatically generates a slug (e.g., `work/meeting` for a "meeting" category under "work").
+
+```bash
+# Create a top-level category
+rei category create "Work" -d "Work-related activities"
+
+# Create a child category
+rei category create "Meeting" -p work -d "Work meetings"
+
+# List categories as a tree
+rei category tree
+```
+
+## Subcommands
+
+### create
+
+Create a new category.
+
+```bash
+rei category create NAME [options]
+```
+
+**Arguments:**
+- `NAME` — Name of the category (e.g., "Meeting", "Reading", "Coding")
+
+**Options:**
+- `-p, --parent PARENT_SLUG` — Parent category slug (creates hierarchical categories)
+- `-d, --description DESC` — Description of the category
+- `-f, --focus FOCUS_ID` — Link to a focus area for time tracking
+
+**Examples:**
+
+```bash
+# Create a top-level category
+rei category create "Work" -d "Work activities"
+
+# Create a child category under Work
+rei category create "Meeting" -p work
+
+# Create with focus area link
+rei category create "Deep Work" -f focus_01abc123...
+```
+
+**Output:**
+```
+Created category: work/meeting
+  ID: category_01abc123...
+  Name: Meeting
+```
+
+### list
+
+List categories.
+
+```bash
+rei category list [options]
+```
+
+**Options:**
+- `-a, --all` — Show all categories including retired
+- `--flat` — Show flat list instead of hierarchy
+
+**Examples:**
+
+```bash
+# List active categories (hierarchical by default)
+rei category list
+
+# List all including retired
+rei category list --all
+
+# Flat list
+rei category list --flat
+```
+
+**Output:**
+```
+Categories (4):
+
+[*] Personal
+  [*] Health
+[*] Work
+  [*] Meeting
+```
+
+Status icons:
+- `[*]` — Active category
+- `[x]` — Retired category
+
+### show
+
+Show details of a category.
+
+```bash
+rei category show SLUG
+```
+
+**Arguments:**
+- `SLUG` — Category slug (e.g., "work", "work/meeting")
+
+**Example:**
+
+```bash
+rei category show work/meeting
+```
+
+**Output:**
+```
+Category: work/meeting
+  ID: category_01abc123...
+  Name: Meeting
+  Description: Work meetings
+  Parent: category_01parent...
+  Status: Active
+  Created: 2026-01-15 10:30
+```
+
+### tree
+
+Show category hierarchy as a tree.
+
+```bash
+rei category tree
+```
+
+**Output:**
+```
+Categories (4):
+
+[*] Personal
+  [*] Health
+[*] Work
+  [*] Meeting
+```
+
+### retire
+
+Retire a category. Retired categories are hidden from default listings but preserved for historical data.
+
+```bash
+rei category retire SLUG
+```
+
+**Example:**
+
+```bash
+rei category retire work/old-project
+```
+
+### reactivate
+
+Reactivate a retired category.
+
+```bash
+rei category reactivate SLUG
+```
+
+**Example:**
+
+```bash
+rei category reactivate work/old-project
+```
+
+### link-focus
+
+Link a category to a focus area, or unlink by omitting the focus ID.
+
+```bash
+rei category link-focus SLUG [FOCUS_ID]
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+- `FOCUS_ID` — Focus area ID (omit to unlink)
+
+**Examples:**
+
+```bash
+# Link to a focus area
+rei category link-focus work/meeting focus_01abc123...
+
+# Unlink from focus area
+rei category link-focus work/meeting
+```
+
+## Category Assignment
+
+Categories can be assigned to actions, notes, and intentions.
+
+### Assign to Action
+
+```bash
+rei action set-category [-a ACTION_ID] CATEGORY_SLUG
+rei action clear-category [-a ACTION_ID]
+```
+
+Uses FZF for action selection if `-a` not provided.
+
+**Example:**
+
+```bash
+rei action set-category -a action_01abc... work/meeting
+rei action clear-category -a action_01abc...
+```
+
+### Assign to Note
+
+```bash
+rei note set-category [-n NOTE_ID] CATEGORY_SLUG
+rei note clear-category [-n NOTE_ID]
+```
+
+Uses FZF for note selection if `-n` not provided.
+
+**Example:**
+
+```bash
+rei note set-category -n note_01abc... personal/health
+rei note clear-category -n note_01abc...
+```
+
+### Assign to Intention
+
+```bash
+rei intention set-category [-i INTENTION_ID] CATEGORY_SLUG
+rei intention clear-category [INTENTION_ID]
+```
+
+Uses FZF for intention selection if ID not provided.
+
+**Example:**
+
+```bash
+rei intention set-category -i intention_01abc... work
+rei intention clear-category intention_01abc...
+```
+
+## Hierarchical Slugs
+
+When you create a category with a parent, the slug is automatically computed:
+
+| Name | Parent | Resulting Slug |
+|------|--------|----------------|
+| Work | (none) | `work` |
+| Meeting | work | `work/meeting` |
+| 1-on-1 | work/meeting | `work/meeting/1-on-1` |
+
+## Focus Area Integration
+
+Categories can be linked to focus areas to enable:
+- Automatic time allocation tracking
+- Category-based reporting
+- Time budgeting by activity type
+
+```bash
+# Create category linked to focus
+rei category create "Deep Work" -f focus_01abc...
+
+# Or link existing category
+rei category link-focus deep-work focus_01abc...
+```
+
+## Tips
+
+- **Start simple**: Begin with a few top-level categories, add children as needed
+- **Use descriptive names**: Category names become slugs (lowercased, spaces to hyphens)
+- **Retire instead of delete**: Categories are soft-deleted to preserve historical data
+- **Link to focus areas**: Connect categories to focus areas for time tracking integration

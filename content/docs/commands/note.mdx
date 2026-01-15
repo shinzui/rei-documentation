@@ -348,6 +348,55 @@ rei note broken-links note_01h455vb4pex
 - Discovering notes that need to be created
 - Auditing note interconnections
 
+### set-category
+
+Assign a category to a note. Categories help classify and organize notes for filtering and organization.
+
+```bash
+rei note set-category [-n NOTE_ID] CATEGORY_SLUG
+```
+
+**Arguments:**
+- `CATEGORY_SLUG` — Category slug (e.g., 'personal/health', 'work/meeting')
+
+**Options:**
+- `-n, --note <id>` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Set category with explicit note ID
+rei note set-category -n note_01h455vb4pex personal/health
+
+# Let fzf pick the note
+rei note set-category personal/health
+```
+
+### clear-category
+
+Remove the category from a note.
+
+```bash
+rei note clear-category [-n NOTE_ID]
+```
+
+**Options:**
+- `-n, --note <id>` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Clear category with explicit note ID
+rei note clear-category -n note_01h455vb4pex
+
+# Let fzf pick the note
+rei note clear-category
+```
+
 ## Wikilinks
 
 Notes support wikilink syntax for linking between notes:

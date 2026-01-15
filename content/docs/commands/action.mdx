@@ -158,9 +158,95 @@ rei action update-occurred-at --action action_01h455vb4pex --intention intention
 rei action update-occurred-at --action action_01h455vb4pex --intention intention_01xyz -- "-2h"
 ```
 
+### reassociate
+
+Move an action from one intention to another. Useful for correcting mistakes when an action was associated with the wrong intention.
+
+```bash
+rei action reassociate [options]
+```
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+- `-i, --source-intention <id>` — Source intention ID (optional if fzf is available)
+- `-t, --target-intention <id>` — Target intention ID (optional if fzf is available)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select from available options in sequence: first the source intention, then the action, then the target intention.
+
+**Examples:**
+
+```bash
+# Reassociate with explicit IDs
+rei action reassociate \
+  --action action_01h455vb4pex \
+  --source-intention intention_01xyz \
+  --target-intention intention_01abc
+
+# Let fzf pick everything interactively
+rei action reassociate
+
+# Provide action ID, let fzf pick intentions
+rei action reassociate --action action_01h455vb4pex
+```
+
+**Notes:**
+- The action is removed from the source intention's event stream and added to the target intention's stream
+- Historical data is preserved; the action retains its original occurred_at timestamp
+- This is useful when actions were accidentally recorded against the wrong intention
+
+### set-category
+
+Assign a category to an action. Categories help classify and organize actions for reporting and filtering.
+
+```bash
+rei action set-category [-a ACTION_ID] CATEGORY_SLUG
+```
+
+**Arguments:**
+- `CATEGORY_SLUG` — Category slug (e.g., 'work', 'personal/health')
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Set category with explicit action ID
+rei action set-category -a action_01h455vb4pex work/meeting
+
+# Let fzf pick the action
+rei action set-category work/meeting
+```
+
+### clear-category
+
+Remove the category from an action.
+
+```bash
+rei action clear-category [-a ACTION_ID]
+```
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Clear category with explicit action ID
+rei action clear-category -a action_01h455vb4pex
+
+# Let fzf pick the action
+rei action clear-category
+```
+
 ## Related Commands
 
 Actions appear in:
 - `rei today` — Today's dashboard (displays durations when present)
 - `rei intention show --full` — When viewing an intention
 - `rei intention timeline` — Chronological history
+- `rei category` — Manage categories for classifying actions

@@ -6,6 +6,109 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-15
+
+### New Command: Categories
+
+Categories provide a flexible way to classify and organize your actions, notes, and intentions. Unlike contexts (which group root intentions by life domain), categories form a hierarchical tree that can be applied to any entity.
+
+**Core commands:**
+
+- `rei category create` — Create a new category with optional parent and description
+- `rei category list` — List categories (hierarchical by default, or flat)
+- `rei category tree` — View category hierarchy as a tree
+- `rei category show` — Show details of a specific category
+- `rei category retire` — Soft-delete a category (preserved for historical data)
+- `rei category reactivate` — Bring back a retired category
+- `rei category link-focus` — Link a category to a focus area for time tracking
+
+**Hierarchical slugs:**
+
+Categories support parent-child relationships. The slug is automatically computed:
+
+```bash
+rei category create "Work" -d "Work activities"        # slug: work
+rei category create "Meeting" -p work                   # slug: work/meeting
+rei category create "1-on-1" -p work/meeting           # slug: work/meeting/1-on-1
+```
+
+**Category assignment:**
+
+Assign categories to entities for classification:
+
+- `rei action set-category` / `clear-category` — Categorize actions
+- `rei note set-category` / `clear-category` — Categorize notes
+- `rei intention set-category` / `clear-category` — Categorize intentions
+
+Categories can be linked to focus areas to enable category-based time tracking and reporting.
+
+---
+
+## 2026-01-14
+
+### New Feature: Agent Interactive Mode
+
+All `rei agent` commands now support interactive mode with the `-i/--interactive` flag:
+
+- `rei agent coach -i` — Start an interactive coaching session
+- `rei agent review -i` — Interactive deep-dive into an intention
+- `rei agent nudge -i` — Interactive nudge session
+- `rei agent reflect today -i` — Interactive reflection help
+
+Interactive mode starts Claude Code with your Rei state pre-loaded. Claude can record actions, resolve blockers, and make changes on your behalf — all `rei` commands are pre-approved, so you won't see permission prompts.
+
+### New Feature: Habit Polarity (Build vs Break)
+
+Habits now support two polarities:
+
+- **Build habits** (default) — Practices you want to cultivate and perform regularly
+- **Break habits** — Behaviors you want to avoid or reduce
+
+Create Break habits with the `--break` flag:
+
+```bash
+rei habit create \
+  --name "Avoid Late-Night Snacking" \
+  --purpose "Improve sleep and health" \
+  --daily \
+  --break
+```
+
+Break habits support abstinence tracking:
+
+- `rei habit start-abstinence` — Start tracking how long you've avoided the behavior
+- `rei habit log-occurrence` — Log when the behavior occurred (resets tracking)
+
+### New Feature: Expanded Habit Cadences
+
+Habits now support many more scheduling options beyond daily and weekly:
+
+**Fixed schedules:**
+- `--monthly <day>` — Monthly on a specific day (1-31)
+- `--quarterly` — Quarterly habit
+- `--yearly-month <month> --yearly-day <day>` — Yearly on a specific date
+- `--every <n>` — Every N days (e.g., every 3 days)
+
+**Flexible schedules:**
+- `--free-weekly <count>` — At least N times per week
+- `--free-monthly <count>` — At least N times per month
+- `--free-quarterly <count>` — At least N times per quarter
+- `--free-yearly <count>` — At least N times per year
+
+**Cue-based:**
+- `--cue <description>` — Triggered by a specific context (e.g., "After meals")
+- `--target <frequency>` — Optional frequency goal (e.g., "3/week")
+
+### Action Enhancements
+
+- **`rei action reassociate`** — Move an action from one intention to another. Useful when you accidentally recorded an action against the wrong intention. Historical data is preserved.
+
+### Cycle Enhancements
+
+- **`rei cycle extend <days>`** — Extend an active cycle by additional days. Only works on active cycles (not completed or abandoned).
+
+---
+
 ## 2026-01-13
 
 ### New Feature: Intention Activity Tracker

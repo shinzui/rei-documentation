@@ -318,6 +318,59 @@ rei intention guidance [id]
 
 This opens your configured editor to edit custom guidance that the AI coach uses when reviewing this intention.
 
+### set-category
+
+Assign a category to an intention. Categories help classify and organize intentions for filtering and reporting.
+
+```bash
+rei intention set-category [-i ID] CATEGORY_SLUG
+```
+
+**Arguments:**
+- `CATEGORY_SLUG` — Category slug (e.g., 'work', 'personal/health')
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Set category with explicit ID
+rei intention set-category -i intention_01h455vb4pex work
+
+# Let fzf pick the intention
+rei intention set-category work
+```
+
+**Notes:**
+- Categories are different from contexts: contexts are for root intention grouping while categories are a flexible classification system
+- Categories can be hierarchical (e.g., `work/meeting`)
+
+### clear-category
+
+Remove the category from an intention.
+
+```bash
+rei intention clear-category [id]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear category with explicit ID
+rei intention clear-category intention_01h455vb4pex
+
+# Let fzf pick the intention
+rei intention clear-category
+```
+
 ### remind
 
 Create a reminder for an intention. This is a shortcut for `rei reminder create --intention`.
