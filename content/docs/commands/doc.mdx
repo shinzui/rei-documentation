@@ -1,0 +1,87 @@
+---
+title: rei doc
+description: Attach existing documents to entities
+icon: File
+---
+
+Attach existing files to entities for reference and context.
+
+## Subcommands
+
+### attach
+
+Attach an existing file to an entity.
+
+```bash
+rei doc attach <file> [options]
+```
+
+**Arguments:**
+- `<file>` — Path to the file to attach (required)
+
+**Options:**
+- `-i, --intention <id>` — Attach to intention (optional if fzf is available)
+- `-a, --action <id>` — Attach to action (optional)
+- `-o, --outcome <id>` — Attach to outcome (optional)
+- `-r, --reflection <id>` — Attach to reflection (optional)
+- `-n, --note <id>` — Attach to note (optional)
+
+> **FZF Support:** If no entity is specified and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available entities.
+
+**Examples:**
+
+```bash
+# Attach a document to an intention
+rei doc attach ./architecture.md -i intention_01h455vb4pex
+
+# Let fzf pick the entity interactively
+rei doc attach ./architecture.md
+
+# Attach to an action
+rei doc attach ./meeting-notes.md -i intention_01h455vb4pex -a action_01h455vb4pex
+
+# Attach to a note
+rei doc attach ./diagram.pdf -n note_01h455vb4pex
+```
+
+### list
+
+List attached documents.
+
+```bash
+rei doc list [options]
+```
+
+**Options:**
+- `-i, --intention <id>` — Filter by intention
+- `-a, --action <id>` — Filter by action
+- `-o, --outcome <id>` — Filter by outcome
+- `-r, --reflection <id>` — Filter by reflection
+- `-n, --note <id>` — Filter by note
+
+**Examples:**
+
+```bash
+# List docs for an intention
+rei doc list -i intention_01h455vb4pex
+
+# List docs for a note
+rei doc list -n note_01h455vb4pex
+```
+
+### open
+
+Open a document in your editor.
+
+```bash
+rei doc open <doc-id>
+```
+
+**Arguments:**
+- `<doc-id>` — Document ID (required)
+
+**Example:**
+
+```bash
+rei doc open doc_01h455vb4pex
+```

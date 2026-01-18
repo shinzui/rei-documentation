@@ -1,0 +1,108 @@
+---
+title: rei today
+description: Display a daily dashboard showing today's summary
+icon: CalendarDays
+---
+
+Display a daily dashboard showing today's summary. This is your primary view for understanding what needs attention each day.
+
+```bash
+rei today [options]
+```
+
+**Options:**
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+- `--tui` — Launch interactive TUI dashboard
+
+## Dashboard Sections
+
+The dashboard displays the following sections:
+
+### Active Cycle & Focus
+
+If you have an active focus cycle, shows:
+- Cycle name and progress (e.g., "Day 3/14, 11 days remaining")
+- Today's designated focus area (if set)
+
+### Triggered Reminders
+
+Reminders that have triggered and need attention, shown with their scheduled time and anchor type.
+
+### Active Intentions
+
+Your active intentions, either:
+- **Grouped by context** (when no filter applied) — organized under context headers like "▸ work", "▸ personal"
+- **Flat list** (when filtered by `-c`) — showing only matching intentions
+
+Each intention shows:
+- Action count if you've taken actions today
+- "(blocked)" indicator if it has unresolved blockers
+
+### Completed Today
+
+Intentions completed today, grouped by context (or flat when filtered).
+
+### Tasks
+
+Tasks organized by urgency:
+- **Overdue** — Tasks past their due date (shown in red)
+- **Due Today** — Tasks due today (shown in yellow)
+- **Upcoming** — Tasks due within the next 7 days
+
+### Today's Actions
+
+Chronological list of actions recorded today, showing:
+- Time performed (in your local timezone)
+- Description
+- Duration (if tracked)
+- Attached notes (if any)
+
+### Blockers
+
+Active blockers with age indicator (e.g., "3 days").
+
+### Habits
+
+Scheduled habits for today with completion status:
+- ✓ indicates completed
+- ○ indicates pending
+
+### Cue-Based Habits
+
+Habits triggered by context/cues rather than schedules, showing:
+- Cue trigger description
+- Target frequency (e.g., "2/week")
+- When last performed (e.g., "today", "yesterday", "3 days ago")
+
+### Pending Reflections
+
+Scheduled reflections that are due but not yet completed.
+
+## Examples
+
+```bash
+# Show full dashboard
+rei today
+
+# Filter to work context only
+rei today --context work
+
+# Launch interactive TUI mode
+rei today --tui
+```
+
+## TUI Mode
+
+The `--tui` flag launches an interactive terminal UI where you can:
+- Navigate between sections
+- Expand/collapse items
+- Take quick actions
+
+**Note:** TUI mode requires a terminal that supports ANSI escape codes.
+
+## Notes
+
+- Times are displayed in your local timezone
+- The dashboard requires a database backend (PostgreSQL)
+- Context filtering shows intentions whose root ancestor has the matching context
+- Linked habits inherit context from their linked intention

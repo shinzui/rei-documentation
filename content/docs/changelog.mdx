@@ -6,6 +6,98 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-18
+
+### New Command: Daily Dashboard
+
+See everything that needs attention today in one place:
+
+- `rei today` — Display your daily dashboard with all active work
+- `rei today --context work` — Filter to a specific context
+- `rei today --tui` — Launch interactive TUI mode
+
+The dashboard shows:
+- Active cycle and today's focus area
+- Triggered reminders
+- Active intentions (grouped by context)
+- Intentions completed today
+- Tasks (overdue, due today, upcoming)
+- Today's actions with times and durations
+- Active blockers
+- Scheduled and cue-based habits
+- Pending reflections
+
+### New Command: Weekly Review
+
+Analyze your progress over the current week:
+
+- `rei review week` — Show weekly review summary (Monday-Sunday)
+- `rei review week --context work` — Filter by context
+
+The review displays:
+- Intention statistics (active, completed this week)
+- Action breakdown by intention
+- Outcomes recorded
+- Habit adherence with color-coded percentages
+- Blocker count
+- Reflection activity (completed vs skipped)
+
+### Enhancements
+
+- **`rei note show`** — View comprehensive note details including embedded files, attached documents, tags, and category without opening the editor
+
+---
+
+## 2026-01-17
+
+### New Command: Document Attachments
+
+Attach files to entities for reference and context:
+
+- `rei doc attach` — Attach files to intentions, actions, outcomes, reflections, or notes
+- `rei doc list` — List attached documents filtered by entity
+- `rei doc open` — Open a document in your editor
+
+### New Command: Knowledge Verification
+
+Verify the integrity of your knowledge base:
+
+- `rei knowledge verify` — Check all referenced files exist and haven't been modified
+- `rei knowledge verify --embeds` — Also verify embedded files (`![[file.pdf]]`) in notes
+
+### New Feature: Note Guidance for Intentions
+
+Set AI guidance that automatically applies when getting help with any note under an intention:
+
+- `rei intention set-note-guidance` — Set guidance via editor, inline, or stdin
+- `rei intention show-note-guidance` — View current guidance
+- `rei intention clear-note-guidance` — Remove guidance
+
+When you have multiple notes under an intention that need similar help context, set note guidance once on the intention rather than repeating `--focus` on every `note get-help` call.
+
+### New Feature: File Embeds in Notes
+
+Notes now support Obsidian-style file embedding:
+
+```markdown
+See the diagram: ![[architecture.png]]
+Reference: ![[research-paper.pdf]]
+```
+
+- `rei note embeds` — Show embedded files discovered in a note
+- `rei knowledge verify --embeds` — Verify all embedded files exist
+
+### Enhancements
+
+- **`rei action delete`** — Delete actions recorded in error with optional reason
+- **`rei note new --category`** — Assign category when creating notes
+- **`rei note list --category`** — Filter notes by category
+- **`rei note get-help --focus`** — Emphasize a specific aspect when getting help
+- **`rei note get-help --no-guidance`** — Skip intention-level note guidance
+- **`rei task complete --at`** — Backdate task completions
+
+---
+
 ## 2026-01-15
 
 ### New Command: Categories

@@ -243,6 +243,44 @@ rei action clear-category -a action_01h455vb4pex
 rei action clear-category
 ```
 
+### delete
+
+Delete an action that was recorded in error.
+
+```bash
+rei action delete [ACTION_ID] [options]
+```
+
+**Arguments:**
+- `[ACTION_ID]` — Action ID (optional if fzf is available)
+
+**Options:**
+- `-r, --reason <text>` — Reason for deleting the action (optional)
+
+> **FZF Support:** If the action ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Delete with explicit ID
+rei action delete action_01h455vb4pex
+
+# Delete with reason
+rei action delete action_01h455vb4pex --reason "Recorded against wrong intention"
+
+# Let fzf pick the action
+rei action delete
+
+# Let fzf pick and provide reason
+rei action delete -r "Duplicate entry"
+```
+
+**Notes:**
+- Only works on Active intentions
+- Deletion is idempotent (deleting twice has no effect)
+- The action is logically deleted, not physically removed from the event stream
+- Use this when an action was recorded by mistake
+
 ## Related Commands
 
 Actions appear in:

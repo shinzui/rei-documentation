@@ -1,0 +1,91 @@
+---
+title: rei review
+description: Display review summaries for analyzing progress over time periods
+icon: BarChart3
+---
+
+Display review summaries for analyzing your progress over time periods.
+
+## Subcommands
+
+### week
+
+Show a weekly review summary for the current week (Monday to Sunday).
+
+```bash
+rei review week [options]
+```
+
+**Options:**
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+
+## Weekly Review Sections
+
+The weekly review displays the following sections:
+
+### Header
+
+Shows the week's date range (e.g., "Week of January 13-19, 2025") and context filter if applied.
+
+### Intentions
+
+Summary statistics:
+- **Active** — Number of currently active intentions
+- **Completed this week** — Intentions that reached completion status during the week
+
+### Actions
+
+Action statistics:
+- **Total** — Total number of actions recorded during the week
+- **By intention** — Breakdown showing which intentions received the most attention
+
+When no context filter is applied, actions are grouped by context with the top 3 intentions per context shown. When filtered, a flat list of the top 5 intentions is displayed.
+
+### Outcomes
+
+List of outcomes recorded during the week. Outcomes represent completed milestones or deliverables.
+
+### Habit Adherence
+
+Shows completion rates for each active habit:
+- Completion count vs. scheduled days (e.g., "5/7")
+- Percentage with color coding:
+  - Green: 80%+ adherence
+  - Yellow: 50-79% adherence
+  - Red: Below 50% adherence
+
+When no context filter is applied, habits are grouped by context.
+
+### Blockers
+
+Count of currently active blockers.
+
+### Reflections
+
+Summary of reflection activity:
+- **Completed** — Number of reflections completed during the week
+- **Skipped** — Number of reflections that were skipped
+
+## Examples
+
+```bash
+# Show weekly review for current week
+rei review week
+
+# Filter to work context only
+rei review week --context work
+
+# Filter to personal context
+rei review week -c personal
+```
+
+## Notes
+
+- The week is calculated as Monday through Sunday
+- Context filtering applies to:
+  - Intentions (via root ancestor context)
+  - Actions (via their intention's context)
+  - Habits (linked habits use intention context, unlinked use their own context)
+  - Reflections (via their own context field)
+- The review requires a database backend (PostgreSQL)
+- Actions from intentions completed before the week (but with actions during the week) are included in statistics

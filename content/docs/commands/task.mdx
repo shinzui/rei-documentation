@@ -69,15 +69,45 @@ rei task list
 Mark a task as complete.
 
 ```bash
-rei task complete <task-id>
+rei task complete <task-id> [options]
 ```
 
 **Arguments:**
 - `<task-id>` — Task ID (required)
 
+**Options:**
+- `-c, --at <time>` — When the task was completed (defaults to now)
+
+**Time Expressions (--at):**
+
+The `--at` option accepts both relative time expressions and absolute ISO 8601 timestamps:
+
+*Relative times:*
+- Keywords: `now`, `today`, `yesterday`, `tomorrow`
+- Natural expressions: `2 hours ago`, `30 minutes ago`, `1 day ago`
+- Short forms: `-2h`, `-30m`, `-1d`, `2h`, `30m`
+
+*Absolute timestamps (ISO 8601):*
+- UTC: `2024-01-15T14:30:00Z`
+- With timezone offset: `2024-01-15T14:30:00+09:00`
+
+**Examples:**
+
+```bash
+# Complete now
+rei task complete task_01abc...
+
+# Complete with backdating
+rei task complete task_01abc... --at yesterday
+
+# Complete at a specific time
+rei task complete task_01abc... --at "2 hours ago"
+```
+
 **Notes:**
 - Automatically syncs checkbox state to the original markdown file(s)
 - Updates all notes containing the task
+- Use `--at` to backdate completions when you forgot to mark them
 
 ### reopen
 

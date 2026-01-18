@@ -37,6 +37,7 @@ rei note new [options]
 - `-r, --reflection <id>` — Attach to reflection
 - `-h, --habit <id>` — Attach to habit
 - `-t, --tag <tag>` — Add tag (repeatable)
+- `-c, --category <slug>` — Category to assign (e.g., 'work/meeting')
 - `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
 - `--stdin` — Read content from stdin instead of opening editor
 
@@ -61,6 +62,9 @@ rei note new -i intention_01h455vb4pex -r reflection_01h455vb4pex
 
 # Create a note for a habit
 rei note new --habit habit_01h455vb4pex
+
+# Create a note with a category
+rei note new -i intention_01h455vb4pex --category work/meeting
 ```
 
 ### today
@@ -124,6 +128,7 @@ rei note list [options]
 - `-r, --reflection <id>` — Filter by reflection
 - `-h, --habit <id>` — Filter by habit
 - `-t, --tag <tag>` — Filter by tag
+- `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
 
 > **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
 
@@ -154,7 +159,80 @@ rei note list --tag architecture
 
 # Use fzf to select an entity interactively
 rei note list
+
+# List notes by category (e.g., daily journal notes)
+rei note list --category system/journal
 ```
+
+### show
+
+Display comprehensive details about a note.
+
+```bash
+rei note show [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Output includes:**
+- Note ID and title
+- File path
+- Anchor information (type and ID)
+- Tags (if any)
+- Category (with name lookup if available)
+- Embedded files with existence status (`[+]` exists, `[-]` missing)
+- Attached documents with source indicator (`[cli]` explicit, `[embed]` auto-created)
+- Creation and update timestamps
+
+**Example output:**
+
+```
+Note: note_01abc123
+
+  Title: My Project Notes
+  Path: .rei/notes/note_01abc123.md
+
+  Anchor:
+    Type: intention
+    ID: intention_01xyz789
+
+  Tags: planning, architecture
+
+  Category: projects (category_01def456)
+
+  Embeds: (2)
+    [+] ![[diagrams/architecture.png]]
+    [-] ![[missing-file.pdf]]
+
+  Docs: (2)
+    [cli] attachments/design-spec.pdf
+           Attached: 2024-01-15 11:00
+    [embed] diagrams/architecture.png
+           Attached: 2024-01-15 10:35
+
+  Created: 2024-01-15 10:30
+  Updated: 2024-01-16 14:20
+```
+
+**Examples:**
+
+```bash
+# Show details for a specific note
+rei note show note_01h455vb4pex
+
+# Use fzf to select note interactively
+rei note show
+```
+
+**Use Cases:**
+- Inspecting note metadata without opening the editor
+- Checking which entity a note is attached to
+- Verifying embedded files exist
+- Viewing attached documents and their source (CLI vs auto-created from embeds)
+- Viewing tags and category assignment
 
 ### open
 
@@ -231,17 +309,25 @@ rei note remove-tags note_01h455vb4pex -t temporary -t wip
 Get AI help with a note. This launches an interactive Claude Code session with context about the note.
 
 ```bash
-rei note get-help [note-id]
+rei note get-help [note-id] [options]
 ```
 
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `-f, --focus <text>` — Focus area to emphasize (e.g., 'how to break this down')
+- `--no-guidance` — Skip intention-level note guidance
 
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
 **Behavior:**
 
 When the agent creates a help note, it automatically includes a wikilink back to the original note (if the original has a title). This creates a navigable relationship between the notes, and the link will appear in the original note's backlinks.
+
+If the note's anchor intention has note guidance set (via `intention set-note-guidance`), that guidance is automatically included as context. Use `--no-guidance` to skip this.
+
+The `--focus` flag lets you emphasize a specific aspect or question without replacing the guidance context.
 
 **Examples:**
 
@@ -251,6 +337,12 @@ rei note get-help note_01h455vb4pex
 
 # Use fzf to select note
 rei note get-help
+
+# Get help with a specific focus
+rei note get-help note_01h455vb4pex --focus "how to structure this document"
+
+# Skip intention-level guidance
+rei note get-help note_01h455vb4pex --no-guidance
 ```
 
 ### remind
@@ -396,6 +488,54 @@ rei note clear-category -n note_01h455vb4pex
 # Let fzf pick the note
 rei note clear-category
 ```
+
+### embeds
+
+Show embedded files discovered in a note. Notes can embed files using the `![[file.pdf]]` syntax, and this command shows which files are embedded.
+
+```bash
+rei note embeds [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Output includes:**
+- File path (relative to workspace)
+- Existence status (exists/missing)
+- Line number where embed was found
+- Discovery timestamp
+
+**Examples:**
+
+```bash
+# Show embeds for a specific note
+rei note embeds note_01h455vb4pex
+
+# Use fzf to select note
+rei note embeds
+```
+
+## File Embeds
+
+Notes support embedding files using Obsidian-style syntax:
+
+```markdown
+See the diagram: ![[architecture.png]]
+
+Reference: ![[research-paper.pdf]]
+```
+
+**Syntax:**
+- `![[filename]]` — Embed a file from the workspace
+
+**Processing:**
+- Embeds are discovered when notes are created or updated
+- The file path is resolved relative to the workspace docs directory
+- Embed events are propagated to the anchor entity's stream
+- Use `rei knowledge verify --embeds` to check for missing embedded files
 
 ## Wikilinks
 

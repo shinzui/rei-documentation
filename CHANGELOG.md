@@ -5,11 +5,61 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `159c9ea` (2026-01-15)
+**Last Source Commit Reviewed:** `65e3760` (2026-01-18)
 
 ---
 
 ## Changelog
+
+### 2026-01-18
+
+**Reviewed commits:** `292adcc` through `65e3760`
+
+**Files created:**
+- `today.mdx` — **NEW** — Daily dashboard command documentation
+- `review.mdx` — **NEW** — Review summaries command documentation (weekly review)
+
+**Files updated:**
+- `note.mdx` — Added `show` subcommand for viewing comprehensive note details
+
+**Features documented:**
+- Daily dashboard (`rei today`) — primary view for understanding daily priorities
+  - Dashboard sections: Active Cycle & Focus, Triggered Reminders, Active Intentions, Completed Today, Tasks, Today's Actions, Blockers, Habits, Cue-Based Habits, Pending Reflections
+  - Context filtering with `-c/--context`
+  - Interactive TUI mode with `--tui`
+- Weekly review (`rei review week`) — analyze progress over the current week
+  - Sections: Intentions, Actions (by context/intention), Outcomes, Habit Adherence, Blockers, Reflections
+  - Context filtering support
+  - Color-coded habit adherence percentages
+- Note show command (`rei note show`) — display comprehensive note details
+  - Shows: title, path, anchor info, tags, category, embedded files with existence status, attached documents with source indicator, timestamps
+
+---
+
+### 2026-01-17
+
+**Reviewed commits:** `159c9ea` through `292adcc`
+
+**Files created:**
+- `doc.mdx` — **NEW** — Document attachment command documentation
+- `knowledge.mdx` — **NEW** — Knowledge management and verification commands
+
+**Files updated:**
+- `action.mdx` — Added `delete` subcommand for removing actions recorded in error
+- `intention.mdx` — Added `set-note-guidance`, `show-note-guidance`, `clear-note-guidance` subcommands
+- `note.mdx` — Added `--category` option to `new`, `--category` filter to `list`, `--focus`/`--no-guidance` options to `get-help`, `embeds` subcommand, and File Embeds section
+- `task.mdx` — Added `--at` option to `complete` for backdating task completions
+
+**Features documented:**
+- Document attachments (`rei doc attach`, `list`, `open`) — attach files to intentions, actions, outcomes, reflections, and notes
+- Knowledge verification (`rei knowledge verify`) with `--embeds` option for checking embedded files
+- Action deletion (`rei action delete`) with optional reason
+- Note guidance for intentions — set AI guidance that applies to all notes under an intention
+- Note file embeds (`![[file.pdf]]` syntax) and `rei note embeds` command
+- Focused help sessions (`--focus`) and guidance control (`--no-guidance`) for `note get-help`
+- Task completion backdating with `--at` option
+
+---
 
 ### 2026-01-15
 

@@ -454,6 +454,86 @@ rei intention clear-overview intention_01abc...
 rei intention clear-overview
 ```
 
+### set-note-guidance
+
+Set AI guidance for notes under an intention. This guidance is automatically included when getting help with any note anchored to this intention.
+
+```bash
+rei intention set-note-guidance [intention-id] [options]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `--content <text>` — Guidance content (optional, opens $EDITOR if not provided)
+- `--stdin` — Read guidance from stdin
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Open editor to write guidance
+rei intention set-note-guidance intention_01abc...
+
+# Set guidance directly
+rei intention set-note-guidance intention_01abc... --content "Focus on practical examples"
+
+# Pipe guidance from file
+cat guidance.md | rei intention set-note-guidance intention_01abc... --stdin
+```
+
+**Use Case:**
+
+When you have multiple notes under an intention that all need similar help context (e.g., "focus on practical examples" or "use simple language"), set note guidance once on the intention rather than repeating `--focus` on every `note get-help` call.
+
+### show-note-guidance
+
+Show the current note guidance for an intention.
+
+```bash
+rei intention show-note-guidance [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Show with explicit ID
+rei intention show-note-guidance intention_01abc...
+
+# Let fzf pick the intention
+rei intention show-note-guidance
+```
+
+### clear-note-guidance
+
+Remove note guidance from an intention.
+
+```bash
+rei intention clear-note-guidance [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear with explicit ID
+rei intention clear-note-guidance intention_01abc...
+
+# Let fzf pick the intention
+rei intention clear-note-guidance
+```
+
 ### tracker
 
 Show a visual activity tracker for an intention. Displays action frequency over time in either calendar or heatmap style.

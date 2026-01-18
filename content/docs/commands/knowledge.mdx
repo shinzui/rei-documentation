@@ -1,0 +1,56 @@
+---
+title: rei knowledge
+description: Knowledge management commands for verifying workspace integrity
+icon: Lightbulb
+---
+
+Knowledge management commands for verifying workspace integrity.
+
+## Subcommands
+
+### verify
+
+Verify the integrity of the knowledge base (notes, docs, reflections).
+
+```bash
+rei knowledge verify [options]
+```
+
+**Options:**
+- `-v, --verbose` — Show detailed output (all files, not just failures)
+- `-e, --embeds` — Also verify embedded files (`![[file.pdf]]`) in notes
+
+**Examples:**
+
+```bash
+# Basic verification
+rei knowledge verify
+
+# Verbose output
+rei knowledge verify --verbose
+
+# Verify with embeds
+rei knowledge verify --embeds
+
+# Verbose with embeds
+rei knowledge verify -v -e
+```
+
+This command checks that:
+- All referenced files exist
+- File hashes match stored values (detecting external modifications)
+- Links between entities are valid
+- Embedded files (`![[...]]`) exist when `--embeds` is specified
+
+**Output:**
+
+The verification shows a summary of:
+- Total files checked
+- Files OK (matching hash)
+- Files with hash mismatches (externally modified)
+- Missing files
+
+When `--embeds` is enabled, it also shows:
+- Total embeds discovered in notes
+- Embeds pointing to existing files
+- Embeds pointing to missing files
