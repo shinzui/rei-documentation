@@ -2,6 +2,8 @@
 	"title": "Commands",
 	"pages": [
 		"index",
+		"today",
+		"review",
 		"intention",
 		"habit",
 		"reflect",
@@ -13,6 +15,8 @@
 		"blocker",
 		"support",
 		"note",
+		"doc",
+		"knowledge",
 		"task",
 		"category",
 		"agent",
