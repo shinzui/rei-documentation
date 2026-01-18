@@ -1,0 +1,76 @@
+---
+title: rei link
+description: Add external links to entities
+icon: ExternalLink
+---
+
+Add external links to entities for reference and context.
+
+## Subcommands
+
+### add
+
+Add a link to an entity.
+
+```bash
+rei link add <url> [options]
+```
+
+**Arguments:**
+- `<url>` — The URL to add (required)
+
+**Options:**
+- `-i, --intention <id>` — Attach to intention (optional if fzf is available)
+- `-a, --action <id>` — Attach to action
+- `-o, --outcome <id>` — Attach to outcome
+- `-r, --reflection <id>` — Attach to reflection
+- `-t, --title <title>` — Link title (optional)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Add a link to an intention
+rei link add https://example.com/docs -i intention_01h455vb4pex
+
+# Let fzf pick the intention interactively
+rei link add https://example.com/docs
+
+# Add with a title
+rei link add https://github.com/user/repo -i intention_01h455vb4pex -t "Project Repository"
+
+# Add to an action
+rei link add https://pr-url.com -i intention_01h455vb4pex -a action_01h455vb4pex
+```
+
+### list
+
+List links attached to entities.
+
+```bash
+rei link list [options]
+```
+
+**Options:**
+- `-i, --intention <id>` — Filter by intention
+- `-a, --action <id>` — Filter by action
+- `-o, --outcome <id>` — Filter by outcome
+- `-r, --reflection <id>` — Filter by reflection
+
+**Examples:**
+
+```bash
+# List links for an intention
+rei link list -i intention_01h455vb4pex
+
+# List links for an action
+rei link list -a action_01h455vb4pex
+```
+
+## Use Cases
+
+- Attach GitHub PRs or issues to actions
+- Link documentation to intentions
+- Reference external resources from reflections
+- Connect outcomes to published work
