@@ -158,6 +158,43 @@ rei action update-occurred-at --action action_01h455vb4pex --intention intention
 rei action update-occurred-at --action action_01h455vb4pex --intention intention_01xyz -- "-2h"
 ```
 
+### update-duration
+
+Update the duration of an existing action.
+
+```bash
+rei action update-duration <duration> [options]
+```
+
+**Arguments:**
+- `<duration>` — New duration (required)
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select from available options.
+
+**Duration Formats:**
+- Minutes: `30m`, `30min`, `30 minutes`
+- Hours: `1h`, `1hr`, `2 hours`
+- Combined: `1h30m`, `1h 30m`
+- Decimal: `1.5h`, `0.5h`
+- Bare number: `90` (interpreted as minutes)
+
+**Examples:**
+
+```bash
+# Update with explicit IDs
+rei action update-duration --action action_01h455vb4pex --intention intention_01xyz 45m
+
+# Let fzf pick the action and intention
+rei action update-duration "1h30m"
+
+# Update to 2 hours
+rei action update-duration --action action_01h455vb4pex --intention intention_01xyz "2 hours"
+```
+
 ### reassociate
 
 Move an action from one intention to another. Useful for correcting mistakes when an action was associated with the wrong intention.

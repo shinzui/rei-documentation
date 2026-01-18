@@ -5,11 +5,37 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `65e3760` (2026-01-18)
+**Last Source Commit Reviewed:** `9283d10` (2026-01-18)
 
 ---
 
 ## Changelog
+
+### 2026-01-18 (2)
+
+**Reviewed commits:** `65e3760` through `9283d10`
+
+**Files created:**
+- `help.mdx` — **NEW** — Help topics command documentation
+
+**Files updated:**
+- `action.mdx` — Added `update-duration` subcommand for correcting action durations
+- `agent.mdx` — Added Debug Mode section (`--debug` flag for all agent commands)
+- `category.mdx` — Added `set-note-guidance` and `clear-note-guidance` subcommands
+- `note.mdx` — Enhanced `get-help` with `--include-doc`, `--interactive`, `--debug` options and category guidance support
+- `reminder.mdx` — Added `--system` flag for listing system reminders, expanded Automatic Reminders section with dormancy reminders
+- `today.mdx` — Added `--include-dormant` option for showing dormant intentions
+
+**Features documented:**
+- Help topics command (`rei help`, `rei help time`) — display detailed help on specific topics
+- Action duration correction (`rei action update-duration`)
+- Agent debug mode — see rendered prompts without invoking LLM
+- Category note guidance — set AI guidance that applies to all notes in a category
+- Enhanced note help with document context, interactive mode, and debug mode
+- System reminders — automatic reminders for dormancy and task due dates
+- Dormant intention filtering — excluded by default from today dashboard
+
+---
 
 ### 2026-01-18
 

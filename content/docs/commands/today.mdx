@@ -12,6 +12,7 @@ rei today [options]
 
 **Options:**
 - `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+- `--include-dormant` — Include dormant intentions (excluded by default)
 - `--tui` — Launch interactive TUI dashboard
 
 ## Dashboard Sections
@@ -87,6 +88,9 @@ rei today
 # Filter to work context only
 rei today --context work
 
+# Include dormant intentions
+rei today --include-dormant
+
 # Launch interactive TUI mode
 rei today --tui
 ```
@@ -106,3 +110,4 @@ The `--tui` flag launches an interactive terminal UI where you can:
 - The dashboard requires a database backend (PostgreSQL)
 - Context filtering shows intentions whose root ancestor has the matching context
 - Linked habits inherit context from their linked intention
+- Dormant intentions (inactive for 30+ days) are excluded by default; use `--include-dormant` to show them

@@ -21,6 +21,7 @@
 		"task",
 		"category",
 		"agent",
+		"help",
 		"system",
 		"subscription",
 		"workspace"

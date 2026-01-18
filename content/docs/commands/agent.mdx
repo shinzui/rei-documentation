@@ -12,6 +12,36 @@ The agent requires an LLM backend. See [configuration](/docs/configuration) for 
 
 ## Global Options
 
+### Debug Mode
+
+All agent commands support `--debug` to output the rendered prompt without invoking the LLM. This is useful for testing prompt construction and debugging context loading.
+
+```bash
+rei agent --debug COMMAND
+```
+
+**Example:**
+
+```bash
+# See the prompt that would be sent for coaching
+rei agent --debug coach
+
+# See the review prompt for a specific intention
+rei agent --debug review intention_01h455vb4pex
+
+# Debug a reflection prompt
+rei agent --debug reflect today
+```
+
+**Output:**
+```
+=== DEBUG: Rendered prompt that would be sent to agent ===
+
+[Full prompt content with all context variables rendered]
+
+=== END DEBUG ===
+```
+
 ### Interactive Mode
 
 All agent commands support `--interactive` (`-i`) to start an interactive Claude Code session instead of getting a one-shot response.

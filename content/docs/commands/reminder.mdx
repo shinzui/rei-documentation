@@ -64,6 +64,7 @@ rei reminder list [options]
 - `--triggered` — Show only triggered reminders (due now)
 - `--pending` — Show only pending reminders (not yet due)
 - `--all` — Include completed and cancelled reminders
+- `--system` — Show only system-generated reminders (dormancy and task due date)
 - `-i, --intention <id>` — List reminders for an intention
 - `-a, --action <id>` — List reminders for an action
 - `--habit <id>` — List reminders for a habit
@@ -83,6 +84,12 @@ rei reminder list -i intention_01abc...
 
 # Include completed and cancelled reminders
 rei reminder list --all
+
+# List only system-generated reminders
+rei reminder list --system
+
+# List triggered system reminders
+rei reminder list --system --triggered
 ```
 
 ### show
@@ -239,4 +246,30 @@ Triggered reminders appear in the `rei today` dashboard under the "Triggered Rem
 
 ## Automatic Reminders
 
-Task due date reminders are created automatically when you set a due date on a task. These reminders trigger when the task becomes due.
+Rei automatically creates system reminders for certain events:
+
+### Task Due Date Reminders
+
+When you set a due date on a task, a reminder is automatically created to trigger on that date.
+
+### Dormancy Reminders
+
+When an intention becomes dormant (inactive for 30+ days), a reminder is automatically created to prompt you to revisit it. By default, dormancy reminders are scheduled for 21 days after the intention becomes dormant.
+
+Dormancy reminders are automatically:
+- **Cancelled** when the intention awakens (receives new activity)
+- **Completed** when the intention reaches a terminal state (completed/abandoned)
+
+### Viewing System Reminders
+
+Use the `--system` flag to filter for system-generated reminders:
+
+```bash
+# List all system reminders
+rei reminder list --system
+
+# List triggered system reminders
+rei reminder list --system --triggered
+```
+
+System reminders have a source indicator (`SystemDormancy` or `SystemTaskDueDate`) to distinguish them from user-created reminders.

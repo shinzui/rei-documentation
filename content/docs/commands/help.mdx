@@ -1,0 +1,47 @@
+---
+title: rei help
+description: Display help topics for detailed information about Rei concepts
+icon: CircleHelp
+---
+
+Display help topics for detailed information about Rei concepts and features.
+
+```bash
+rei help [topic]
+```
+
+## Usage
+
+Without arguments, lists all available help topics:
+
+```bash
+rei help
+```
+
+With a topic name, displays detailed information about that topic:
+
+```bash
+rei help <topic>
+```
+
+## Available Topics
+
+| Topic | Description |
+|-------|-------------|
+| `time` | Understanding time formats and the `--at` flag |
+
+## Examples
+
+```bash
+# List all help topics
+rei help
+
+# Learn about time formats for backdating
+rei help time
+```
+
+## Notes
+
+- For command-specific help, use `rei <command> --help` instead
+- Topic names are case-insensitive
+- If an unknown topic is requested, available topics are listed

@@ -8,6 +8,58 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-01-18
 
+### New Command: Help Topics
+
+Display detailed help on specific Rei concepts and features:
+
+- `rei help` — List all available help topics
+- `rei help time` — Learn about time formats and the `--at` flag
+
+For command-specific help, continue using `rei <command> --help`.
+
+### New Feature: Agent Debug Mode
+
+All agent commands now support `--debug` to see the rendered prompt without invoking the LLM:
+
+```bash
+rei agent --debug coach
+rei agent --debug review intention_01abc...
+rei agent --debug reflect today
+```
+
+This is useful for testing prompt construction and debugging context loading.
+
+### New Feature: Category Note Guidance
+
+Categories can now have note guidance that automatically applies when using `rei note get-help` on notes in that category:
+
+- `rei category set-note-guidance learning/japanese -c "Focus on stroke order"` — Set guidance
+- `rei category clear-note-guidance learning/japanese` — Remove guidance
+
+Category guidance provides domain knowledge (e.g., "how to study kanji") that composes with intention-level guidance when both are present.
+
+### New Feature: Dormancy Reminders
+
+When an intention becomes dormant (inactive for 30+ days), Rei now automatically creates a reminder to prompt you to revisit it. Dormancy reminders are:
+- Scheduled 21 days after the intention becomes dormant
+- Automatically cancelled when the intention awakens
+- Automatically completed when the intention reaches a terminal state
+
+View system reminders with `rei reminder list --system`.
+
+### Enhancements
+
+- **`rei action update-duration`** — Correct the duration of an existing action
+- **`rei note get-help --include-doc`** — Include attached documents in the AI context
+- **`rei note get-help -i`** — Start an interactive Claude Code session for back-and-forth conversation
+- **`rei note get-help --debug`** — See the prompt that would be sent to the LLM
+- **`rei reminder list --system`** — Filter to show only system-generated reminders
+- **`rei today --include-dormant`** — Include dormant intentions in the dashboard (excluded by default)
+
+---
+
+## 2026-01-18 (Earlier)
+
 ### New Command: Daily Dashboard
 
 See everything that needs attention today in one place:

@@ -306,7 +306,7 @@ rei note remove-tags note_01h455vb4pex -t temporary -t wip
 
 ### get-help
 
-Get AI help with a note. This launches an interactive Claude Code session with context about the note.
+Get AI help with a note. This invokes Claude with context about the note, including its content, anchor entity, and any configured guidance.
 
 ```bash
 rei note get-help [note-id] [options]
@@ -317,7 +317,10 @@ rei note get-help [note-id] [options]
 
 **Options:**
 - `-f, --focus <text>` — Focus area to emphasize (e.g., 'how to break this down')
-- `--no-guidance` — Skip intention-level note guidance
+- `--no-guidance` — Skip intention and category-level note guidance
+- `--include-doc` — Include content from attached documents in context
+- `-i, --interactive` — Start an interactive Claude Code session
+- `--debug` — Output the rendered prompt without invoking the LLM
 
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -325,9 +328,33 @@ rei note get-help [note-id] [options]
 
 When the agent creates a help note, it automatically includes a wikilink back to the original note (if the original has a title). This creates a navigable relationship between the notes, and the link will appear in the original note's backlinks.
 
-If the note's anchor intention has note guidance set (via `intention set-note-guidance`), that guidance is automatically included as context. Use `--no-guidance` to skip this.
+**Guidance Sources:**
+
+Guidance can come from two places, and both are included by default:
+1. **Intention guidance** — Set via `intention set-note-guidance` on the anchor intention
+2. **Category guidance** — Set via `category set-note-guidance` on the note's assigned category
+
+Category guidance provides domain knowledge (e.g., "how to study kanji") while intention guidance provides user-specific context. Use `--no-guidance` to skip both.
 
 The `--focus` flag lets you emphasize a specific aspect or question without replacing the guidance context.
+
+**Interactive Mode:**
+
+Use `-i` or `--interactive` to start an interactive Claude Code session instead of a one-shot response. This allows back-and-forth conversation about the note.
+
+**Document Context:**
+
+Use `--include-doc` to include the content of attached documents in the agent context. Text-based files (md, txt, json, yaml, etc.) have their content read; binary files are noted but content is not included.
+
+**Debug Mode:**
+
+Use `--debug` to see the full prompt that would be sent to the LLM without actually invoking it:
+
+```
+=== DEBUG: Rendered prompt that would be sent to agent ===
+[Full prompt content]
+=== END DEBUG ===
+```
 
 **Examples:**
 
@@ -341,8 +368,17 @@ rei note get-help
 # Get help with a specific focus
 rei note get-help note_01h455vb4pex --focus "how to structure this document"
 
-# Skip intention-level guidance
+# Skip all guidance
 rei note get-help note_01h455vb4pex --no-guidance
+
+# Include attached documents in context
+rei note get-help note_01h455vb4pex --include-doc
+
+# Start an interactive session
+rei note get-help note_01h455vb4pex -i
+
+# Debug: see the prompt without invoking LLM
+rei note get-help note_01h455vb4pex --debug
 ```
 
 ### remind

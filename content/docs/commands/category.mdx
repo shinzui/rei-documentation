@@ -194,6 +194,53 @@ rei category link-focus work/meeting focus_01abc123...
 rei category link-focus work/meeting
 ```
 
+### set-note-guidance
+
+Set guidance text for notes in this category. This guidance is automatically included when using `rei note get-help` on notes assigned to this category.
+
+```bash
+rei category set-note-guidance SLUG [options]
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+
+**Options:**
+- `-c, --content <text>` — Guidance content (if not provided, opens editor)
+- `--stdin` — Read content from stdin
+
+Category guidance provides domain knowledge that applies to all notes in the category (e.g., "how to study kanji" for a `learning/japanese` category). It composes with intention-level guidance when both are present.
+
+**Examples:**
+
+```bash
+# Set guidance via editor
+rei category set-note-guidance learning/japanese
+
+# Set guidance inline
+rei category set-note-guidance learning/japanese -c "Focus on stroke order and radicals"
+
+# Set guidance from file
+cat guidance.md | rei category set-note-guidance learning/japanese --stdin
+```
+
+### clear-note-guidance
+
+Remove guidance from a category.
+
+```bash
+rei category clear-note-guidance SLUG
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+
+**Example:**
+
+```bash
+rei category clear-note-guidance learning/japanese
+```
+
 ## Category Assignment
 
 Categories can be assigned to actions, notes, and intentions.
