@@ -4,7 +4,7 @@ description: Building consistent practice through recurring activities
 icon: Repeat
 ---
 
-Habits in rei represent recurring activities with lifecycle management. Unlike one-time tasks, habits are about building consistent practice over time.
+Habits in rei represent recurring activities with lifecycle management. Unlike one-time tasks, habits are about building consistent practice over time — or breaking unwanted behaviors.
 
 ## What is a Habit?
 
@@ -12,46 +12,125 @@ A habit is a recurring activity you commit to. It has:
 
 - **Name** — What you call this habit
 - **Purpose** — Why you're doing it
-- **Action** — What you actually do each time
-- **Schedule** — How often (daily, weekly, specific days)
+- **Action Template** — Default description when recording actions
+- **Schedule** — How often (daily, weekly, monthly, cue-based, etc.)
+- **Polarity** — Whether you're building a practice or breaking a behavior
 
-## Creating Habits
+## Habit Types (Polarity)
+
+Rei supports two types of habits:
+
+### Build Habits (Default)
+
+Practices you want to cultivate and perform regularly:
 
 ```bash
-# Daily habit
 rei habit create \
-  --name "Morning Pages" \
-  --purpose "Build writing fluency" \
+  --name "Morning Writing" \
+  --purpose "Build creative fluency" \
   --daily \
-  --action "Write 3 pages"
-
-# Weekly habit
-rei habit create \
-  --name "Weekly Review" \
-  --purpose "Reflect on progress" \
-  --weekly \
-  --action "Review intentions and plan next week"
-
-# Specific days
-rei habit create \
-  --name "Exercise" \
-  --purpose "Stay healthy" \
-  --weekdays Mon,Wed,Fri \
-  --action "30 minutes workout"
+  --action "Write freely for 30 minutes"
 ```
+
+### Break Habits
+
+Behaviors you want to avoid or reduce:
+
+```bash
+rei habit create \
+  --name "Avoid Late-Night Snacking" \
+  --purpose "Improve sleep and health" \
+  --daily \
+  --break
+```
+
+Break habits support **abstinence tracking** — start tracking when you begin avoiding the behavior, and log occurrences if you slip:
+
+```bash
+# Start abstinence tracking
+rei habit start-abstinence habit_01abc...
+
+# Log if the behavior occurred (resets tracking)
+rei habit log-occurrence habit_01abc... --note "Stress triggered this"
+```
+
+## Scheduling Options
+
+Habits support flexible scheduling to match your needs:
+
+### Fixed Schedules
+
+```bash
+# Every day
+rei habit create --name "Meditation" --purpose "Mental clarity" --daily
+
+# Specific day of week
+rei habit create --name "Weekly Review" --purpose "Reflect on progress" --weekly sunday
+
+# Multiple days per week
+rei habit create --name "Gym" --purpose "Build strength" --weekly-on mon,wed,fri
+
+# Monthly on a specific day
+rei habit create --name "Finance Review" --purpose "Track spending" --monthly 1
+
+# Quarterly
+rei habit create --name "Goals Review" --purpose "Align direction" --quarterly
+
+# Yearly on a specific date
+rei habit create --name "Annual Planning" --purpose "Set yearly intentions" \
+  --yearly-month 1 --yearly-day 1
+
+# Every N days
+rei habit create --name "Water Plants" --purpose "Keep plants healthy" --every 3
+```
+
+### Flexible Schedules
+
+When you want to hit a target but don't care which specific days:
+
+```bash
+# At least 4 times per week
+rei habit create --name "Exercise" --purpose "Stay active" --free-weekly 4
+
+# At least 8 times per month
+rei habit create --name "Call Family" --purpose "Stay connected" --free-monthly 8
+
+# At least 4 times per quarter
+rei habit create --name "Deep Clean" --purpose "Maintain home" --free-quarterly 4
+```
+
+### Cue-Based Habits
+
+Triggered by context rather than time:
+
+```bash
+rei habit create \
+  --name "Mindful Breathing" \
+  --purpose "Reduce stress" \
+  --cue "When feeling stressed" \
+  --target "3/week"
+```
+
+Cue-based habits appear in the "Cue-Based Habits" section of your daily dashboard, showing when you last performed them.
 
 ## Linking to Intentions
 
 Habits become more meaningful when connected to intentions:
 
 ```bash
-rei habit link-intention <habit-id> <intention-id>
+rei habit link-intention habit_01abc... intention_01xyz...
 ```
 
 This connection:
 - Provides context for why you're doing the habit
 - Shows habit progress in intention views
-- Helps during reflection
+- Makes habit actions contribute to the intention
+- Inherits context from the intention
+
+```bash
+# Record action for a linked habit (automatically associates with intention)
+rei habit record-action habit_01abc... "Completed morning session"
+```
 
 ## Habit Lifecycle
 
@@ -60,44 +139,140 @@ Habits have their own lifecycle:
 | State | Description |
 |-------|-------------|
 | **Active** | Currently tracking this habit |
-| **Paused** | Temporarily stopped (e.g., vacation) |
+| **Paused** | Temporarily stopped (e.g., vacation, injury) |
 | **Retired** | Permanently ended |
 
 ```bash
 # Pause a habit
-rei habit pause <id>
+rei habit pause habit_01abc...
 
 # Resume a paused habit
-rei habit resume <id>
+rei habit resume habit_01abc...
 
 # Retire a habit permanently
-rei habit retire <id>
+rei habit retire habit_01abc...
 ```
+
+### Automatic Pause/Resume with Blockers
+
+When you declare a blocker on a habit, it **automatically pauses**:
+
+```bash
+rei blocker declare --habit habit_01abc... "Gym closed for renovation"
+```
+
+When the last blocker is resolved, the habit **automatically resumes**:
+
+```bash
+rei blocker resolve --habit habit_01abc... blocker_01xyz...
+```
+
+This saves you from manually managing habit status during obstacles.
 
 ## Tracking Adherence
 
-View your habit status:
+### Daily Status
 
 ```bash
-# See today's habits
 rei habit status
-
-# See habit details with adherence
-rei habit show <id>
 ```
 
-The status shows:
-- Which habits are due today
-- Your adherence percentage
-- Current streak
+Shows all habits with their adherence rates and completion status.
+
+### Visual Tracker
+
+See your adherence over time with a visual calendar:
+
+```bash
+# Last 30 days (default)
+rei habit tracker habit_01abc...
+
+# Last 60 days
+rei habit tracker habit_01abc... --days 60
+```
+
+The tracker shows a calendar grid highlighting completed days, making it easy to visualize streaks and patterns.
+
+### Recording Actions
+
+Record when you complete a habit:
+
+```bash
+# Basic recording
+rei habit record-action habit_01abc... "Morning session completed"
+
+# With timing
+rei habit record-action habit_01abc... --at "2 hours ago"
+
+# With duration
+rei habit record-action habit_01abc... --duration 30m
+
+# Use the habit's action template
+rei habit record-action habit_01abc...
+```
+
+## Context and Organization
+
+### Setting Context
+
+Unlinked habits can have their own context:
+
+```bash
+rei habit set-context habit_01abc... personal
+rei habit clear-context habit_01abc...
+```
+
+Linked habits automatically inherit context from their intention.
+
+### Filtering by Context
+
+```bash
+rei habit list --context work
+```
+
+## Reminders
+
+Set reminders to nudge yourself about habits:
+
+```bash
+rei habit remind habit_01abc... "Time for weekly review" --at "sunday 9am"
+```
 
 ## Habits vs Intentions
 
 | Habits | Intentions |
 |--------|------------|
-| Recurring activities | One-time commitments |
-| Focus on practice | Focus on outcomes |
+| Recurring activities | Commitments with outcomes |
+| Focus on practice | Focus on results |
 | "I write daily" | "I published a book" |
 | Process-oriented | Goal-oriented |
+| Build or Break | Always building toward something |
 
 Both work together: habits build the practice that enables intentions to be achieved.
+
+## Quick Reference
+
+```bash
+# Create habits
+rei habit create --name "..." --purpose "..." --daily
+rei habit create --name "..." --purpose "..." --break  # Break habit
+
+# Manage lifecycle
+rei habit pause/resume/retire habit_01abc...
+
+# Track progress
+rei habit status
+rei habit tracker habit_01abc...
+
+# Record completions
+rei habit record-action habit_01abc... "Description"
+
+# Link to intentions
+rei habit link-intention habit_01abc... intention_01xyz...
+
+# Break habit tracking
+rei habit start-abstinence habit_01abc...
+rei habit log-occurrence habit_01abc...
+```
+
+See [`rei habit`](/docs/commands/habit) for complete command documentation.
