@@ -4,20 +4,51 @@ description: AI coaching and assistance
 icon: Bot
 ---
 
-The agent commands provide AI-assisted coaching based on your data.
+AI-assisted coaching and review. The agent reads your current state to provide insights and suggestions.
+
+## Configuration
+
+The agent requires an LLM backend. See [configuration](/docs/configuration) for setup.
+
+## Global Options
+
+### Interactive Mode
+
+All agent commands support `--interactive` (`-i`) to start an interactive Claude Code session instead of getting a one-shot response.
+
+```bash
+rei agent [-i|--interactive] COMMAND
+```
+
+**Interactive mode:**
+- Starts Claude Code with your current Rei state pre-loaded
+- Claude retains all tools (Bash, Read, Edit, etc.)
+- All `rei` commands are pre-approved (no permission prompts)
+- Supports multi-turn conversations with full context
+- Claude can record actions, resolve blockers, and make changes on your behalf
+
+**Example:**
+
+```bash
+# Interactive coaching session
+rei agent coach -i
+
+# Interactive intention review
+rei agent review intention_01h455vb4pex -i
+```
 
 ## Subcommands
 
 ### coach
 
-Get general coaching.
+Get coaching suggestions.
 
 ```bash
 rei agent coach [options]
 ```
 
 **Options:**
-- `--today` — Focus on today's context
+- `-t, --today` — Focus on today's activities
 
 **Examples:**
 
@@ -25,68 +56,98 @@ rei agent coach [options]
 # General coaching
 rei agent coach
 
-# Focused on today
+# Focus on today
 rei agent coach --today
+
+# Interactive coaching session
+rei agent coach -i
+rei agent coach --today -i
 ```
-
-### nudge
-
-Get a quick suggestion for what to do next.
-
-```bash
-rei agent nudge
-```
-
-Returns a brief, actionable suggestion based on your current state.
 
 ### review
 
-Deep review of a specific intention.
+Review a specific intention with AI assistance.
 
 ```bash
 rei agent review [intention-id]
 ```
 
-Provides detailed analysis and suggestions for a single intention.
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+The agent will analyze the intention's history, actions, blockers, and related notes to provide insights and suggestions.
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Review specific intention
+rei agent review intention_01h455vb4pex
+
+# Let fzf pick the intention
+rei agent review
+
+# Interactive review session
+rei agent review intention_01h455vb4pex -i
+```
+
+### nudge
+
+Get a gentle nudge about what to focus on.
+
+```bash
+rei agent nudge
+```
+
+This provides a quick suggestion based on your current intentions, blockers, and recent activity.
+
+**Example:**
+
+```bash
+# Quick suggestion
+rei agent nudge
+
+# Interactive nudge session
+rei agent nudge -i
+```
 
 ### reflect
 
-AI-assisted reflection prompts.
+Get AI-assisted reflection.
 
 ```bash
+rei agent reflect <period>
+```
+
+**Subcommands:**
+- `today` — Reflect on today
+- `week` — Reflect on the week
+
+**Examples:**
+
+```bash
+# AI-assisted daily reflection
 rei agent reflect today
+
+# AI-assisted weekly reflection
 rei agent reflect week
+
+# Interactive reflection help
+rei agent reflect today -i
+rei agent reflect week -i
 ```
 
-The agent reviews your recent activity and asks questions to help you reflect more deeply.
+## Modes Comparison
 
-## Configuration
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| Non-interactive (default) | Returns a single response, read-only | Quick advice, suggestions |
+| Interactive (`-i`) | Multi-turn Claude Code session | Getting unstuck, making changes |
 
-### LLM Backend
+## Important Notes
 
-Set the backend via environment variable:
-
-```bash
-# Use Claude CLI (default)
-export REI_LLM_BACKEND=claude-cli
-
-# Use Anthropic API directly
-export REI_LLM_BACKEND=anthropic-api
-export REI_ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### Model Override
-
-Override the default model:
-
-```bash
-export REI_LLM_MODEL=claude-3-opus-20240229
-```
-
-## Privacy
-
-The agent:
-- Reads your local data (intentions, actions, reflections)
-- Sends relevant context to the LLM
-- Never modifies your data
-- Processes locally when using claude-cli
+- **Non-interactive mode** is read-only — the agent does not modify your data
+- **Interactive mode** gives Claude full CLI access — it can record actions, resolve blockers, etc.
+- All changes in interactive mode are attributed with `--actor claude-code`
+- The agent reads your events, markdown files, and read models to understand your current state

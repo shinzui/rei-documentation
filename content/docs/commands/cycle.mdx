@@ -118,6 +118,32 @@ rei cycle abandon
 - Abandoned cycles are terminal — they cannot be modified
 - Use this when you want to start fresh without completing the current cycle
 
+### extend
+
+Extend the active cycle by additional days.
+
+```bash
+rei cycle extend <days>
+```
+
+**Arguments:**
+- `<days>` — Number of days to add to the cycle (required, must be positive)
+
+**Examples:**
+
+```bash
+# Extend by 3 days
+rei cycle extend 3
+
+# Extend by a week
+rei cycle extend 7
+```
+
+**Notes:**
+- Only works on active cycles
+- Cannot extend completed or abandoned cycles
+- The extension is added to the current cycle length
+
 ### list
 
 List all cycles.
