@@ -21,11 +21,12 @@ rei action record [description] [options]
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
-- `--habit <id>` — Link to a habit (optional)
+- `--habit <id>` — Link to a habit (optional if fzf is available)
+- `--no-habit` — Skip habit selection prompt
 - `-t, --at <time>` — When action was completed (optional, defaults to now)
 - `-d, --duration <duration>` — How long the action took (optional)
 
-> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions. After selecting an intention, another picker will let you optionally select a habit (with a "Skip" option at the top). Use `--no-habit` to skip the habit selection prompt entirely.
 
 **Time Semantics:**
 
@@ -78,6 +79,9 @@ echo "Refactored the entire module" | rei action record -i intention_01h455vb4pe
 
 # Record a habit-linked action with duration
 rei action record --habit habit_01h455vb4pex "Wrote 500 words" -d 30m
+
+# Skip the habit selection prompt entirely
+rei action record "Quick bug fix" --no-habit
 
 # Record an action that finished 2 hours ago, took 45 minutes
 rei action record "Fixed the bug" --at "2 hours ago" --duration 45m

@@ -6,6 +6,36 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-20
+
+### New Feature: Cycle Reflections
+
+Reflect on completed cycles to capture learnings and insights:
+
+- `rei reflect cycle` — Start a reflection for the last completed cycle
+- `rei reflect cycle cycle_01abc...` — Reflect on a specific cycle
+- `rei reflect cycle --prompt "What did you learn?"` — With a custom prompt
+
+The reflection includes context from the completed cycle — focus selections, duration, and progress.
+
+### New Feature: Cycle Backdating
+
+Forgot to start or complete a cycle on time? Backdate it:
+
+- `rei cycle start --length 10 --at yesterday` — Backdate cycle start
+- `rei cycle complete --at yesterday` — Backdate cycle completion
+
+### Enhancements
+
+- **`rei action record`** — FZF now offers optional habit selection after choosing an intention (with "Skip" option). Use `--no-habit` to skip entirely.
+- **`rei category print-note-guidance`** — Print category guidance to stdout for review or piping
+- **`rei category improve-note-guidance`** — Improve category guidance with AI assistance
+- **`rei category show`** — Now displays note guidance path when configured
+- **`rei note get-help --append`** — Append AI help directly to the original note instead of creating a separate note
+- **`rei note list --json`** — Output notes as JSON for scripting
+
+---
+
 ## 2026-01-18
 
 ### New Command: Help Topics

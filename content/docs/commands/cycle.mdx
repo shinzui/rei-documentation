@@ -20,6 +20,7 @@ rei cycle start [options]
 - `-l, --length <days>` — Cycle length in days (required)
 - `-n, --name <name>` — Optional name for the cycle
 - `-d, --start-date <date>` — Start date (defaults to today, format: YYYY-MM-DD)
+- `-t, --at <time>` — When the cycle started (relative time expression, e.g., "yesterday", "3 days ago")
 
 **Examples:**
 
@@ -32,11 +33,15 @@ rei cycle start --length 7 --name "Week 1"
 
 # Start a cycle with a specific start date
 rei cycle start --length 10 --start-date 2025-01-01
+
+# Backdate a cycle start (e.g., forgot to start yesterday)
+rei cycle start --length 10 --at yesterday
 ```
 
 **Notes:**
 - Only one cycle can be active at a time
 - Starting a new cycle when one is active will fail
+- Use `--at` to backdate cycle starts (useful when you forgot to start on time)
 
 ### status
 
@@ -99,12 +104,26 @@ rei cycle select-focus focus_01abc... --date 2025-01-01
 Mark the active cycle as completed.
 
 ```bash
+rei cycle complete [options]
+```
+
+**Options:**
+- `-t, --at <time>` — When the cycle was completed (relative time expression, e.g., "yesterday", "2 hours ago")
+
+**Examples:**
+
+```bash
+# Complete the active cycle now
 rei cycle complete
+
+# Backdate completion (e.g., forgot to complete yesterday)
+rei cycle complete --at yesterday
 ```
 
 **Notes:**
 - Completed cycles are terminal — they cannot be modified
 - You can complete a cycle before all days have focus selections
+- Use `--at` to backdate cycle completions (useful when you forgot to mark completion)
 
 ### abandon
 

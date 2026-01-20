@@ -5,11 +5,33 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `9283d10` (2026-01-18)
+**Last Source Commit Reviewed:** `57e5f95` (2026-01-20)
 
 ---
 
 ## Changelog
+
+### 2026-01-20
+
+**Reviewed commits:** `9283d10` through `57e5f95`
+
+**Files updated:**
+- `action.mdx` — Added `--no-habit` option and enhanced FZF habit selection documentation
+- `category.mdx` — Added `print-note-guidance` and `improve-note-guidance` subcommands, enhanced `show` output with note guidance path
+- `cycle.mdx` — Added `--at` backdating options to `start` and `complete` commands
+- `note.mdx` — Added `--append` option to `get-help`, added `--json` option to `list`
+- `reflect.mdx` — Added `cycle` subcommand for cycle reflections, enhanced documentation with FZF support notes and all options
+
+**Features documented:**
+- FZF habit selection — After selecting an intention, fzf now offers optional habit selection with "Skip" option
+- Skip habit prompt — Use `--no-habit` to skip the habit selection prompt entirely
+- Category guidance management — Print guidance to stdout, improve guidance with AI assistance
+- Cycle backdating — Backdate cycle `start` and `complete` with `--at` option (e.g., "yesterday")
+- Note help append mode — Append AI help directly to original note instead of creating separate note
+- Note list JSON output — Use `--json` for scripted access to note listings
+- Cycle reflections — Reflect on completed cycles with context from focus selections and duration
+
+---
 
 ### 2026-01-18 (2)
 

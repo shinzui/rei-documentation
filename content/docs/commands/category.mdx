@@ -123,8 +123,11 @@ Category: work/meeting
   Description: Work meetings
   Parent: category_01parent...
   Status: Active
+  Note Guidance: .rei/category-guidance/work-meeting.md
   Created: 2026-01-15 10:30
 ```
+
+If the category has note guidance configured, the output shows the path to the guidance file.
 
 ### tree
 
@@ -239,6 +242,65 @@ rei category clear-note-guidance SLUG
 
 ```bash
 rei category clear-note-guidance learning/japanese
+```
+
+### print-note-guidance
+
+Print the note guidance for a category to stdout. Useful for piping to other tools or reviewing guidance content.
+
+```bash
+rei category print-note-guidance SLUG
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+
+**Examples:**
+
+```bash
+# Print guidance to terminal
+rei category print-note-guidance learning/japanese
+
+# Pipe to clipboard
+rei category print-note-guidance learning/japanese | pbcopy
+```
+
+### improve-note-guidance
+
+Improve note guidance for a category using AI. This invokes Claude to suggest improvements to the existing guidance.
+
+```bash
+rei category improve-note-guidance SLUG [INSTRUCTIONS] [options]
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+- `[INSTRUCTIONS]` — Improvement instructions (optional, e.g., "add examples for stroke order")
+
+**Options:**
+- `--stdin` — Read improvement instructions from stdin
+- `--debug` — Show the prompt without calling the agent
+
+**Behavior:**
+1. Loads current guidance for the category
+2. Sends guidance and instructions to Claude
+3. Opens editor with suggested improvements
+4. On save, updates the category guidance
+
+**Examples:**
+
+```bash
+# Improve with inline instructions
+rei category improve-note-guidance learning/japanese "add examples for radicals"
+
+# Improve via stdin
+echo "focus on memorization techniques" | rei category improve-note-guidance learning/japanese --stdin
+
+# Interactive improvement (opens editor for instructions)
+rei category improve-note-guidance learning/japanese
+
+# Debug: see the prompt without calling the agent
+rei category improve-note-guidance learning/japanese "add more detail" --debug
 ```
 
 ## Category Assignment

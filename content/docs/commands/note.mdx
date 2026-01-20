@@ -129,6 +129,7 @@ rei note list [options]
 - `-h, --habit <id>` — Filter by habit
 - `-t, --tag <tag>` — Filter by tag
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
+- `--json` — Output as JSON (for scripting)
 
 > **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
 
@@ -162,6 +163,9 @@ rei note list
 
 # List notes by category (e.g., daily journal notes)
 rei note list --category system/journal
+
+# Output as JSON (for scripting)
+rei note list --json
 ```
 
 ### show
@@ -321,6 +325,7 @@ rei note get-help [note-id] [options]
 - `--include-doc` — Include content from attached documents in context
 - `-i, --interactive` — Start an interactive Claude Code session
 - `--debug` — Output the rendered prompt without invoking the LLM
+- `--append` — Append help to the original note instead of creating a new note
 
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -356,6 +361,10 @@ Use `--debug` to see the full prompt that would be sent to the LLM without actua
 === END DEBUG ===
 ```
 
+**Append Mode:**
+
+Use `--append` to add the AI help directly to the original note instead of creating a separate help note. This appends a "## AI Help" section with a horizontal rule separator.
+
 **Examples:**
 
 ```bash
@@ -379,6 +388,9 @@ rei note get-help note_01h455vb4pex -i
 
 # Debug: see the prompt without invoking LLM
 rei note get-help note_01h455vb4pex --debug
+
+# Append help to the original note
+rei note get-help note_01h455vb4pex --append
 ```
 
 ### remind

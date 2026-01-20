@@ -1,44 +1,76 @@
 ---
 title: rei reflect
-description: Create and manage reflections
+description: Schedule and complete reflections
 icon: BookText
 ---
 
-Reflections capture your interpretations and learnings from past work.
+Schedule and complete reflections. Reflections are structured review sessions.
 
 ## Subcommands
 
 ### today
 
-Create a reflection for today.
+Start or continue today's daily reflection.
 
 ```bash
-rei reflect today
+rei reflect today [options]
 ```
 
-Opens your editor to write a reflection on today's work.
+**Options:**
+- `-p, --prompt <text>` — Custom prompt text
+
+**Behavior:**
+1. Creates a reflection file at `reflections/<date>.md`
+2. Opens your `$EDITOR`
+3. On save, records the reflection as completed
+
+**Examples:**
+
+```bash
+# Start daily reflection
+rei reflect today
+
+# With a custom prompt
+rei reflect today --prompt "Focus on what blocked you today"
+```
 
 ### week
 
-Create a weekly reflection.
+Start or continue this week's reflection.
+
+```bash
+rei reflect week [options]
+```
+
+**Options:**
+- `-p, --prompt <text>` — Custom prompt text
+
+**Example:**
 
 ```bash
 rei reflect week
 ```
 
-Opens your editor for a broader weekly reflection.
-
 ### intention
 
-Create a reflection for a specific intention.
+Start a reflection focused on a specific intention.
 
 ```bash
-rei reflect intention [id]
+rei reflect intention <intention-id>
+```
+
+**Arguments:**
+- `<intention-id>` — Intention ID (required)
+
+**Example:**
+
+```bash
+rei reflect intention intention_01h455vb4pex
 ```
 
 ### pending
 
-Show pending (incomplete) reflections.
+List all pending (scheduled but not completed) reflections.
 
 ```bash
 rei reflect pending
@@ -53,36 +85,115 @@ rei reflect history [options]
 ```
 
 **Options:**
-- `--limit <n>` — Number of reflections to show
+- `-n, --limit <n>` — Number of reflections to show (default: 10)
+- `-c, --context <context>` — Filter by context
+
+**Examples:**
+
+```bash
+# Show last 20 reflections
+rei reflect history -n 20
+
+# Show reflections filtered by context
+rei reflect history --context work
+
+# Combine filters
+rei reflect history --context personal -n 5
+```
+
+**Notes:**
+- Intention-anchored reflections inherit context from their intention
+- Daily and weekly reflections can also be filtered if they have associated context
 
 ### open
 
-Open an existing reflection for editing.
+Open an existing reflection in your editor.
 
 ```bash
-rei reflect open [id]
+rei reflect open [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent reflections.
+
+**Example:**
+
+```bash
+rei reflect open reflection_01h455vb4pex
 ```
 
 ### complete
 
-Mark a reflection as complete.
+Mark a reflection as completed.
 
 ```bash
-rei reflect complete [id]
+rei reflect complete [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from in-progress reflections.
+
+This is useful when you've edited a reflection file directly and want to mark it as done.
+
+### cycle
+
+Start a reflection for a completed cycle.
+
+```bash
+rei reflect cycle [cycle-id] [options]
+```
+
+**Arguments:**
+- `[cycle-id]` — Cycle ID to reflect on (optional, defaults to last completed cycle)
+
+**Options:**
+- `-p, --prompt <text>` — Custom prompt text
+- `--stdin` — Read reflection content from stdin
+- `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
+
+> **FZF Support:** If the cycle ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from completed cycles.
+
+**Behavior:**
+1. Loads context from the completed cycle (focus selections, duration, etc.)
+2. Creates a reflection file with cycle summary
+3. Opens your `$EDITOR`
+4. On save, records the reflection as completed
+
+**Examples:**
+
+```bash
+# Reflect on last completed cycle
+rei reflect cycle
+
+# Reflect on a specific cycle
+rei reflect cycle cycle_01abc123...
+
+# With a custom prompt
+rei reflect cycle --prompt "What did you learn this cycle?"
 ```
 
 ### skip
 
-Skip a pending reflection.
+Skip a scheduled reflection.
 
 ```bash
-rei reflect skip [id]
+rei reflect skip [reflection-id] [options]
 ```
 
-## Workflow
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
 
-1. Create a reflection with `rei reflect today` or `rei reflect week`
-2. Write your thoughts in your editor
-3. Save and close the editor
-4. The reflection is saved but pending
-5. Use `rei reflect complete` when you're done
+**Options:**
+- `-r, --reason <text>` — Reason for skipping
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from pending reflections.
+
+**Example:**
+
+```bash
+rei reflect skip reflection_01h455vb4pex --reason "Traveling today"
+```
