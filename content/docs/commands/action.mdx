@@ -25,6 +25,7 @@ rei action record [description] [options]
 - `--no-habit` — Skip habit selection prompt
 - `-t, --at <time>` — When action was completed (optional, defaults to now)
 - `-d, --duration <duration>` — How long the action took (optional)
+- `-p, --polarity <polarity>` — Energy impact (optional, see Polarity section below)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions. After selecting an intention, another picker will let you optionally select a habit (with a "Skip" option at the top). Use `--no-habit` to skip the habit selection prompt entirely.
 
@@ -91,6 +92,12 @@ rei action record "Reviewed the PR" -t yesterday -d 1h
 
 # Record using short form time
 rei action record "Wrote documentation" -t "-30m" -d 20m
+
+# Record with polarity (energizing activity)
+rei action record "Pair programming session" --polarity +
+
+# Record with polarity using short form
+rei action record "Filled out expense reports" -p d  # draining
 ```
 
 ### update-description
@@ -321,6 +328,80 @@ rei action delete -r "Duplicate entry"
 - Deletion is idempotent (deleting twice has no effect)
 - The action is logically deleted, not physically removed from the event stream
 - Use this when an action was recorded by mistake
+
+### set-polarity
+
+Set the energy polarity of an action. Polarity tracks whether an activity was energizing, neutral, or draining.
+
+```bash
+rei action set-polarity [-a ACTION_ID] POLARITY
+```
+
+**Arguments:**
+- `POLARITY` — One of: `+`/`e`/`energizing`, `=`/`n`/`neutral`, `-`/`d`/`draining`
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Set action as energizing
+rei action set-polarity -a action_01h455vb4pex +
+
+# Set action as draining with verbose form
+rei action set-polarity -a action_01h455vb4pex draining
+
+# Let fzf pick the action
+rei action set-polarity energizing
+```
+
+### clear-polarity
+
+Remove the polarity from an action.
+
+```bash
+rei action clear-polarity [-a ACTION_ID]
+```
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Clear polarity with explicit action ID
+rei action clear-polarity -a action_01h455vb4pex
+
+# Let fzf pick the action
+rei action clear-polarity
+```
+
+## Polarity
+
+Polarity tracks the energy impact of activities. This helps identify which tasks are uplifting versus which create friction.
+
+**Values:**
+- **Energizing** (`+`, `e`, `energizing`) — Activities that are uplifting and create energy
+- **Neutral** (`=`, `n`, `neutral`) — Activities with neutral energy impact
+- **Draining** (`-`, `d`, `draining`) — Activities that create friction or deplete energy
+
+**Display:**
+- ⚡ for energizing actions
+- ≈ for neutral actions
+- 🔻 for draining actions
+
+Polarity is shown in the `rei today` dashboard and in FZF action selectors.
+
+**Use Cases:**
+- Track energy patterns throughout the day
+- Identify which types of work are most draining
+- Balance energizing and draining activities
+- Inform decisions about task scheduling
 
 ## Related Commands
 

@@ -6,6 +6,25 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-20 (2)
+
+### New Feature: Action Polarity
+
+Track the energy impact of your activities to understand what energizes versus drains you:
+
+- `rei action record "Deep work session" --polarity +` — Record with polarity
+- `rei action set-polarity energizing` — Set polarity on existing action
+- `rei action clear-polarity` — Remove polarity
+
+**Polarity values:**
+- **Energizing** (`+`, `e`) — Activities that are uplifting ⚡
+- **Neutral** (`=`, `n`) — Neutral energy impact ≈
+- **Draining** (`-`, `d`) — Activities that deplete energy 🔻
+
+Polarity appears in the `rei today` dashboard and FZF action selectors, helping you identify patterns and balance your workload.
+
+---
+
 ## 2026-01-20
 
 ### New Feature: Cycle Reflections

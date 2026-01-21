@@ -5,11 +5,26 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `57e5f95` (2026-01-20)
+**Last Source Commit Reviewed:** `563814f` (2026-01-20)
 
 ---
 
 ## Changelog
+
+### 2026-01-20 (2)
+
+**Reviewed commits:** `57e5f95` through `563814f`
+
+**Files updated:**
+- `action.mdx` — Added polarity feature (`-p/--polarity` option, `set-polarity`, `clear-polarity` subcommands, and Polarity section)
+
+**Features documented:**
+- Action polarity — Track energy impact of activities (energizing/neutral/draining)
+- Polarity options on `record` command (`-p +`, `-p d`, etc.)
+- `set-polarity` and `clear-polarity` subcommands
+- Polarity display indicators (⚡ ≈ 🔻) in dashboard and FZF selectors
+
+---
 
 ### 2026-01-20
 
