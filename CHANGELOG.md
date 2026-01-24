@@ -5,11 +5,26 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `8eb89e5` (2026-01-23)
+**Last Source Commit Reviewed:** `d77f0e4` (2026-01-24)
 
 ---
 
 ## Changelog
+
+### 2026-01-24
+
+**Reviewed commits:** `8eb89e5` through `d77f0e4`
+
+**Files created:**
+- `tomorrow.mdx` — **NEW** — Tomorrow dashboard preview command
+
+**Features documented:**
+- Tomorrow command (`rei tomorrow`) — Preview tomorrow's dashboard for evening planning
+  - Shows active intentions, tasks (relative to tomorrow), blockers (age as of tomorrow), habits scheduled for tomorrow
+  - Context filtering support (`-c/--context`)
+  - Comparison table with `rei today`
+
+---
 
 ### 2026-01-23
 

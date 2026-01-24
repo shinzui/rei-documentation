@@ -1,0 +1,113 @@
+---
+title: rei tomorrow
+description: Preview tomorrow's dashboard for planning ahead
+icon: CalendarArrowUp
+---
+
+Preview tomorrow's dashboard for planning the night before. Similar to `rei today` but shows what you'll face tomorrow, helping you prepare and plan ahead.
+
+```bash
+rei tomorrow [options]
+```
+
+**Options:**
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+
+## Dashboard Sections
+
+The tomorrow preview displays the following sections:
+
+### Active Cycle & Focus
+
+If you have an active focus cycle, shows:
+- Cycle name and progress (e.g., "Day 4/14, 10 days remaining")
+- Tomorrow's designated focus area (if already set)
+- "No focus set for tomorrow" if you haven't selected yet
+
+### Active Intentions
+
+Your active intentions that will carry into tomorrow, either:
+- **Grouped by context** (when no filter applied) — organized under context headers like "work", "personal"
+- **Flat list** (when filtered by `-c`) — showing only matching intentions
+
+Each intention shows a "(blocked)" indicator if it has unresolved blockers.
+
+### Tasks
+
+Tasks organized by their status relative to tomorrow:
+- **Overdue** — Tasks already past due (shown in red with days overdue)
+- **Due Tomorrow** — Tasks due on that day (shown in yellow)
+- **Upcoming** — Tasks due within 7 days after tomorrow
+
+### Blockers
+
+Active blockers with age indicator showing how old they'll be tomorrow (e.g., "3 days").
+
+### Habits
+
+Habits scheduled for tomorrow's day of week:
+- Daily habits always appear
+- Weekly habits appear on their scheduled day
+- Shows pending status (no completion tracking for future days)
+
+### Pending Reflections
+
+Reflections that are scheduled but not yet completed.
+
+## Examples
+
+```bash
+# Preview tomorrow's dashboard
+rei tomorrow
+
+# Preview tomorrow for work context only
+rei tomorrow --context work
+rei tomorrow -c work
+```
+
+## Use Cases
+
+### Evening Planning
+
+Review tomorrow's commitments before ending your day:
+
+```bash
+rei tomorrow
+```
+
+This helps you:
+- See what blockers are aging and need attention
+- Check which habits are scheduled
+- Identify overdue tasks that will carry forward
+- Plan your focus area for the cycle
+
+### Context-Specific Planning
+
+Focus on a specific life area:
+
+```bash
+rei tomorrow --context work
+```
+
+## Comparison with `rei today`
+
+| Feature | `rei today` | `rei tomorrow` |
+|---------|-------------|----------------|
+| Shows current day | Yes | No |
+| Shows future day | No | Yes (tomorrow) |
+| Today's actions | Yes | No |
+| Triggered reminders | Yes | No |
+| Completed today | Yes | No |
+| Habit completion status | Yes | No (all pending) |
+| Task due calculation | Relative to today | Relative to tomorrow |
+| Blocker age | As of today | As of tomorrow |
+| TUI mode | Yes (`--tui`) | No |
+| Include dormant | Yes (`--include-dormant`) | No |
+
+## Notes
+
+- Times and dates are calculated based on your local timezone
+- The dashboard requires a database backend (PostgreSQL)
+- Context filtering shows intentions whose root ancestor has the matching context
+- Linked habits inherit context from their linked intention
+- Blocker ages are calculated as of tomorrow, so a blocker declared today shows as "1 day"

@@ -186,6 +186,7 @@ Use these Lucide icons for command pages:
 - system: `Terminal`
 - task: `ListTodo`
 - today: `CalendarDays`
+- tomorrow: `CalendarArrowUp`
 - workspace: `FolderGit2`
 
 ### Looking Up Valid Icons
