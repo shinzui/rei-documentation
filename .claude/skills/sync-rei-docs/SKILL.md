@@ -165,12 +165,14 @@ Use these Lucide icons for command pages:
 - action: `Zap`
 - agent: `Bot`
 - blocker: `Ban`
+- category: `Tags`
 - changelog: `History`
 - cycle: `RefreshCw`
 - dependency: `GitBranch`
 - doc: `File`
 - focus: `Crosshair`
 - habit: `Repeat`
+- help: `CircleQuestionMark`
 - intention: `Target`
 - knowledge: `Lightbulb`
 - link: `ExternalLink`
@@ -178,9 +180,27 @@ Use these Lucide icons for command pages:
 - outcome: `Trophy`
 - reflect: `BookText`
 - reminder: `Bell`
+- review: `CalendarCheck`
 - subscription: `BellRing`
 - support: `Link2`
+- system: `Terminal`
 - task: `ListTodo`
+- today: `CalendarDays`
+- workspace: `FolderGit2`
+
+### Looking Up Valid Icons
+
+Icons come from the `lucide-react` package. To find valid icon names:
+
+```bash
+# List all available icons
+node -e "console.log(Object.keys(require('lucide-react').icons).join('\n'))"
+
+# Search for icons by keyword
+node -e "console.log(Object.keys(require('lucide-react').icons).filter(k => k.toLowerCase().includes('help')).join('\n'))"
+```
+
+**Important:** Icon names are PascalCase (e.g., `CircleQuestionMark`, not `circle-question-mark`).
 
 ## Notes
 
