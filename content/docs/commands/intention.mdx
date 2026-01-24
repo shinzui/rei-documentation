@@ -134,7 +134,7 @@ rei intention show [id] [options]
 - Tasks
 - Linked habits
 - Reminders (active and past, with status icons and scheduled times)
-- Child intentions
+- Child intentions (both Active and Future; excludes Completed/Abandoned)
 
 ### tree
 
@@ -149,6 +149,7 @@ rei intention tree [options]
 - `-a, --all` — Show both active and future intentions with status indicators
 - `--completed` — Show completed intentions with their parent chains
 - `-c, --context <context>` — Filter by context
+- `--tui` — Launch interactive TUI for browsing the hierarchy
 
 **Examples:**
 
@@ -170,6 +171,9 @@ rei intention tree --context work
 
 # Combine flags
 rei intention tree --future --context personal
+
+# Launch interactive TUI
+rei intention tree --tui
 ```
 
 **Output:**
@@ -177,6 +181,18 @@ rei intention tree --future --context personal
 - `--future` shows future intentions with their active parent chains (future items highlighted in cyan)
 - `--completed` shows completed intentions with their parent chains (completed items highlighted in green)
 - `--all` shows active and future together, with `(future)` indicators on deferred items
+
+**Interactive TUI Mode:**
+
+The `--tui` flag launches an interactive terminal UI for browsing the intention hierarchy:
+
+- **Navigation**: Use `j`/`k` or arrow keys to move up/down
+- **View details**: Press `Enter` to open the full detail view for an intention
+- **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
+- **Close views**: Press `Esc` to close detail view or quit
+- **Quit**: Press `q` to exit
+
+The TUI works with all tree variants (active, future, completed, all) and respects context filtering.
 
 ### complete
 

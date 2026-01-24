@@ -6,6 +6,45 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-23
+
+### New Feature: Interactive Tree TUI
+
+Browse your intention hierarchy with an interactive terminal UI:
+
+- `rei intention tree --tui` — Launch the interactive TUI
+- Navigate with `j`/`k` or arrow keys
+- Press `Enter` to view full details of an intention
+- Press `o` in detail view to open notes (FZF picker if multiple)
+- Press `Esc` to close detail view, `q` to quit
+
+The TUI works with all tree variants (`--future`, `--completed`, `--all`) and respects context filtering.
+
+### New Feature: Active Days Count Tracking
+
+See how consistently you've been working on intentions and habits with active days tracking:
+
+- `rei today` — Now shows `[45d]` indicators next to intentions and habits
+- The count represents distinct days with recorded actions
+- Helps visualize engagement over time without tracking streaks
+
+### New Commands
+
+- **`rei note delete`** — Permanently delete a note from the workspace
+- **`rei note outgoing-links`** — Show notes that a given note links to (inverse of `backlinks`)
+- **`rei reflect print`** — Print reflection content to stdout for piping to other commands
+- **`rei task open-note`** — Open the note containing a task in your editor
+
+### Enhancements
+
+- **`rei intention show --full`** — Child intentions section now shows both Active and Future (excludes Completed/Abandoned)
+- **`rei intention tree`** — Added `--tui` flag for interactive browsing
+- **`rei reflect open`** — FZF picker now supports `ctrl-f` toggle between pending-only and all reflections
+- **`rei reminder list --user`** — Filter to show only user-created reminders (complements `--system`)
+- **`rei task list`** — Output now shows source note ID for each task
+
+---
+
 ## 2026-01-20 (2)
 
 ### New Feature: Action Polarity

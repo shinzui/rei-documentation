@@ -63,6 +63,7 @@ rei task list
 - Pending tasks shown with `[ ]`
 - Completed tasks shown with `[x]`
 - Due date indicators: `[OVERDUE Nd]`, `[DUE TODAY]`, `[DUE TOMORROW]`
+- Source note ID shown for each task (e.g., `Source: note_01xyz...`)
 
 ### complete
 
@@ -122,6 +123,33 @@ rei task reopen <task-id>
 
 **Notes:**
 - Automatically syncs checkbox state to the original markdown file(s)
+
+### open-note
+
+Open the note containing a task.
+
+```bash
+rei task open-note [task-id]
+```
+
+**Arguments:**
+- `[task-id]` — Task ID (optional if fzf is available)
+
+> **FZF Support:** If the task ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available tasks.
+
+**Behavior:**
+- Opens the note containing the task in your `$EDITOR`
+- If a task exists in multiple notes (same text content), presents an FZF menu to choose which note to open
+
+**Examples:**
+
+```bash
+# Open the note for a specific task
+rei task open-note task_01abc...
+
+# Let fzf pick the task
+rei task open-note
+```
 
 ### due
 

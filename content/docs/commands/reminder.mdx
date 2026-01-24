@@ -65,10 +65,13 @@ rei reminder list [options]
 - `--pending` — Show only pending reminders (not yet due)
 - `--all` — Include completed and cancelled reminders
 - `--system` — Show only system-generated reminders (dormancy and task due date)
+- `--user` — Show only user-created reminders
 - `-i, --intention <id>` — List reminders for an intention
 - `-a, --action <id>` — List reminders for an action
 - `--habit <id>` — List reminders for a habit
 - `-n, --note <id>` — List reminders for a note
+
+Note: `--system` and `--user` are mutually exclusive.
 
 **Examples:**
 
@@ -90,6 +93,9 @@ rei reminder list --system
 
 # List triggered system reminders
 rei reminder list --system --triggered
+
+# List only user-created reminders
+rei reminder list --user
 ```
 
 ### show

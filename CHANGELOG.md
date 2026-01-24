@@ -5,11 +5,36 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `563814f` (2026-01-20)
+**Last Source Commit Reviewed:** `8eb89e5` (2026-01-23)
 
 ---
 
 ## Changelog
+
+### 2026-01-23
+
+**Reviewed commits:** `563814f` through `8eb89e5`
+
+**Files updated:**
+- `intention.mdx` — Added `--tui` flag to tree command, updated show --full children section to note Active/Future filtering
+- `note.mdx` — Added `delete` and `outgoing-links` subcommands
+- `reflect.mdx` — Added `print` subcommand, enhanced `open` FZF toggle documentation
+- `reminder.mdx` — Added `--user` flag for filtering user-created reminders
+- `task.mdx` — Added `open-note` subcommand, added source note ID to list output
+- `today.mdx` — Added active days count indicators for intentions and habits
+
+**Features documented:**
+- Interactive Tree TUI (`rei intention tree --tui`) — Navigate hierarchy with keyboard, view details, open notes
+- Active days count tracking — Intentions and habits now display `[Nd]` indicators showing distinct days with activity
+- Note deletion (`rei note delete`) — Permanently remove notes from workspace
+- Outgoing links (`rei note outgoing-links`) — View notes that a given note links to (inverse of backlinks)
+- Reflection printing (`rei reflect print`) — Print reflection content to stdout for piping
+- Reflection open FZF toggle — Press `ctrl-f` to switch between pending-only and all reflections
+- User reminder filter (`rei reminder list --user`) — Filter to show only user-created reminders
+- Task note opening (`rei task open-note`) — Open the note containing a task
+- Task source note display — Task list output now shows source note ID for each task
+
+---
 
 ### 2026-01-20 (2)
 

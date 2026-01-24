@@ -116,12 +116,43 @@ rei reflect open [reflection-id]
 **Arguments:**
 - `[reflection-id]` — Reflection ID (optional if fzf is available)
 
-> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent reflections.
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent reflections. Use `ctrl-f` to toggle between pending-only and all reflections (including completed and skipped).
+
+**Behavior:**
+- By default, shows only pending/in-progress reflections
+- Press `ctrl-f` in FZF to toggle and view all reflections
+- If there are no pending reflections, automatically shows all reflections
 
 **Example:**
 
 ```bash
 rei reflect open reflection_01h455vb4pex
+```
+
+### print
+
+Print reflection content to stdout (useful for piping to other commands).
+
+```bash
+rei reflect print [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent reflections.
+
+**Examples:**
+
+```bash
+# Print a specific reflection
+rei reflect print reflection_01h455vb4pex
+
+# Pipe to less for paging
+rei reflect print | less
+
+# Use fzf to select reflection
+rei reflect print
 ```
 
 ### complete

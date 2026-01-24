@@ -566,6 +566,66 @@ rei note embeds note_01h455vb4pex
 rei note embeds
 ```
 
+### outgoing-links
+
+Show notes that a given note links to via wikilinks. This is the inverse of `backlinks`.
+
+```bash
+rei note outgoing-links [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Output includes:**
+- Target title (the text inside `[[...]]`)
+- Resolution status (resolved or unresolved)
+- Display text if using alias syntax (`[[Target|Display Text]]`)
+- Line number where the link appears
+- Discovery timestamp
+
+**Examples:**
+
+```bash
+# Show all outgoing links from a specific note
+rei note outgoing-links note_01h455vb4pex
+
+# Use fzf to select note
+rei note outgoing-links
+```
+
+### delete
+
+Delete a note from the workspace.
+
+```bash
+rei note delete [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Behavior:**
+1. Removes the note file from the workspace
+2. Emits a `NoteDeleted` event
+3. Git subscription handler commits the file removal (if git integration enabled)
+
+**Examples:**
+
+```bash
+# Delete a specific note
+rei note delete note_01h455vb4pex
+
+# Use fzf to select note
+rei note delete
+```
+
+**Warning:** This action is permanent. The note file is removed from disk.
+
 ## File Embeds
 
 Notes support embedding files using Obsidian-style syntax:
