@@ -6,6 +6,46 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-25
+
+### New Feature: Intention Deadlines
+
+Set deadlines on intentions to track hard due dates:
+
+- `rei intention create "Submit proposal" --deadline 2026-02-15` — Create with deadline
+- `rei intention set-deadline "next friday"` — Set deadline on existing intention
+- `rei intention clear-deadline` — Remove deadline
+
+Deadlines are displayed in the `rei today` dashboard and intention annotations (e.g., `due: 2026-02-15`). Setting a deadline automatically creates a reminder if the intention has a horizon.
+
+### New Feature: Tree TUI Clipboard Copy
+
+Copy intention IDs directly from the tree TUI:
+
+- Press `y` in `rei intention tree --tui` to yank the selected intention ID to clipboard
+- Supports pbcopy (macOS), wl-copy (Wayland), and xclip (X11)
+- Confirmation message appears in the footer
+
+### New Feature: Category Usage Text
+
+Provide detailed disambiguation guidance for categories:
+
+- `rei category set-usage work/meeting` — Set usage text (opens editor)
+- `rei category usage work/meeting` — Print usage text to stdout
+
+Unlike the short `description` (shown in lists), `usage` provides longer explanatory text for non-obvious categories.
+
+### New Commands
+
+- **`rei note print`** — Print note contents to stdout (useful for piping to clipboard or other tools)
+
+### Enhancements
+
+- **`rei category list --descriptions`** — Show category descriptions in listings
+- **`rei category show`** — Now supports FZF selection with preview pane
+
+---
+
 ## 2026-01-24
 
 ### New Command: Tomorrow Dashboard

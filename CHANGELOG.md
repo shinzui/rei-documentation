@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `d77f0e4` (2026-01-24)
+**Last Source Commit Reviewed:** `f5690e2` (2026-01-25)
 
 ---
 
 ## Changelog
+
+### 2026-01-25
+
+**Reviewed commits:** `d77f0e4` through `f5690e2`
+
+**Files updated:**
+- `category.mdx` — Added `--descriptions` flag to list, `set-usage`/`usage` commands, FZF support for `show`
+- `intention.mdx` — Added `--deadline` option to create, `set-deadline`/`clear-deadline` commands, TUI clipboard copy (`y` key)
+- `note.mdx` — Added `print` command
+- `today.mdx` — Added deadline display in intention annotations
+
+**Features documented:**
+- Intention deadlines (`--deadline` on create, `set-deadline`, `clear-deadline`)
+- Deadline display in today dashboard
+- Tree TUI clipboard copy (press `y` to yank intention ID)
+- Category usage text (`set-usage`, `usage` commands)
+- Category list descriptions (`--descriptions` flag)
+- Category show FZF support with preview pane
+- Note print command (`rei note print`)
+
+---
 
 ### 2026-01-24
 

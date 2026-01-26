@@ -40,6 +40,7 @@ rei intention create <title> [options]
 **Options:**
 - `-p, --parent <id>` — Parent intention ID (creates a sub-intention)
 - `-h, --horizon <horizon>` — Time horizon (e.g., `1d`, `1w`, `1m`, `1y`)
+- `-d, --deadline <date>` — Deadline date (e.g., `2026-02-15`, `next friday`)
 - `-c, --context <context>` — Context label (e.g., `work`, `personal`)
 - `--future` — Create as Future (deferred) instead of Active
 
@@ -66,6 +67,12 @@ rei intention create "Plan vacation" --future
 
 # Create a Future intention with horizon
 rei intention create "Q2 project planning" --future --horizon 3m
+
+# Create with a deadline
+rei intention create "Submit proposal" --deadline 2026-02-15
+
+# Create with both horizon and deadline
+rei intention create "Complete project" --horizon 2w --deadline "next friday"
 ```
 
 **Notes:**
@@ -188,11 +195,14 @@ The `--tui` flag launches an interactive terminal UI for browsing the intention 
 
 - **Navigation**: Use `j`/`k` or arrow keys to move up/down
 - **View details**: Press `Enter` to open the full detail view for an intention
+- **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
 - **Close views**: Press `Esc` to close detail view or quit
 - **Quit**: Press `q` to exit
 
 The TUI works with all tree variants (active, future, completed, all) and respects context filtering.
+
+**Clipboard support:** The `y` key copies to clipboard using `pbcopy` (macOS), `wl-copy` (Wayland), or `xclip` (X11). A confirmation message appears in the footer.
 
 ### complete
 
@@ -548,6 +558,61 @@ rei intention clear-note-guidance intention_01abc...
 
 # Let fzf pick the intention
 rei intention clear-note-guidance
+```
+
+### set-deadline
+
+Set a deadline date for an intention.
+
+```bash
+rei intention set-deadline [id] <date>
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+- `<date>` — Deadline date (e.g., `2026-02-15`, `next friday`, `in 2 weeks`)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Set deadline with explicit ID
+rei intention set-deadline intention_01h455vb4pex 2026-02-15
+
+# Let fzf pick the intention
+rei intention set-deadline "next friday"
+
+# Use relative date expressions
+rei intention set-deadline intention_01h455vb4pex "in 2 weeks"
+```
+
+**Notes:**
+- Deadlines are displayed in the today dashboard and intention annotations
+- Setting a deadline automatically creates a reminder if the intention has a horizon
+- Use `clear-deadline` to remove the deadline
+
+### clear-deadline
+
+Remove the deadline from an intention.
+
+```bash
+rei intention clear-deadline [id]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear deadline with explicit ID
+rei intention clear-deadline intention_01h455vb4pex
+
+# Let fzf pick the intention
+rei intention clear-deadline
 ```
 
 ### tracker

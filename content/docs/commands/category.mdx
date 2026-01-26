@@ -69,6 +69,7 @@ rei category list [options]
 
 **Options:**
 - `-a, --all` — Show all categories including retired
+- `-d, --descriptions` — Show category descriptions
 - `--flat` — Show flat list instead of hierarchy
 
 **Examples:**
@@ -80,8 +81,11 @@ rei category list
 # List all including retired
 rei category list --all
 
-# Flat list
-rei category list --flat
+# Show with descriptions
+rei category list --descriptions
+
+# Flat list with descriptions
+rei category list --flat --descriptions
 ```
 
 **Output:**
@@ -94,6 +98,16 @@ Categories (4):
   [*] Meeting
 ```
 
+With `--descriptions`:
+```
+Categories (4):
+
+[*] Personal - Personal life activities
+  [*] Health - Health and fitness
+[*] Work - Work activities
+  [*] Meeting - Work meetings
+```
+
 Status icons:
 - `[*]` — Active category
 - `[x]` — Retired category
@@ -103,16 +117,22 @@ Status icons:
 Show details of a category.
 
 ```bash
-rei category show SLUG
+rei category show [SLUG]
 ```
 
 **Arguments:**
-- `SLUG` — Category slug (e.g., "work", "work/meeting")
+- `[SLUG]` — Category slug (optional if fzf is available)
 
-**Example:**
+> **FZF Support:** If the slug is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing categories with a preview pane showing category details.
+
+**Examples:**
 
 ```bash
+# Show with explicit slug
 rei category show work/meeting
+
+# Let fzf pick the category
+rei category show
 ```
 
 **Output:**
@@ -121,6 +141,7 @@ Category: work/meeting
   ID: category_01abc123...
   Name: Meeting
   Description: Work meetings
+  Usage: (usage text if set)
   Parent: category_01parent...
   Status: Active
   Note Guidance: .rei/category-guidance/work-meeting.md
@@ -195,6 +216,53 @@ rei category link-focus work/meeting focus_01abc123...
 
 # Unlink from focus area
 rei category link-focus work/meeting
+```
+
+### set-usage
+
+Set usage text for a category. Usage text provides detailed guidance on when and how to use a category, helping disambiguate similar categories.
+
+```bash
+rei category set-usage SLUG [options]
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+
+**Options:**
+- `--stdin` — Read usage text from stdin (otherwise opens $EDITOR)
+
+Unlike the short `description` (shown in lists), `usage` provides longer explanatory text for non-obvious categories.
+
+**Examples:**
+
+```bash
+# Set usage via editor
+rei category set-usage work/meeting
+
+# Set usage from stdin
+echo "Use for scheduled meetings with 2+ people. For 1-on-1s, use work/1-on-1 instead." | rei category set-usage work/meeting --stdin
+```
+
+### usage
+
+Print the usage text for a category to stdout.
+
+```bash
+rei category usage SLUG
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+
+**Examples:**
+
+```bash
+# Print usage to terminal
+rei category usage work/meeting
+
+# Pipe to clipboard
+rei category usage work/meeting | pbcopy
 ```
 
 ### set-note-guidance

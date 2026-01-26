@@ -596,6 +596,35 @@ rei note outgoing-links note_01h455vb4pex
 rei note outgoing-links
 ```
 
+### print
+
+Print note contents to stdout. Useful for piping to other tools or viewing content without opening an editor.
+
+```bash
+rei note print [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Print a specific note
+rei note print note_01h455vb4pex
+
+# Use fzf to select note
+rei note print
+
+# Pipe to clipboard
+rei note print note_01h455vb4pex | pbcopy
+
+# Pipe to other tools
+rei note print note_01h455vb4pex | wc -l
+```
+
 ### delete
 
 Delete a note from the workspace.
