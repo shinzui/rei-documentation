@@ -1,0 +1,75 @@
+---
+title: rei neglected
+description: Find intentions that haven't had any activity recently
+icon: CircleAlert
+---
+
+Find intentions that haven't had any recorded actions in a specified number of days. This helps identify goals that may need attention or should be reconsidered.
+
+```bash
+rei neglected [options]
+```
+
+**Options:**
+- `-d, --days <days>` — Number of days without activity to consider neglected (default: 10)
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+
+## Output
+
+The command displays neglected intentions with:
+- **Age indicator** — Days since last activity, or "never" if no actions have been recorded
+- **Grouped by context** — When no filter is applied, intentions are organized under context headers
+- **Flat list** — When filtered by `-c`, shows only matching intentions
+
+### Color-Coded Severity
+
+The age indicator is color-coded based on inactivity duration:
+
+| Duration | Color | Meaning |
+|----------|-------|---------|
+| 10-29 days | Yellow | Needs attention |
+| 30+ days | Red | Severely neglected |
+| Never | Red | No activity ever recorded |
+
+## Examples
+
+```bash
+# Find intentions with no activity in 10+ days (default)
+rei neglected
+
+# Find intentions with no activity in 30+ days
+rei neglected --days 30
+
+# Filter to work context only
+rei neglected --context work
+
+# Find personal intentions neglected for 2+ weeks
+rei neglected --days 14 --context personal
+```
+
+## Sample Output
+
+```
+Neglected Intentions (no activity in 10+ days)
+
+▸ work
+  15 days: Refactor authentication module
+  never: Document API endpoints
+
+▸ personal
+  12 days: Organize photo library
+
+Total: 3 neglected intention(s)
+```
+
+## Use Cases
+
+- **Weekly reviews** — Check for intentions that have stalled during your weekly review
+- **Intention cleanup** — Identify intentions to complete, defer, or abandon
+- **Focus adjustment** — Recognize patterns in which contexts get less attention
+
+## Notes
+
+- Only considers root-level activity within the intention subtree
+- Context filtering uses the root intention's context
+- Requires a database backend (PostgreSQL)

@@ -3,6 +3,8 @@
 	"pages": [
 		"index",
 		"today",
+		"tomorrow",
+		"neglected",
 		"review",
 		"intention",
 		"habit",
