@@ -5,11 +5,30 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f5690e2` (2026-01-25)
+**Last Source Commit Reviewed:** `acf0b82` (2026-01-26)
 
 ---
 
 ## Changelog
+
+### 2026-01-26
+
+**Reviewed commits:** `f5690e2` through `acf0b82`
+
+**Files created:**
+- `disruption.mdx` — **NEW** — Disruption tracking command documentation
+
+**Files updated:**
+- `action.mdx` — Added Ctrl-F FZF toggle documentation
+- `commands/index.mdx` — Added disruption to Core Commands table, added Disruptions to today dashboard sections
+- `meta.json` — Added disruption to sidebar navigation
+
+**Features documented:**
+- Disruption tracking module (record, list, show, update, set-category, mark-addressed, resolve, reopen)
+- Action record FZF Ctrl-F toggle to show future intentions
+- Disruption actions in `rei today` dashboard
+
+---
 
 ### 2026-01-25
 

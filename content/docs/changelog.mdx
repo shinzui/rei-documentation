@@ -6,6 +6,31 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-26
+
+### New Command: Disruption Tracking
+
+Track unplanned reactive work that interrupts your focused activities:
+
+- `rei disruption record redis-timeouts` — Record a disruption occurrence
+- `rei disruption list` — List disruptions by status (active, addressed, resolved)
+- `rei disruption show <source>` — Show disruption details
+- `rei disruption mark-addressed` — Mark as addressed (supports FZF selection)
+- `rei disruption resolve <source>` — Resolve a disruption
+- `rei disruption reopen <source>` — Reopen a resolved disruption
+
+**Key features:**
+- `--at` flag for backdating disruption occurrences
+- `--duration` flag for tracking time spent
+- Disruption actions appear in `rei today` under a "Disruptions" section
+- Status workflow: active → addressed → resolved (can reopen)
+
+### Enhancements
+
+- **`rei action record`** — FZF intention picker now supports **Ctrl-F** to toggle between active intentions only and all intentions (including future)
+
+---
+
 ## 2026-01-25
 
 ### New Feature: Intention Deadlines

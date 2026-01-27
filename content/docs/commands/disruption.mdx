@@ -1,0 +1,210 @@
+---
+title: rei disruption
+description: Track unplanned reactive work that interrupts focused activities
+icon: Siren
+---
+
+Track unplanned reactive work that interrupts your focused activities. Disruptions represent recurring sources of interruption like infrastructure issues, urgent requests, or external dependencies.
+
+## Concepts
+
+**Disruption** — A recurring source of unplanned work identified by a unique source name (e.g., "redis-timeouts", "slack-interrupts"). Each disruption tracks:
+- Total occurrences (instance count)
+- Status: active, addressed, or resolved
+- Optional description and category
+
+**Disruption Actions** — Individual occurrences are recorded as actions in the `rei today` dashboard under a "Disruptions" section, showing what reactive work happened and when.
+
+## Subcommands
+
+### record
+
+Record a disruption occurrence. Creates the disruption if it doesn't exist, or increments the instance count if it does.
+
+```bash
+rei disruption record <source> [options]
+```
+
+**Arguments:**
+- `<source>` — Unique identifier for the disruption (e.g., "redis-timeouts")
+
+**Options:**
+- `-d, --description <text>` — Description of the disruption
+- `-c, --category <id>` — Category ID for the disruption
+- `-t, --duration <duration>` — How long the disruption took
+- `-a, --at <time>` — When the disruption occurred (default: now)
+
+**Examples:**
+
+```bash
+# Record a disruption
+rei disruption record redis-timeouts
+
+# Record with description
+rei disruption record slack-interrupts -d "Urgent request from marketing"
+
+# Record with time and duration
+rei disruption record deploy-failure --at "2 hours ago" --duration 45m
+```
+
+### list
+
+List disruptions filtered by status.
+
+```bash
+rei disruption list [options]
+```
+
+**Options:**
+- `-s, --status <status>` — Filter by status: active, addressed, resolved
+- `-a, --all` — Show all disruptions including resolved
+
+**Examples:**
+
+```bash
+# List active disruptions (default)
+rei disruption list
+
+# List addressed disruptions
+rei disruption list --status addressed
+
+# List all disruptions
+rei disruption list --all
+```
+
+### show
+
+Show details for a specific disruption.
+
+```bash
+rei disruption show <source>
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+
+**Examples:**
+
+```bash
+rei disruption show redis-timeouts
+```
+
+### update
+
+Update the description of a disruption.
+
+```bash
+rei disruption update <source> <description>
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+- `<description>` — New description
+
+**Examples:**
+
+```bash
+rei disruption update redis-timeouts "Redis connection pool exhaustion during peak hours"
+```
+
+### set-category
+
+Set or change the category of a disruption.
+
+```bash
+rei disruption set-category <source> -c <category> | --clear
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+
+**Options:**
+- `-c, --category <id>` — Category ID to set
+- `--clear` — Clear the category
+
+**Examples:**
+
+```bash
+# Set category
+rei disruption set-category redis-timeouts -c infrastructure
+
+# Clear category
+rei disruption set-category redis-timeouts --clear
+```
+
+### mark-addressed
+
+Mark a disruption as addressed without linking to an intention.
+
+```bash
+rei disruption mark-addressed [source] [options]
+```
+
+**Arguments:**
+- `[source]` — Disruption source identifier (optional if fzf is available)
+
+**Options:**
+- `-n, --note <text>` — Note explaining how it was addressed
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active disruptions.
+
+**Examples:**
+
+```bash
+# Mark with explicit source
+rei disruption mark-addressed redis-timeouts --note "Increased connection pool size"
+
+# Use FZF to select
+rei disruption mark-addressed
+```
+
+### resolve
+
+Resolve a disruption (must be addressed first).
+
+```bash
+rei disruption resolve <source>
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+
+**Examples:**
+
+```bash
+rei disruption resolve redis-timeouts
+```
+
+### reopen
+
+Reopen a resolved disruption.
+
+```bash
+rei disruption reopen <source> [options]
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+
+**Options:**
+- `-r, --reason <text>` — Reason for reopening
+
+**Examples:**
+
+```bash
+rei disruption reopen redis-timeouts --reason "Issue recurred after deployment"
+```
+
+## Workflow
+
+1. **Record** disruptions as they occur with `rei disruption record`
+2. **Review** active disruptions with `rei disruption list`
+3. **Address** disruptions when you've taken action with `rei disruption mark-addressed`
+4. **Resolve** disruptions when completely fixed with `rei disruption resolve`
+
+Disruption actions appear in `rei today` under a dedicated "Disruptions" section, helping you see how much time is spent on reactive work versus planned intentions.
+
+## Related Commands
+
+- [`rei today`](/docs/commands/today) — Shows disruption actions in the daily dashboard
+- [`rei category`](/docs/commands/category) — Manage categories for classifying disruptions
