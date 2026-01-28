@@ -196,6 +196,43 @@ rei category reactivate SLUG
 rei category reactivate work/old-project
 ```
 
+### set-description
+
+Set or update a category's description. The description is shown in category listings and details.
+
+```bash
+rei category set-description SLUG [DESCRIPTION] [options]
+```
+
+**Arguments:**
+- `SLUG` — Category slug
+- `[DESCRIPTION]` — Description text (optional, see input methods below)
+
+**Options:**
+- `--stdin` — Read description from stdin
+- `--clear` — Clear the description
+
+**Input Methods:**
+1. Direct argument: `rei category set-description work/meeting "Work meetings"`
+2. From stdin: `echo "Work meetings" | rei category set-description work/meeting --stdin`
+3. Open editor: `rei category set-description work/meeting` (opens $EDITOR if no argument)
+
+**Examples:**
+
+```bash
+# Set description directly
+rei category set-description work/meeting "Team meetings and syncs"
+
+# Set description from stdin
+echo "Personal health activities" | rei category set-description personal/health --stdin
+
+# Clear description
+rei category set-description work/meeting --clear
+
+# Open editor to edit description
+rei category set-description work/meeting
+```
+
 ### link-focus
 
 Link a category to a focus area, or unlink by omitting the focus ID.

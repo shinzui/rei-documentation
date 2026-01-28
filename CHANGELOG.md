@@ -5,11 +5,34 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `af88b79` (2026-01-27)
+**Last Source Commit Reviewed:** `bedeca2` (2026-01-28)
 
 ---
 
 ## Changelog
+
+### 2026-01-28
+
+**Reviewed commits:** `af88b79` through `bedeca2`
+
+**Files updated:**
+- `task.mdx` — Added task abandonment feature (`abandon` command, `--include-abandoned`/`--abandoned-only` flags, Task Status section)
+- `intention.mdx` — Added cascade behavior note (abandoning intention abandons pending tasks)
+- `category.mdx` — Added `set-description` subcommand
+- `system.mdx` — Removed `fix-dormancy` command (one-off migration command removed from source)
+
+**Features documented:**
+- Task abandonment (`rei task abandon`) with reason and backdating support
+- Task status lifecycle (Pending → Completed/Abandoned → Reopen)
+- Cascade task abandonment when parent intention is abandoned
+- Category description management (`rei category set-description`)
+
+**No documentation needed:**
+- `dae7248` Update knowledge module docs for task abandonment (dev docs)
+- `82d2f36` Add task abandonment feature (internal implementation)
+- `fa77644` Remove one-off system backfill and fix-dormancy commands (cleanup)
+
+---
 
 ### 2026-01-27
 

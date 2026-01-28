@@ -226,6 +226,7 @@ rei intention abandon [id] [options]
 **Notes:**
 - Abandonment is a terminal state — abandoned intentions cannot be reactivated
 - Recording a reason helps with future reflection on what didn't work
+- **Cascade behavior:** Abandoning an intention automatically abandons all of its pending tasks with the reason "Parent intention abandoned"
 
 ### defer
 

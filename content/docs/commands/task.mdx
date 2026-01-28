@@ -23,6 +23,8 @@ rei task list [options]
 - `-r, --reflection <id>` — List tasks for a reflection
 - `--all` — List all tasks across all entities (makes entity selection optional)
 - `--include-completed` — Include completed tasks in output
+- `--include-abandoned` — Include abandoned tasks in output
+- `--abandoned-only` — Show only abandoned tasks
 - `--due-before <date>` — Filter tasks due before DATE (YYYY-MM-DD)
 - `--due-after <date>` — Filter tasks due after DATE (YYYY-MM-DD)
 - `--due-today` — Show only tasks due today
@@ -46,6 +48,12 @@ rei task list --all
 # List all tasks including completed
 rei task list --all --include-completed
 
+# List abandoned tasks
+rei task list --all --abandoned-only
+
+# List all tasks including abandoned
+rei task list --all --include-abandoned
+
 # Show tasks due today
 rei task list --due-today
 
@@ -62,6 +70,7 @@ rei task list
 **Output:**
 - Pending tasks shown with `[ ]`
 - Completed tasks shown with `[x]`
+- Abandoned tasks shown with `[-]`
 - Due date indicators: `[OVERDUE Nd]`, `[DUE TODAY]`, `[DUE TOMORROW]`
 - Source note ID shown for each task (e.g., `Source: note_01xyz...`)
 
@@ -110,9 +119,47 @@ rei task complete task_01abc... --at "2 hours ago"
 - Updates all notes containing the task
 - Use `--at` to backdate completions when you forgot to mark them
 
+### abandon
+
+Mark a task as abandoned.
+
+```bash
+rei task abandon <task-id> [options]
+```
+
+**Arguments:**
+- `<task-id>` — Task ID (required)
+
+**Options:**
+- `-r, --reason <reason>` — Reason for abandoning (optional)
+- `-c, --at <time>` — When the task was abandoned (defaults to now)
+
+**Time Expressions (--at):**
+
+The `--at` option accepts both relative time expressions and absolute ISO 8601 timestamps (same as `--at` on `complete`).
+
+**Examples:**
+
+```bash
+# Abandon now
+rei task abandon task_01abc...
+
+# Abandon with reason
+rei task abandon task_01abc... --reason "No longer relevant"
+
+# Abandon with backdating
+rei task abandon task_01abc... --at yesterday --reason "Decided not to pursue"
+```
+
+**Notes:**
+- Abandoned tasks are excluded from default listings (use `--include-abandoned` to show)
+- Abandoned tasks display with `[-]` icon and show their reason if provided
+- Abandoned tasks can be reopened with `rei task reopen`
+- When a parent intention is abandoned, all its pending tasks are automatically abandoned with the reason "Parent intention abandoned"
+
 ### reopen
 
-Reopen a completed task.
+Reopen a completed or abandoned task.
 
 ```bash
 rei task reopen <task-id>
@@ -122,6 +169,7 @@ rei task reopen <task-id>
 - `<task-id>` — Task ID (required)
 
 **Notes:**
+- Works on both completed and abandoned tasks
 - Automatically syncs checkbox state to the original markdown file(s)
 
 ### open-note
@@ -192,6 +240,25 @@ rei task due task_01abc... +2w
 rei task due task_01abc... --clear
 ```
 
+## Task Status
+
+Tasks have three possible statuses:
+
+| Status | Icon | Description |
+|--------|------|-------------|
+| **Pending** | `[ ]` | Task is waiting to be done |
+| **Completed** | `[x]` | Task has been marked complete |
+| **Abandoned** | `[-]` | Task was abandoned (no longer relevant) |
+
+**Lifecycle:**
+- New tasks start as **Pending**
+- Use `complete` to mark as **Completed**
+- Use `abandon` to mark as **Abandoned** (with optional reason)
+- Use `reopen` to return either Completed or Abandoned tasks to **Pending**
+
+**Cascade Abandonment:**
+When an intention is abandoned via `rei intention abandon`, all of its pending tasks are automatically abandoned with the reason "Parent intention abandoned".
+
 ## How Tasks Work
 
 Tasks are automatically discovered when you:
@@ -203,6 +270,7 @@ Tasks are automatically discovered when you:
 ```markdown
 - [ ] This is a pending task
 - [x] This is a completed task
+- [-] This is an abandoned task
 ```
 
 When you complete/reopen a task via the CLI, Rei automatically updates the checkbox in the original markdown file(s).

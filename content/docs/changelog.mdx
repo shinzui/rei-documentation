@@ -6,6 +6,38 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-28
+
+### New Feature: Task Abandonment
+
+Mark tasks as abandoned when they're no longer relevant:
+
+- `rei task abandon task_01abc...` — Abandon a task
+- `rei task abandon task_01abc... --reason "No longer relevant"` — With a reason
+- `rei task abandon task_01abc... --at yesterday` — Backdate abandonment
+
+**Task lifecycle:**
+- Tasks have three statuses: **Pending** `[ ]`, **Completed** `[x]`, **Abandoned** `[-]`
+- Use `rei task reopen` to return either Completed or Abandoned tasks to Pending
+
+**Cascade abandonment:**
+When you abandon an intention via `rei intention abandon`, all of its pending tasks are automatically abandoned with the reason "Parent intention abandoned".
+
+**Listing abandoned tasks:**
+- `rei task list --all --abandoned-only` — Show only abandoned tasks
+- `rei task list --all --include-abandoned` — Include abandoned in listings
+
+### New Command: Category Set-Description
+
+Set or update category descriptions with flexible input methods:
+
+- `rei category set-description work/meeting "Team meetings"` — Set directly
+- `rei category set-description work/meeting` — Opens editor
+- `echo "..." | rei category set-description work/meeting --stdin` — From stdin
+- `rei category set-description work/meeting --clear` — Clear description
+
+---
+
 ## 2026-01-27
 
 ### New Command: Agent Create-Note
@@ -554,9 +586,8 @@ Overview notes appear prominently in `rei intention show --full` output, making 
 Added `rei system` for administrative maintenance tasks:
 
 - `rei system evaluate-dormancy` — Mark inactive intentions as dormant based on configurable threshold
-- `rei system fix-dormancy` — Fix incorrectly dormant intentions using hierarchy-aware evaluation
 
-Dormancy is now hierarchy-aware: parent intentions with active children won't be marked dormant. Configure the inactivity threshold in your config file with `intention.dormancyThresholdDays`.
+Dormancy is hierarchy-aware: parent intentions with active children won't be marked dormant. Configure the inactivity threshold in your config file with `intention.dormancyThresholdDays`.
 
 ### Intention Enhancements
 
