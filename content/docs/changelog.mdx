@@ -6,6 +6,34 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-27
+
+### New Command: Agent Create-Note
+
+Create AI-structured notes using category guidance:
+
+- `rei agent create-note meeting/standup -i "Weekly standup"` — Create a note using the category's note guidance
+- `rei agent create-note -i "Project kickoff" --intention intention_01abc...` — Attach note to an intention
+- FZF support for selecting categories with note guidance
+
+The agent uses the category's note guidance to structure the note content appropriately.
+
+### New Commands: Disruption Context and Notes
+
+Enhanced disruption tracking with context and notes support:
+
+- `rei disruption set-context redis-timeouts -c work` — Set or clear context on disruptions
+- `rei disruption note new redis-timeouts` — Create notes attached to disruptions
+- `rei disruption note list redis-timeouts` — List notes attached to a disruption
+- `rei disruption record --context/-c` — Set context when recording a disruption
+
+### Enhancements
+
+- **`rei review week`** — Now includes a Disruptions section showing status counts (Active, Addressed, Resolved) and items grouped by context
+- **Disruption context filtering** — Weekly review respects `--context` flag for disruption filtering
+
+---
+
 ## 2026-01-26
 
 ### New Command: Disruption Tracking

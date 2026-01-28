@@ -168,6 +168,43 @@ rei agent reflect today -i
 rei agent reflect week -i
 ```
 
+### create-note
+
+Create a note using category guidance. The agent uses the category's note guidance to structure the note appropriately.
+
+```bash
+rei agent create-note [category] -i <input> [options]
+```
+
+**Arguments:**
+- `[category]` — Category slug (optional if fzf is available)
+
+**Options:**
+- `-i, --input <text>` — Input text to create note from (required)
+- `--intention <id>` — Attach note to this intention
+- `--habit <id>` — Attach note to this habit
+
+> **FZF Support:** If the category is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from categories with note guidance.
+
+**Examples:**
+
+```bash
+# Create a note in a category
+rei agent create-note meeting/standup -i "Weekly standup with the team"
+
+# Create a note attached to an intention
+rei agent create-note incident/postmortem -i "Redis outage" --intention intention_01h455vb4pex
+
+# Let FZF pick the category
+rei agent create-note -i "New project kickoff"
+```
+
+**How it works:**
+1. Retrieves the category's note guidance (set via `rei category set-note-guidance`)
+2. Uses the LLM to generate a structured note following the guidance
+3. Creates the note file in the workspace
+4. Attaches it to the specified anchor (intention/habit) if provided
+
 ## Modes Comparison
 
 | Mode | Behavior | Use Case |

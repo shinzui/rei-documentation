@@ -30,7 +30,8 @@ rei disruption record <source> [options]
 
 **Options:**
 - `-d, --description <text>` — Description of the disruption
-- `-c, --category <id>` — Category ID for the disruption
+- `--category <id>` — Category ID for the disruption
+- `-c, --context <context>` — Context for the disruption (e.g., `work`, `personal`)
 - `-t, --duration <duration>` — How long the disruption took
 - `-a, --at <time>` — When the disruption occurred (default: now)
 
@@ -45,6 +46,9 @@ rei disruption record slack-interrupts -d "Urgent request from marketing"
 
 # Record with time and duration
 rei disruption record deploy-failure --at "2 hours ago" --duration 45m
+
+# Record with context
+rei disruption record redis-timeouts -c work
 ```
 
 ### list
@@ -132,6 +136,31 @@ rei disruption set-category redis-timeouts -c infrastructure
 rei disruption set-category redis-timeouts --clear
 ```
 
+### set-context
+
+Set or change the context of a disruption (e.g., `work`, `personal`).
+
+```bash
+rei disruption set-context <source> -c <context> | --clear
+```
+
+**Arguments:**
+- `<source>` — Disruption source identifier
+
+**Options:**
+- `-c, --context <context>` — Context to set
+- `--clear` — Clear the context
+
+**Examples:**
+
+```bash
+# Set context
+rei disruption set-context redis-timeouts -c work
+
+# Clear context
+rei disruption set-context redis-timeouts --clear
+```
+
 ### mark-addressed
 
 Mark a disruption as addressed without linking to an intention.
@@ -195,6 +224,62 @@ rei disruption reopen <source> [options]
 rei disruption reopen redis-timeouts --reason "Issue recurred after deployment"
 ```
 
+### note new
+
+Create a new note attached to a disruption.
+
+```bash
+rei disruption note new [source] [options]
+```
+
+**Arguments:**
+- `[source]` — Disruption source identifier (optional if fzf is available)
+
+**Options:**
+- `-t, --tag <tag>` — Tag to add to the note (can be repeated)
+- `--stdin` — Read note content from stdin
+- `--actor <actor>` — Actor that created this note (e.g., `claude-code`, `user`)
+- `-c, --category <slug>` — Category to assign to the note
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from disruptions.
+
+**Examples:**
+
+```bash
+# Create note with explicit source
+rei disruption note new redis-timeouts
+
+# Create note with tags
+rei disruption note new redis-timeouts -t postmortem -t incident
+
+# Create note from stdin
+echo "# Root Cause Analysis" | rei disruption note new redis-timeouts --stdin
+```
+
+### note list
+
+List notes attached to a disruption.
+
+```bash
+rei disruption note list [source] [options]
+```
+
+**Arguments:**
+- `[source]` — Disruption source identifier (optional if fzf is available)
+
+**Options:**
+- `--json` — Output as JSON
+
+**Examples:**
+
+```bash
+# List notes for a disruption
+rei disruption note list redis-timeouts
+
+# Output as JSON
+rei disruption note list redis-timeouts --json
+```
+
 ## Workflow
 
 1. **Record** disruptions as they occur with `rei disruption record`
@@ -207,4 +292,5 @@ Disruption actions appear in `rei today` under a dedicated "Disruptions" section
 ## Related Commands
 
 - [`rei today`](/docs/commands/today) — Shows disruption actions in the daily dashboard
+- [`rei review week`](/docs/commands/review) — Shows disruption statistics in the weekly review
 - [`rei category`](/docs/commands/category) — Manage categories for classifying disruptions

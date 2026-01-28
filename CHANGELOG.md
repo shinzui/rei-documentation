@@ -5,11 +5,34 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `acf0b82` (2026-01-26)
+**Last Source Commit Reviewed:** `af88b79` (2026-01-27)
 
 ---
 
 ## Changelog
+
+### 2026-01-27
+
+**Reviewed commits:** `acf0b82` through `af88b79`
+
+**Files updated:**
+- `agent.mdx` — Added `create-note` subcommand for AI-structured note creation using category guidance
+- `disruption.mdx` — Added `set-context` command, `--context/-c` flag on record, `note new` and `note list` subcommands
+- `review.mdx` — Added Disruptions section to weekly review documentation, added disruptions to context filtering list
+
+**Features documented:**
+- Agent create-note command (`rei agent create-note [category] -i <input>`) — create notes using category guidance with optional intention/habit attachment
+- Disruption context (`rei disruption set-context`, `--context` on record) — set context on disruptions for filtering
+- Disruption notes (`rei disruption note new`, `note list`) — attach and manage notes on disruptions
+- Weekly review disruptions — status counts (Active, Addressed, Resolved), items grouped by context
+
+**No documentation needed:**
+- `76c175c` Standardize Disruption message types to PascalCase (internal)
+- `fb57ac5` Add event serialization patterns audit document (dev docs)
+- `8225a07` through `51a1406` Row type elimination refactoring (internal architecture)
+- `1d76a65` Add disruption module developer documentation (dev docs)
+
+---
 
 ### 2026-01-26
 

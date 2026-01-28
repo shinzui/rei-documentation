@@ -60,6 +60,19 @@ When no context filter is applied, habits are grouped by context.
 
 Count of currently active blockers.
 
+### Disruptions
+
+Shows disruptions that occurred during the week (filtered by `lastOccurredAt`):
+- **Status counts** — Active, Addressed, and Resolved disruption counts
+- **Items** — Listed with status icon, source name, instance count, and total duration
+
+Status icons:
+- 🔴 (red circle) — Active
+- ◐ (half circle, yellow) — Addressed
+- ✓ (green check) — Resolved
+
+When no context filter is applied, disruptions are grouped by context. When filtered, a flat list is shown.
+
 ### Reflections
 
 Summary of reflection activity:
@@ -86,6 +99,7 @@ rei review week -c personal
   - Intentions (via root ancestor context)
   - Actions (via their intention's context)
   - Habits (linked habits use intention context, unlinked use their own context)
+  - Disruptions (via their own context field)
   - Reflections (via their own context field)
 - The review requires a database backend (PostgreSQL)
 - Actions from intentions completed before the week (but with actions during the week) are included in statistics
