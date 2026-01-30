@@ -6,6 +6,32 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-29
+
+### New Feature: Tree TUI Child Intention Creation
+
+Create child intentions directly from the tree TUI without leaving the interface:
+
+- Press `a` on any intention to open the creation form
+- Fill in: **Title** (required), **Horizon** (optional), **Start as Future** (checkbox)
+- Use `Tab` to move between fields, `Enter` to create, `Esc` to cancel
+
+### New Commands: Disruption Action Updates
+
+Correct timestamps and durations on recorded disruption actions:
+
+- `rei disruption action update-occurred-at "2 hours ago"` — Update when an action occurred
+- `rei disruption action update-duration 45m` — Update action duration
+- Both support FZF selection for disruption and action
+
+### Enhancements
+
+- **Disruption FZF support** — Commands `show`, `update`, `set-category`, `set-context`, `resolve`, and `reopen` now support FZF selection when the source is not provided
+- **Tree TUI annotations** — Each intention now displays annotations: horizon, active days count, deadline, context, and status indicators
+- **`rei intention show --full`** — Notes are now grouped by category, with uncategorized notes shown last
+
+---
+
 ## 2026-01-28
 
 ### New Feature: Task Abandonment

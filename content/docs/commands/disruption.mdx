@@ -81,16 +81,22 @@ rei disruption list --all
 Show details for a specific disruption.
 
 ```bash
-rei disruption show <source>
+rei disruption show [source]
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
 
 **Examples:**
 
 ```bash
+# Show with explicit source
 rei disruption show redis-timeouts
+
+# Use FZF to select
+rei disruption show
 ```
 
 ### update
@@ -98,17 +104,23 @@ rei disruption show redis-timeouts
 Update the description of a disruption.
 
 ```bash
-rei disruption update <source> <description>
+rei disruption update [source] <description>
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
 - `<description>` — New description
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
 
 **Examples:**
 
 ```bash
+# Update with explicit source
 rei disruption update redis-timeouts "Redis connection pool exhaustion during peak hours"
+
+# Use FZF to select
+rei disruption update "Redis connection pool exhaustion during peak hours"
 ```
 
 ### set-category
@@ -116,24 +128,29 @@ rei disruption update redis-timeouts "Redis connection pool exhaustion during pe
 Set or change the category of a disruption.
 
 ```bash
-rei disruption set-category <source> -c <category> | --clear
+rei disruption set-category [source] -c <category> | --clear
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
 
 **Options:**
 - `-c, --category <id>` — Category ID to set
 - `--clear` — Clear the category
 
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
+
 **Examples:**
 
 ```bash
-# Set category
+# Set category with explicit source
 rei disruption set-category redis-timeouts -c infrastructure
 
 # Clear category
 rei disruption set-category redis-timeouts --clear
+
+# Use FZF to select
+rei disruption set-category -c infrastructure
 ```
 
 ### set-context
@@ -141,24 +158,29 @@ rei disruption set-category redis-timeouts --clear
 Set or change the context of a disruption (e.g., `work`, `personal`).
 
 ```bash
-rei disruption set-context <source> -c <context> | --clear
+rei disruption set-context [source] -c <context> | --clear
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
 
 **Options:**
 - `-c, --context <context>` — Context to set
 - `--clear` — Clear the context
 
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
+
 **Examples:**
 
 ```bash
-# Set context
+# Set context with explicit source
 rei disruption set-context redis-timeouts -c work
 
 # Clear context
 rei disruption set-context redis-timeouts --clear
+
+# Use FZF to select
+rei disruption set-context -c work
 ```
 
 ### mark-addressed
@@ -192,16 +214,22 @@ rei disruption mark-addressed
 Resolve a disruption (must be addressed first).
 
 ```bash
-rei disruption resolve <source>
+rei disruption resolve [source]
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from addressed disruptions.
 
 **Examples:**
 
 ```bash
+# Resolve with explicit source
 rei disruption resolve redis-timeouts
+
+# Use FZF to select from addressed disruptions
+rei disruption resolve
 ```
 
 ### reopen
@@ -209,19 +237,25 @@ rei disruption resolve redis-timeouts
 Reopen a resolved disruption.
 
 ```bash
-rei disruption reopen <source> [options]
+rei disruption reopen [source] [options]
 ```
 
 **Arguments:**
-- `<source>` — Disruption source identifier
+- `[source]` — Disruption source identifier (optional if fzf is available)
 
 **Options:**
 - `-r, --reason <text>` — Reason for reopening
 
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from resolved disruptions.
+
 **Examples:**
 
 ```bash
+# Reopen with explicit source
 rei disruption reopen redis-timeouts --reason "Issue recurred after deployment"
+
+# Use FZF to select from resolved disruptions
+rei disruption reopen --reason "Issue recurred"
 ```
 
 ### note new
@@ -278,6 +312,60 @@ rei disruption note list redis-timeouts
 
 # Output as JSON
 rei disruption note list redis-timeouts --json
+```
+
+### action update-occurred-at
+
+Update when a disruption action occurred.
+
+```bash
+rei disruption action update-occurred-at [options] <time>
+```
+
+**Arguments:**
+- `<time>` — When the action occurred (e.g., `2 hours ago`, `yesterday`, `-30m`, `2024-01-15T14:30:00Z`)
+
+**Options:**
+- `-s, --source <source>` — Disruption source (uses FZF if not provided)
+- `-a, --action <id>` — Action ID to update (uses FZF if not provided)
+
+> **FZF Support:** If the source or action is not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select the disruption and then the action.
+
+**Examples:**
+
+```bash
+# Update action time with explicit IDs
+rei disruption action update-occurred-at -s redis-timeouts -a action_abc123 "2 hours ago"
+
+# Use FZF to select disruption and action
+rei disruption action update-occurred-at "yesterday at 3pm"
+```
+
+### action update-duration
+
+Set or update a disruption action's duration.
+
+```bash
+rei disruption action update-duration [options] <duration>
+```
+
+**Arguments:**
+- `<duration>` — Duration (e.g., `30m`, `1h30m`, `2 hours`)
+
+**Options:**
+- `-s, --source <source>` — Disruption source (uses FZF if not provided)
+- `-a, --action <id>` — Action ID to update (uses FZF if not provided)
+
+> **FZF Support:** If the source or action is not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select the disruption and then the action.
+
+**Examples:**
+
+```bash
+# Update action duration with explicit IDs
+rei disruption action update-duration -s redis-timeouts -a action_abc123 45m
+
+# Use FZF to select disruption and action
+rei disruption action update-duration "1h30m"
 ```
 
 ## Workflow

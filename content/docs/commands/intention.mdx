@@ -136,7 +136,7 @@ rei intention show [id] [options]
 - Dependencies
 - Supports (what this intention supports)
 - Supported By (what supports this intention)
-- Associated notes (with titles if available)
+- Associated notes (grouped by category, with uncategorized shown last)
 - Attached links and documents
 - Tasks
 - Linked habits
@@ -196,9 +196,27 @@ The `--tui` flag launches an interactive terminal UI for browsing the intention 
 - **Navigation**: Use `j`/`k` or arrow keys to move up/down
 - **View details**: Press `Enter` to open the full detail view for an intention
 - **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
+- **Add child**: Press `a` to open the child intention creation form
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
-- **Close views**: Press `Esc` to close detail view or quit
+- **Close views**: Press `Esc` to close detail view or form, then quit
 - **Quit**: Press `q` to exit
+
+**Child Intention Creation Form:**
+
+Press `a` on any intention to open an inline form for creating a child intention:
+
+- **Title**: The name of the new intention (required)
+- **Horizon**: Optional time horizon (e.g., `1w`, `3m`, `1y`)
+- **Start as Future**: Checkbox to create as a Future intention instead of Active
+
+Use `Tab` to move between fields, `Enter` to create the intention, and `Esc` to cancel.
+
+**Annotations:** Each intention in the TUI tree view displays helpful annotations:
+- Horizon (e.g., `1w`, `3m`)
+- Active days count (e.g., `5d`)
+- Deadline (e.g., `DL: 2026-02-15`)
+- Context (e.g., `work`, `personal`)
+- Status indicators (e.g., `(future)`, `(dormant)`)
 
 The TUI works with all tree variants (active, future, completed, all) and respects context filtering.
 

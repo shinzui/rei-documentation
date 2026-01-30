@@ -5,11 +5,28 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `bedeca2` (2026-01-28)
+**Last Source Commit Reviewed:** `9bce485` (2026-01-29)
 
 ---
 
 ## Changelog
+
+### 2026-01-29
+
+**Reviewed commits:** `bedeca2` through `9bce485`
+
+**Files updated:**
+- `disruption.mdx` — Added FZF support for `show`, `update`, `set-category`, `set-context`, `resolve`, `reopen` commands; added `action update-occurred-at` and `action update-duration` subcommands
+- `intention.mdx` — Added tree TUI child intention creation form (`a` key), added annotations documentation (horizon, active days, deadline, context, status), updated `show --full` to note category grouping for notes
+
+**Features documented:**
+- Disruption FZF support (show, update, set-category, set-context, resolve, reopen)
+- Disruption action update commands (`action update-occurred-at`, `action update-duration`)
+- Tree TUI child intention creation form (title, horizon, start as future)
+- Tree TUI annotations (horizon, active days, deadline, context, status indicators)
+- Notes grouped by category in intention full view
+
+---
 
 ### 2026-01-28
 
