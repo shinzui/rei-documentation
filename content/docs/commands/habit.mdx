@@ -160,6 +160,7 @@ rei habit list [options]
 
 **Options:**
 - `-c, --context <context>` — Filter by context
+- `-w, --where <filter>` — Filter by custom property value (see examples below)
 - `--json` — Output as JSON
 
 **Examples:**
@@ -171,14 +172,25 @@ rei habit list
 # List habits filtered by context
 rei habit list --context personal
 
+# Filter by custom property (exact match)
+rei habit list --where priority=medium
+
+# Filter by numeric property (comparison operators)
+rei habit list --where "effort>=5"
+
 # Output as JSON (for scripting)
 rei habit list --json
 ```
+
+**Property Filter Syntax:**
+- `key=value` — Exact match (works with enum, text, and state properties)
+- `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
 
 **Notes:**
 - Linked habits inherit context from their linked intention
 - Unlinked habits can have their own context set directly
 - Schedule is displayed in the habit list output
+- Property filters require custom properties to be defined (see [`rei custom-property`](/docs/commands/custom-property))
 
 ### show
 
@@ -760,3 +772,120 @@ rei habit remind "Time to review habit" --at "1 week"
 ```
 
 See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
+
+## Custom Properties
+
+### set-property
+
+Set a custom property on a habit.
+
+```bash
+rei habit set-property [habit-id] PROPERTY_KEY VALUE
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+> **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Set property with explicit ID
+rei habit set-property habit_01abc... priority high
+
+# Let fzf pick the habit
+rei habit set-property priority high
+
+# Set a numeric property
+rei habit set-property habit_01abc... effort 5
+```
+
+**Notes:**
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to habits
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- Properties are displayed in `habit show` output
+
+### clear-property
+
+Remove a custom property from a habit.
+
+```bash
+rei habit clear-property [habit-id] PROPERTY_KEY
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+> **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Clear property with explicit ID
+rei habit clear-property habit_01abc... priority
+
+# Let fzf pick the habit
+rei habit clear-property priority
+```
+
+## Categories
+
+### set-category
+
+Assign a category to a habit.
+
+```bash
+rei habit set-category [habit-id] <category-slug>
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+- `<category-slug>` — Category slug (e.g., `health`, `work/deep-work`)
+
+> **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Set category with explicit ID
+rei habit set-category habit_01abc... health
+
+# Let fzf pick the habit
+rei habit set-category health
+
+# Set a nested category
+rei habit set-category habit_01abc... work/deep-work
+```
+
+**Notes:**
+- The category must exist (create with `rei category create`)
+- Only one category can be assigned to a habit at a time
+- Setting a new category replaces any existing category assignment
+
+### clear-category
+
+Remove the category assignment from a habit.
+
+```bash
+rei habit clear-category [habit-id]
+```
+
+**Arguments:**
+- `[habit-id]` — Habit ID (optional if fzf is available)
+
+> **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
+
+**Examples:**
+
+```bash
+# Clear category with explicit ID
+rei habit clear-category habit_01abc...
+
+# Let fzf pick the habit
+rei habit clear-category
+```

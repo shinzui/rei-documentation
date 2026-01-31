@@ -5,11 +5,53 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `9bce485` (2026-01-29)
+**Last Source Commit Reviewed:** `5e64ac1` (2026-01-30)
 
 ---
 
 ## Changelog
+
+### 2026-01-30
+
+**Reviewed commits:** `9bce485` through `5e64ac1`
+
+**Files created:**
+- `commands/custom-property.mdx` — **NEW** — Custom property definition and management command documentation
+- `concepts/custom-properties.mdx` — **NEW** — Concepts page explaining custom properties philosophy, use cases, state machines, and best practices
+
+**Files updated:**
+- `disruption.mdx` — Added `set-property`, `clear-property` commands, `action update-description` command, `--where` filter for list
+- `habit.mdx` — Added `set-property`, `clear-property` commands, `set-category`, `clear-category` commands, `--where` filter for list
+- `intention.mdx` — Added `set-property`, `clear-property` commands, `note open` command, `--where` filter for list, custom properties in full view
+- `help.mdx` — Added `custom-properties` help topic
+- `commands/index.mdx` — Added custom-property to Organization Commands
+- `commands/meta.json` — Added custom-property to navigation
+- `concepts/index.mdx` — Added Custom Properties card
+- `concepts/meta.json` — Added custom-properties to navigation
+
+**Features documented:**
+- Custom property system (`rei custom-property create`, `list`, `show`, `archive`, `rename`, `set-scope`)
+- Property value types: int, float, text, bool, enum, duration, quantity, state-machine, date, datetime, path, url
+- State machine YAML format with states, transitions, and system tags
+- State machine evolution (add-state, remove-state, add-transition, remove-transition)
+- Enum evolution (add-enum-value, remove-enum-value)
+- Property assignment on intentions (`set-property`, `clear-property`)
+- Property assignment on habits (`set-property`, `clear-property`)
+- Property assignment on disruptions (`set-property`, `clear-property`)
+- Property filtering with `--where` flag on intention, habit, and disruption lists
+- Habit categories (`set-category`, `clear-category`)
+- Intention note opening (`note open`)
+- Disruption action description updates (`action update-description`)
+- Help topic for custom properties
+- Custom properties concepts page (philosophy, use cases, state machines, best practices)
+
+**No documentation needed:**
+- `d364030` Add state machine YAML format documentation (internal dev docs)
+- `1e5a506` Move custom properties design docs to implemented and update status (dev docs)
+- `7ad3c4f` Add custom-property module developer documentation (dev docs)
+- `c461fb8` Add custom properties feature design documents (dev docs)
+
+---
 
 ### 2026-01-29
 

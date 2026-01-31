@@ -23,6 +23,7 @@
 		"knowledge",
 		"task",
 		"category",
+		"custom-property",
 		"agent",
 		"help",
 		"system",

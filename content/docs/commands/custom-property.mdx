@@ -1,0 +1,574 @@
+---
+title: rei custom-property
+description: Define and manage custom properties for entities
+icon: Settings
+---
+
+Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes). Custom properties allow you to extend entities with your own metadata fields.
+
+## Concepts
+
+**Custom Property** — A user-defined property definition with:
+- **Key** — Unique identifier (alphanumeric, hyphens, underscores)
+- **Label** — Human-readable display name
+- **Value type** — The data type for values (int, enum, state-machine, etc.)
+- **Entity scope** — Which entity types can have this property
+- **Category scope** — Optional restriction to a specific category
+
+**Property Assignment** — Once a property is defined, you can assign values to entities using `rei <entity> set-property` commands.
+
+## Value Types
+
+Custom properties support the following value types:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `int` | Integer with optional min/max | effort level (1-10) |
+| `float` | Decimal with optional precision | completion percentage |
+| `text` | Free text with optional length limits | notes field |
+| `bool` | Boolean true/false | is_urgent flag |
+| `enum` | Predefined set of values | priority (low, medium, high) |
+| `duration` | Time duration | estimated time |
+| `quantity` | Numeric with units | distance (km, miles) |
+| `state-machine` | States with transitions | task workflow |
+| `date` | Date (YYYY-MM-DD) | due date |
+| `datetime` | Date and time | deadline |
+| `path` | File path | reference file |
+| `url` | URL | documentation link |
+
+## State Machine YAML Format
+
+State machine properties require a YAML configuration file that defines states and transitions. The file is passed via `--from-file` when creating the property.
+
+**Basic Structure:**
+
+```yaml
+initialState: backlog        # Required: state to assign when no value exists
+states:                      # Required: at least one state
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateDescription: "Items waiting to be picked up"  # Optional
+    stateTags:               # Optional: semantic tags for querying
+      - systemTag: TagQueue
+    stateColor: "#808080"    # Optional: hex color for UI
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateTags:
+      - systemTag: TagActive
+  - stateId: done
+    stateLabel: "Done"
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+transitions:                 # Required: defines allowed state changes
+  - transitionFrom: backlog
+    transitionTo: in-progress
+    transitionLabel: "Start"  # Optional
+  - transitionFrom: in-progress
+    transitionTo: done
+    transitionLabel: "Complete"
+  - transitionFrom: in-progress
+    transitionTo: backlog
+    transitionLabel: "Move back"
+```
+
+**System Tags:**
+
+System tags provide semantic meaning for queries and UI:
+
+| Tag | Description |
+|-----|-------------|
+| `TagQueue` | Items waiting to be worked on |
+| `TagActive` | Items currently in progress |
+| `TagDone` | Items that are complete |
+| `TagTerminal` | Final states (no further transitions) |
+
+**Custom Tags:**
+
+You can also define custom tags for your own categorization:
+
+```yaml
+stateTags:
+  - userTag: "needs-review"
+  - userTag: "blocked-external"
+```
+
+**Example: Kanban Workflow**
+
+```yaml
+# kanban.yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: ready
+    stateLabel: "Ready"
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateTags:
+      - systemTag: TagActive
+  - stateId: review
+    stateLabel: "In Review"
+    stateTags:
+      - systemTag: TagActive
+      - userTag: "needs-review"
+  - stateId: done
+    stateLabel: "Done"
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+  - stateId: cancelled
+    stateLabel: "Cancelled"
+    stateTags:
+      - systemTag: TagTerminal
+transitions:
+  - transitionFrom: backlog
+    transitionTo: ready
+    transitionLabel: "Groom"
+  - transitionFrom: ready
+    transitionTo: in-progress
+    transitionLabel: "Start"
+  - transitionFrom: in-progress
+    transitionTo: review
+    transitionLabel: "Submit for review"
+  - transitionFrom: review
+    transitionTo: in-progress
+    transitionLabel: "Request changes"
+  - transitionFrom: review
+    transitionTo: done
+    transitionLabel: "Approve"
+  - transitionFrom: backlog
+    transitionTo: cancelled
+    transitionLabel: "Cancel"
+  - transitionFrom: ready
+    transitionTo: cancelled
+    transitionLabel: "Cancel"
+  - transitionFrom: in-progress
+    transitionTo: cancelled
+    transitionLabel: "Cancel"
+```
+
+Create the property with:
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file kanban.yaml \
+  -e intention \
+  --label "Workflow Status"
+```
+
+## Subcommands
+
+### create
+
+Create a new custom property definition.
+
+```bash
+rei custom-property create KEY [options] --type-<TYPE> [type-options]
+```
+
+**Arguments:**
+- `KEY` — Property key (alphanumeric, hyphens, underscores)
+
+**Options:**
+- `-l, --label <label>` — Human-readable label (defaults to key)
+- `-d, --description <desc>` — Property description
+- `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note
+- `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
+
+**Type Flags (pick one):**
+
+- `--type-int` — Integer type
+  - `--min <N>` — Minimum value
+  - `--max <N>` — Maximum value
+
+- `--type-float` — Float type
+  - `--min <N>` — Minimum value
+  - `--max <N>` — Maximum value
+  - `--precision <N>` — Decimal precision
+
+- `--type-text` — Text type
+  - `--min-length <N>` — Minimum length
+  - `--max-length <N>` — Maximum length
+
+- `--type-bool` — Boolean type
+
+- `--type-enum` — Enum type
+  - `--values <val1,val2,...>` — Comma-separated enum values (required)
+
+- `--type-duration` — Duration type
+
+- `--type-quantity` — Quantity type (numeric with units)
+  - `--base-unit <unit>` — Base storage unit (required)
+  - `--allowed-units <u1,u2,...>` — Comma-separated allowed units (required)
+  - `--display-unit <unit>` — Preferred display unit
+
+- `--type-state-machine` — State machine type
+  - `--from-file <file>` — YAML file defining states and transitions (required)
+
+- `--type-date` — Date type (YYYY-MM-DD)
+
+- `--type-datetime` — DateTime type
+
+- `--type-path` — File path type
+  - `--must-exist` — Path must exist at assignment time
+  - `--must-be-directory` — Path must be a directory
+  - `--must-be-file` — Path must be a file
+  - `--must-be-absolute` — Path must be absolute
+
+- `--type-url` — URL type
+  - `--allowed-schemes <s1,s2,...>` — Comma-separated allowed schemes
+  - `--allowed-hosts <h1,h2,...>` — Comma-separated allowed hosts
+
+**Examples:**
+
+```bash
+# Create a priority enum property for intentions
+rei custom-property create priority \
+  --type-enum --values low,medium,high \
+  -e intention
+
+# Create an effort int property for intentions and habits
+rei custom-property create effort \
+  --type-int --min 1 --max 10 \
+  -e intention -e habit \
+  --label "Effort Level" \
+  --description "Estimated effort from 1 (trivial) to 10 (massive)"
+
+# Create a severity enum for disruptions
+rei custom-property create severity \
+  --type-enum --values low,medium,high,critical \
+  -e disruption
+
+# Create a state machine property from YAML config
+rei custom-property create task-state \
+  --type-state-machine --from-file task-states.yaml \
+  -e intention
+
+# Create a text property scoped to a category
+rei custom-property create client-notes \
+  --type-text --max-length 1000 \
+  -e intention \
+  -c work
+```
+
+**Notes:**
+- Category scope (`-c`) requires a leaf category (one with no children). This ensures properties are assigned at the most specific level.
+
+### list
+
+List custom property definitions.
+
+```bash
+rei custom-property list [options]
+```
+
+**Options:**
+- `-a, --all` — Include archived properties
+- `-c, --category <slug>` — Filter by category scope
+- `-e, --entity-type <type>` — Filter by entity type
+
+**Examples:**
+
+```bash
+# List all active properties
+rei custom-property list
+
+# List properties for intentions only
+rei custom-property list -e intention
+
+# Include archived properties
+rei custom-property list --all
+
+# Filter by category scope
+rei custom-property list -c work
+```
+
+### show
+
+Show details of a custom property.
+
+```bash
+rei custom-property show [KEY]
+```
+
+**Arguments:**
+- `[KEY]` — Property key or ID (optional if fzf is available)
+
+> **FZF Support:** If the key is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available properties.
+
+**Examples:**
+
+```bash
+# Show property details
+rei custom-property show priority
+
+# Use FZF to select
+rei custom-property show
+```
+
+### archive
+
+Archive a custom property (soft delete).
+
+```bash
+rei custom-property archive KEY
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+
+**Examples:**
+
+```bash
+# Archive a property
+rei custom-property archive old-priority
+```
+
+**Notes:**
+- Archived properties are hidden from lists by default
+- Existing property assignments are preserved
+- Use `list --all` to see archived properties
+
+### rename
+
+Update the display label of a custom property.
+
+```bash
+rei custom-property rename KEY NEW_LABEL
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `NEW_LABEL` — New display label
+
+**Examples:**
+
+```bash
+# Rename a property's label
+rei custom-property rename priority "Priority Level"
+```
+
+**Notes:**
+- Property keys are immutable; only the label can be changed
+- Use labels for human-readable display names
+
+### set-scope
+
+Update property scope (entity types and category).
+
+```bash
+rei custom-property set-scope KEY [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+
+**Options:**
+- `-e, --entity-type <type>` — Entity type (can be repeated to set multiple)
+- `-c, --category <slug>` — Category scope
+- `--clear-category` — Remove category scope (make global)
+
+**Examples:**
+
+```bash
+# Add habit to entity types
+rei custom-property set-scope priority -e intention -e habit
+
+# Scope to a specific category
+rei custom-property set-scope client-notes -c work
+
+# Remove category scope
+rei custom-property set-scope client-notes --clear-category
+```
+
+## State Machine Evolution
+
+State machine properties can be evolved after creation using these commands.
+
+### add-state
+
+Add a state to a state machine property.
+
+```bash
+rei custom-property add-state KEY STATE_ID --label LABEL [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `STATE_ID` — State identifier (lowercase, hyphens/underscores)
+
+**Options:**
+- `-l, --label <label>` — Human-readable state label (required)
+- `-d, --description <desc>` — State description
+- `-t, --tag <tag>` — State tag (can be repeated). Common tags: queue, active, done, terminal
+
+**Examples:**
+
+```bash
+# Add a new state
+rei custom-property add-state task-state blocked --label "Blocked" -t active
+
+# Add a terminal state
+rei custom-property add-state task-state cancelled --label "Cancelled" -t terminal
+```
+
+### remove-state
+
+Remove a state from a state machine property.
+
+```bash
+rei custom-property remove-state KEY STATE_ID
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `STATE_ID` — State identifier to remove
+
+**Examples:**
+
+```bash
+# Remove a state
+rei custom-property remove-state task-state blocked
+```
+
+**Notes:**
+- Cannot remove states that are currently in use by entities
+- Transitions involving the state are also removed
+
+### add-transition
+
+Add a transition between states.
+
+```bash
+rei custom-property add-transition KEY FROM_STATE TO_STATE [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `FROM_STATE` — Source state ID
+- `TO_STATE` — Target state ID
+
+**Options:**
+- `-l, --label <label>` — Transition label
+
+**Examples:**
+
+```bash
+# Add a transition
+rei custom-property add-transition task-state todo in-progress --label "Start"
+
+# Add reverse transition
+rei custom-property add-transition task-state in-progress todo --label "Revert"
+```
+
+### remove-transition
+
+Remove a transition between states.
+
+```bash
+rei custom-property remove-transition KEY FROM_STATE TO_STATE
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `FROM_STATE` — Source state ID
+- `TO_STATE` — Target state ID
+
+**Examples:**
+
+```bash
+# Remove a transition
+rei custom-property remove-transition task-state todo blocked
+```
+
+## Enum Evolution
+
+Enum properties can be evolved after creation using these commands.
+
+### add-enum-value
+
+Add a value to an enum property.
+
+```bash
+rei custom-property add-enum-value KEY VALUE
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `VALUE` — Enum value to add
+
+**Examples:**
+
+```bash
+# Add a new priority level
+rei custom-property add-enum-value priority critical
+```
+
+### remove-enum-value
+
+Remove a value from an enum property.
+
+```bash
+rei custom-property remove-enum-value KEY VALUE
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `VALUE` — Enum value to remove
+
+**Examples:**
+
+```bash
+# Remove an enum value
+rei custom-property remove-enum-value priority low
+```
+
+**Notes:**
+- Cannot remove values that are currently in use by entities
+
+## Using Properties
+
+Once properties are defined, assign values to entities:
+
+```bash
+# Set a property on an intention
+rei intention set-property intention_01abc... priority high
+
+# Set a property on a habit
+rei habit set-property habit_01abc... effort 5
+
+# Set a property on a disruption
+rei disruption set-property redis-timeouts severity critical
+
+# Clear a property from an intention
+rei intention clear-property intention_01abc... priority
+```
+
+## Filtering by Properties
+
+Use the `--where` flag to filter entity lists by property values:
+
+```bash
+# Filter intentions by priority
+rei intention list --where priority=high
+
+# Filter by numeric comparison
+rei intention list --where "effort>=5"
+
+# Filter habits by effort
+rei habit list --where "effort<3"
+```
+
+See [`rei intention list`](/docs/commands/intention), [`rei habit list`](/docs/commands/habit), and [`rei disruption list`](/docs/commands/disruption) for more filtering options.
+
+## Related Commands
+
+- [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
+- [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
+- [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions
+- [`rei category`](/docs/commands/category) — Manage categories for scoping properties

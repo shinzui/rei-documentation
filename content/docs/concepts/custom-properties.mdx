@@ -1,0 +1,370 @@
+---
+title: Custom Properties
+description: Extend entities with your own typed metadata fields
+icon: Settings
+---
+
+Custom properties allow you to extend Rei entities with your own metadata fields. Define properties once, then assign values to individual entities to track information specific to your workflow.
+
+## Why Custom Properties?
+
+Custom properties serve three main purposes:
+
+### Agent Semantics
+
+Add context that the AI agent can use for coaching and insights.
+
+**Example:** An intention has a `project_path` property pointing to where the related project lives on the filesystem, enabling the agent to understand project context when providing help.
+
+### Structured Tracking
+
+Track quantifiable data on entities that enables queries and analysis.
+
+**Example:** A habit tracks `swimming_distance` with units (meters, km), allowing queries like "total distance this month" or "average per session."
+
+### State Auditing
+
+Use state machine properties to audit system-wide status without building dedicated features.
+
+**Example:** A `task_state` property with states tagged as `queue`, `active`, or `done` lets you query "how many intentions are queued vs active" across your entire system.
+
+## Core Concepts
+
+### Property Definition
+
+A property definition describes **what a property is** and **where it's available**:
+
+- **Key** — Unique, immutable identifier (e.g., `priority`, `effort-level`)
+- **Label** — Human-readable display name
+- **Value Type** — The data type and validation constraints
+- **Scope** — Which entity types and categories can use this property
+
+Property keys cannot be changed after creation. Use the label for display purposes.
+
+### Property Assignment
+
+An assignment is **the value of a property for a specific entity**. You assign values using entity commands like `rei intention set-property`.
+
+### Scope
+
+Properties can be **global** (available everywhere) or **category-scoped** (only for entities with that category or its descendants).
+
+When scoped to a category, the property is resolved by checking:
+1. Entity's category
+2. Parent category
+3. ... up the chain
+4. Global scope
+
+Both the entity type AND category must match for a property to be available.
+
+## Value Types
+
+Custom properties support 12 value types:
+
+| Type | Description | Example |
+|------|-------------|---------|
+| `int` | Integer with optional min/max | `priority=5` |
+| `float` | Decimal with optional precision | `rating=4.5` |
+| `text` | Free text with length limits | `description="Some notes"` |
+| `bool` | Boolean true/false | `is_billable=true` |
+| `enum` | Predefined set of values | `status={todo,doing,done}` |
+| `duration` | Time durations | `time_spent=2h30m` |
+| `quantity` | Numeric with units | `distance=5km` |
+| `state-machine` | States with transitions | See below |
+| `date` | Calendar dates | `deadline=2026-02-15` |
+| `datetime` | Timestamps | `scheduled_at=2026-01-29T10:00` |
+| `path` | Filesystem paths | `project_path=/Users/me/project` |
+| `url` | URLs with validation | `repo_url=https://github.com/...` |
+
+### Quantity Type
+
+Quantities store numeric values with units. Values are converted to a base unit for storage and can be displayed in preferred units.
+
+```bash
+# Create a distance property with meter as base unit
+rei custom-property create distance \
+  --type-quantity \
+  --base-unit m \
+  --allowed-units m,km,mi \
+  --display-unit km \
+  -e habit
+
+# Assign a value
+rei habit set-property habit_01abc... distance 5km
+```
+
+### Path and URL Types
+
+These types are useful for giving the AI agent context about related resources:
+
+- **Path** — Store project directories, config files, or workspace locations
+- **URL** — Store repository URLs, documentation links, or external resources
+
+```bash
+# Create a project path property
+rei custom-property create project-path \
+  --type-path \
+  --must-exist \
+  --must-be-directory \
+  -e intention
+
+# Create a repo URL property
+rei custom-property create repo-url \
+  --type-url \
+  --allowed-schemes https \
+  --allowed-hosts github.com,gitlab.com \
+  -e intention
+```
+
+## State Machine Properties
+
+State machines enable workflow tracking with defined states and allowed transitions.
+
+### Structure
+
+A state machine defines:
+
+- **States** — Named workflow stages with optional tags and colors
+- **Transitions** — Allowed moves between states
+- **Initial State** — The default state for new assignments
+
+### System Tags
+
+System tags provide semantic meaning for queries:
+
+| Tag | Meaning |
+|-----|---------|
+| `TagQueue` | Items waiting to be worked on |
+| `TagActive` | Items currently in progress |
+| `TagDone` | Items completed |
+| `TagTerminal` | Final states (no outgoing transitions) |
+
+You can also define custom tags for your own categorization.
+
+### Example: Kanban Workflow
+
+```yaml
+# kanban.yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateTags:
+      - systemTag: TagQueue
+    stateColor: "#808080"
+
+  - stateId: ready
+    stateLabel: "Ready"
+    stateTags:
+      - systemTag: TagQueue
+
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateTags:
+      - systemTag: TagActive
+
+  - stateId: review
+    stateLabel: "In Review"
+    stateTags:
+      - systemTag: TagActive
+      - userTag: "needs-review"
+
+  - stateId: done
+    stateLabel: "Done"
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+
+transitions:
+  - transitionFrom: backlog
+    transitionTo: ready
+    transitionLabel: "Groom"
+  - transitionFrom: ready
+    transitionTo: in-progress
+    transitionLabel: "Start"
+  - transitionFrom: in-progress
+    transitionTo: review
+    transitionLabel: "Submit"
+  - transitionFrom: review
+    transitionTo: in-progress
+    transitionLabel: "Request changes"
+  - transitionFrom: review
+    transitionTo: done
+    transitionLabel: "Approve"
+```
+
+Create the property:
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine \
+  --from-file kanban.yaml \
+  -e intention \
+  --label "Workflow Status"
+```
+
+### Transition Enforcement
+
+State machines enforce valid transitions. You cannot skip directly to a state without a valid transition path:
+
+```bash
+# Starting from backlog...
+rei intention set-property workflow ready      # OK - transition exists
+rei intention set-property workflow in-progress  # OK - transition exists
+rei intention set-property workflow done       # ERROR - no direct transition from in-progress
+```
+
+### Evolving State Machines
+
+You can add states and transitions after creation:
+
+```bash
+# Add a "blocked" state
+rei custom-property add-state workflow blocked \
+  --label "Blocked" \
+  -t active
+
+# Add transitions to/from blocked
+rei custom-property add-transition workflow in-progress blocked
+rei custom-property add-transition workflow blocked in-progress --label "Unblock"
+```
+
+States currently in use cannot be removed.
+
+## Using Properties
+
+### Assigning Values
+
+Set properties on entities using entity-specific commands:
+
+```bash
+# Intentions
+rei intention set-property intention_01abc... priority high
+rei intention clear-property intention_01abc... priority
+
+# Habits
+rei habit set-property habit_01abc... effort 5
+rei habit clear-property habit_01abc... effort
+
+# Disruptions
+rei disruption set-property redis-timeouts severity critical
+
+# Notes
+rei note set-property note_01abc... status draft
+```
+
+### Filtering by Properties
+
+Use the `--where` flag to filter entity lists:
+
+```bash
+# Exact match
+rei intention list --where priority=high
+
+# Numeric comparisons
+rei intention list --where "effort>=5"
+rei habit list --where "effort<3"
+
+# State machine states
+rei intention list --where workflow=in-progress
+
+# State machine tags (query by semantic meaning)
+rei intention list --where "workflow:tag=active"
+```
+
+### Viewing Properties
+
+Properties appear in entity views:
+
+```bash
+# In show output
+rei intention show intention_01abc... --full
+# Shows: Custom Properties section with all assigned values
+
+# In list output
+rei intention list
+# Shows properties inline with each entity
+```
+
+## Important Limitations
+
+### Immutable Keys
+
+Property keys cannot be changed after creation. Plan your naming carefully. Use the `rename` command to change only the display label.
+
+### Fixed Value Types
+
+You cannot convert a property from one type to another (e.g., enum to state-machine). If you need a different type, archive the old property and create a new one.
+
+### Scope Validation
+
+Properties can only be assigned to entities matching their scope:
+- Entity type must be in the allowed list
+- If category-scoped, entity's category must match (or be a descendant)
+
+Attempting to assign a property to an ineligible entity results in an error.
+
+### No Cross-Property Constraints
+
+The system does not support rules like "if A then B must be X". Properties are independent facts about entities.
+
+## Entity Support
+
+Custom properties work with these entities:
+
+| Entity | Category Support |
+|--------|-----------------|
+| Intentions | Yes |
+| Habits | Yes |
+| Disruptions | Yes |
+| Notes | Yes |
+
+Actions, Outcomes, and Blockers (sub-entities of Intentions) do not support custom properties.
+
+## Best Practices
+
+### Naming Conventions
+
+- Use lowercase with hyphens for keys: `task-state`, `effort-level`
+- Use descriptive labels for display: "Task State", "Effort Level"
+- Choose names that will make sense in queries and filters
+
+### When to Use Each Type
+
+- **Enum** — Fixed sets where any value can become any other (priority, status)
+- **State Machine** — Workflows where transitions matter (task lifecycle, approval process)
+- **Quantity** — Values with units you'll want to aggregate (distance, time, money)
+- **Path/URL** — Resources the agent should know about for context
+
+### Category Scoping
+
+Use category scoping when:
+- A property only makes sense for certain types of work
+- You want to avoid cluttering the property list globally
+- Different categories need different properties
+
+## Commands Reference
+
+See [`rei custom-property`](/docs/commands/custom-property) for the complete command reference.
+
+**Quick reference:**
+
+```bash
+# Define properties
+rei custom-property create <key> --type-<type> [options]
+rei custom-property list
+rei custom-property show <key>
+
+# Manage properties
+rei custom-property rename <key> "New Label"
+rei custom-property set-scope <key> -e intention -e habit
+rei custom-property archive <key>
+
+# Evolve state machines
+rei custom-property add-state <key> <state-id> --label "Label"
+rei custom-property add-transition <key> <from> <to>
+
+# Evolve enums
+rei custom-property add-enum-value <key> <value>
+rei custom-property remove-enum-value <key> <value>
+```

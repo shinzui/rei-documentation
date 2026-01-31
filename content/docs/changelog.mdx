@@ -6,6 +6,59 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-30
+
+### New Feature: Custom Properties
+
+Define custom metadata fields and attach them to your intentions, habits, disruptions, and notes:
+
+- `rei custom-property create priority --type-enum --values low,medium,high -e intention` — Define a priority property
+- `rei custom-property create effort --type-int --min 1 --max 10 -e intention -e habit` — Define an effort property
+- `rei custom-property list` — View all defined properties
+- `rei custom-property show priority` — View property details
+
+**Property types:** int, float, text, bool, enum, duration, quantity, state-machine, date, datetime, path, url
+
+**State machine properties** support workflows with defined states and transitions:
+- Configure via YAML file with `--type-state-machine --from-file workflow.yaml`
+- Evolve state machines with `add-state`, `remove-state`, `add-transition`, `remove-transition`
+- Use system tags (TagQueue, TagActive, TagDone, TagTerminal) for semantic meaning
+
+### Using Properties on Entities
+
+Assign property values to entities:
+
+- `rei intention set-property priority high` — Set property on an intention
+- `rei habit set-property effort 5` — Set property on a habit
+- `rei disruption set-property severity critical` — Set property on a disruption
+- `rei intention clear-property priority` — Remove a property value
+
+### Filtering by Properties
+
+Filter entity lists using the new `--where` flag:
+
+- `rei intention list --where priority=high` — Filter by exact match
+- `rei intention list --where "effort>=5"` — Filter by numeric comparison
+- `rei habit list --where "effort<3"` — Works on habits too
+- `rei disruption list --where severity=critical` — And disruptions
+
+### New Commands: Habit Categories
+
+Habits can now be categorized:
+
+- `rei habit set-category habit_01abc... health` — Assign category
+- `rei habit clear-category habit_01abc...` — Remove category
+
+### Enhancements
+
+- **`rei intention show --full`** — Now displays custom properties section
+- **`rei intention note open`** — New command to open notes attached to an intention (with FZF picker)
+- **`rei disruption action update-description`** — Update description of disruption actions
+- **`rei help custom-properties`** — New help topic explaining custom properties
+- **[Custom Properties Concepts](/docs/concepts/custom-properties)** — New documentation page explaining the philosophy, use cases, and best practices for custom properties
+
+---
+
 ## 2026-01-29
 
 ### New Feature: Tree TUI Child Intention Creation

@@ -62,6 +62,7 @@ rei disruption list [options]
 **Options:**
 - `-s, --status <status>` — Filter by status: active, addressed, resolved
 - `-a, --all` — Show all disruptions including resolved
+- `-w, --where <filter>` — Filter by custom property value (see examples below)
 
 **Examples:**
 
@@ -74,7 +75,20 @@ rei disruption list --status addressed
 
 # List all disruptions
 rei disruption list --all
+
+# Filter by custom property (exact match)
+rei disruption list --where severity=high
+
+# Filter by numeric property (comparison operators)
+rei disruption list --where "impact>=5"
 ```
+
+**Property Filter Syntax:**
+- `key=value` — Exact match (works with enum, text, and state properties)
+- `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+
+**Notes:**
+- Property filters require custom properties to be defined (see [`rei custom-property`](/docs/commands/custom-property))
 
 ### show
 
@@ -151,6 +165,64 @@ rei disruption set-category redis-timeouts --clear
 
 # Use FZF to select
 rei disruption set-category -c infrastructure
+```
+
+### set-property
+
+Set a custom property on a disruption.
+
+```bash
+rei disruption set-property [source] PROPERTY_KEY VALUE
+```
+
+**Arguments:**
+- `[source]` — Disruption source identifier (optional if fzf is available)
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
+
+**Examples:**
+
+```bash
+# Set property with explicit source
+rei disruption set-property redis-timeouts severity high
+
+# Let fzf pick the disruption
+rei disruption set-property severity high
+
+# Set a numeric property
+rei disruption set-property redis-timeouts impact 8
+```
+
+**Notes:**
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to disruptions
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- Properties are displayed in `disruption show` output
+
+### clear-property
+
+Remove a custom property from a disruption.
+
+```bash
+rei disruption clear-property [source] PROPERTY_KEY
+```
+
+**Arguments:**
+- `[source]` — Disruption source identifier (optional if fzf is available)
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
+
+**Examples:**
+
+```bash
+# Clear property with explicit source
+rei disruption clear-property redis-timeouts severity
+
+# Let fzf pick the disruption
+rei disruption clear-property severity
 ```
 
 ### set-context
@@ -366,6 +438,33 @@ rei disruption action update-duration -s redis-timeouts -a action_abc123 45m
 
 # Use FZF to select disruption and action
 rei disruption action update-duration "1h30m"
+```
+
+### action update-description
+
+Update the description of a disruption action.
+
+```bash
+rei disruption action update-description [options] <description>
+```
+
+**Arguments:**
+- `<description>` — New description for the action
+
+**Options:**
+- `-s, --source <source>` — Disruption source (uses FZF if not provided)
+- `-a, --action <id>` — Action ID to update (uses FZF if not provided)
+
+> **FZF Support:** If the source or action is not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select the disruption and then the action.
+
+**Examples:**
+
+```bash
+# Update action description with explicit IDs
+rei disruption action update-description -s redis-timeouts -a action_abc123 "Investigated connection pool exhaustion"
+
+# Use FZF to select disruption and action
+rei disruption action update-description "Fixed memory leak in connection handler"
 ```
 
 ## Workflow

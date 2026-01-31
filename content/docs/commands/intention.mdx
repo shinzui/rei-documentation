@@ -90,7 +90,8 @@ rei intention list [options]
 
 **Options:**
 - `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
-- `-c, --context <context>` — Filter by context
+- `-c, --context <context>` — Filter by context (includes child intentions of matching roots)
+- `-w, --where <filter>` — Filter by custom property value (see examples below)
 - `--future` — Show only Future (deferred) intentions
 - `--all` — Show both Active and Future intentions
 
@@ -111,7 +112,34 @@ rei intention list --context work
 
 # Combine status and context filters
 rei intention list --future --context work
+
+# FZF-compatible tab-separated output (ID, title, horizon)
+rei intention list --format=fzf
+
+# JSON output
+rei intention list --format=json
+
+# Filter by custom property (exact match)
+rei intention list --where priority=high
+
+# Filter by numeric property (comparison operators)
+rei intention list --where "effort>=5"
+rei intention list --where "effort<3"
 ```
+
+The `--format=fzf` output is designed for shell scripting and fzf widgets. Each line contains: `ID<tab>title<tab>horizon`
+
+**Property Filter Syntax:**
+- `key=value` — Exact match (works with enum, text, and state properties)
+- `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+- `key:tag=value` — State machine tag query
+
+**Notes:**
+- Default behavior shows only Active intentions
+- Completed and Abandoned intentions are never shown in list output
+- When filtering by context, both root intentions with that context and their children are included
+- Context is displayed in list output when present
+- Property filters require custom properties to be defined (see [`rei custom-property`](/docs/commands/custom-property))
 
 ### show
 
@@ -141,6 +169,7 @@ rei intention show [id] [options]
 - Tasks
 - Linked habits
 - Reminders (active and past, with status icons and scheduled times)
+- Custom properties (any properties assigned to this intention)
 - Child intentions (both Active and Future; excludes Completed/Abandoned)
 
 ### tree
@@ -499,6 +528,29 @@ rei intention clear-overview intention_01abc...
 rei intention clear-overview
 ```
 
+### note open
+
+Open a note attached to an intention. Shows notes both directly attached to the intention and those attached to its actions, outcomes, and reflections.
+
+```bash
+rei intention note open [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will show intentions that have notes. After selecting an intention, another FZF picker shows all attached notes to choose from.
+
+**Examples:**
+
+```bash
+# Open a note for a specific intention
+rei intention note open intention_01abc...
+
+# Let fzf pick the intention first, then the note
+rei intention note open
+```
+
 ### set-note-guidance
 
 Set AI guidance for notes under an intention. This guidance is automatically included when getting help with any note anchored to this intention.
@@ -699,3 +751,65 @@ rei intention tracker -d 180 --style heatmap --include-children
 - The tracker aggregates all actions recorded for the intention
 - `--include-children` recursively includes actions from all descendant intentions
 - Useful for visualizing work patterns and maintaining consistency
+
+### set-property
+
+Set a custom property on an intention.
+
+```bash
+rei intention set-property [-i ID] PROPERTY_KEY VALUE
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Set property with explicit ID
+rei intention set-property -i intention_01h455vb4pex priority high
+
+# Let fzf pick the intention
+rei intention set-property priority high
+
+# Set a numeric property
+rei intention set-property -i intention_01h455vb4pex effort 5
+```
+
+**Notes:**
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to intentions
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- Properties are displayed in `intention show` output
+
+### clear-property
+
+Remove a custom property from an intention.
+
+```bash
+rei intention clear-property [-i ID] PROPERTY_KEY
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear property with explicit ID
+rei intention clear-property -i intention_01h455vb4pex priority
+
+# Let fzf pick the intention
+rei intention clear-property priority
+```
