@@ -5,11 +5,30 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `5e64ac1` (2026-01-30)
+**Last Source Commit Reviewed:** `f99224d` (2026-01-31)
 
 ---
 
 ## Changelog
+
+### 2026-01-31
+
+**Reviewed commits:** `5e64ac1` through `f99224d`
+
+**Files created:**
+- `guides/intention-filtering.mdx` — **NEW** — Guide explaining intention filtering options: contexts, categories, custom properties, and state machine tags
+- `guides/meta.json` — **NEW** — Navigation for guides section
+
+**Files updated:**
+- `commands/intention.mdx` — Added `--category`, `--state-tag`, and `--dormant` filter options with examples and state tag filter documentation
+- `commands/help.mdx` — Added `intention-filtering` help topic to available topics
+- `meta.json` — Added guides section to navigation
+
+**Source files synced:**
+- `rei-cli/help/intention-filtering.md` — New help topic (source of truth for filtering guide)
+- `docs/user/cli/intention.md` — Updated with --state-tag and --category filters
+
+---
 
 ### 2026-01-30
 

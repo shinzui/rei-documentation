@@ -6,6 +6,38 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-01-31
+
+### New Feature: State Tag Filtering
+
+Filter intentions across all state machine properties by system tag:
+
+```bash
+rei intention list --state-tag queue      # Items waiting to be worked on
+rei intention list --state-tag active     # Items currently in progress
+rei intention list --state-tag done       # Completed items
+rei intention list --state-tag terminal   # Items in final states
+```
+
+This is useful for cross-property queries when you have multiple state machine properties (like `task-status` or `review-status`) and want to find all items in a particular state category without knowing which specific property or state value to query.
+
+### New Feature: Category Filter for Intentions
+
+Filter intentions by category slug:
+
+```bash
+rei intention list --category projects
+rei intention list --category projects --future
+rei intention list --category personal/health
+```
+
+### New Help Topic: Intention Filtering
+
+- `rei help intention-filtering` — New help topic explaining all filtering options
+- **[Intention Filtering Guide](/docs/guides/intention-filtering)** — New documentation page explaining how to filter intentions using contexts, categories, custom properties, and state machine tags
+
+---
+
 ## 2026-01-30
 
 ### New Feature: Custom Properties

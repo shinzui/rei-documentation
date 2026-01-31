@@ -1,0 +1,162 @@
+---
+title: Intention Filtering
+description: Filter intentions using contexts, categories, custom properties, and state machine tags
+icon: ListFilter
+---
+
+The `rei intention list` command supports multiple filters to narrow down results. Filters combine with **AND** logic — all specified conditions must be satisfied for an intention to appear in the results.
+
+## Basic Usage
+
+By default, only active intentions are shown:
+
+```bash
+# List active intentions (default)
+rei intention list
+
+# Show future (deferred) intentions
+rei intention list --future
+
+# Show both active and future intentions
+rei intention list --all
+
+# Show dormant intentions
+rei intention list --dormant
+```
+
+## Status Filters
+
+Control which intention statuses to display:
+
+| Flag | Description |
+|------|-------------|
+| *(no flag)* | Active intentions only (default) |
+| `--future` | Future/deferred intentions only |
+| `--all` | Both active and future (excludes completed/abandoned) |
+| `--dormant` | Dormant intentions only |
+
+## Context Filter
+
+Filter by context label using `-c` or `--context`:
+
+```bash
+rei intention list --context work
+rei intention list -c personal
+```
+
+This shows root intentions with the specified context **and all their children**. Context filtering cannot be combined with `--category`.
+
+## Category Filter
+
+Filter by category slug using `--category`:
+
+```bash
+rei intention list --category projects
+rei intention list --category projects --future
+rei intention list --category personal/health
+```
+
+Supports hierarchical slugs. Category filtering cannot be combined with `--context`.
+
+## Custom Property Filter
+
+Use `--where` (or `-w`) to filter by [custom property](/docs/concepts/custom-properties) values:
+
+### Exact Match
+
+For enum, text, and state properties:
+
+```bash
+rei intention list --where priority=high
+rei intention list -w status=in-progress
+```
+
+### Numeric Comparison
+
+For integer properties, use comparison operators:
+
+```bash
+rei intention list --where "effort>=5"
+rei intention list --where "effort<3"
+rei intention list --where "complexity<=7"
+```
+
+**Operators:** `=` (equals), `>` (greater than), `>=` (greater or equal), `<` (less than), `<=` (less or equal)
+
+### State Machine Tag Query
+
+Query state machine properties by tag:
+
+```bash
+rei intention list --where "workflow:queue=backlog"
+```
+
+**Format:** `property-key:tag-name=state-value`
+
+This matches intentions where the `workflow` property's current state has a tag named `queue` with value `backlog`.
+
+## State Tag Filter
+
+Filter across **all** state machine properties by system tag using `--state-tag`:
+
+```bash
+rei intention list --state-tag queue      # Items waiting to be worked on
+rei intention list --state-tag active     # Items currently in progress
+rei intention list --state-tag done       # Completed items
+rei intention list --state-tag terminal   # Items in final states
+```
+
+This is useful for cross-property queries when you don't know which specific property or state value to query. The filter matches any intention that has **any** state machine property whose current state is tagged with the specified system tag.
+
+### System Tags
+
+| Tag | Meaning |
+|-----|---------|
+| `queue` | Items waiting to be worked on |
+| `active` | Items currently in progress |
+| `done` | Completed items |
+| `terminal` | Items in final states (no further transitions) |
+
+For more about state machine tags, see [Custom Properties: State Machine Tags](/docs/concepts/custom-properties#state-machine-tags).
+
+## Combining Filters
+
+All filters combine with AND logic:
+
+```bash
+# Work context with high priority
+rei intention list --context work --where priority=high
+
+# Future projects with significant effort
+rei intention list --category projects --future --where "effort>=3"
+
+# Dormant items waiting in queue
+rei intention list --dormant --state-tag queue
+```
+
+Each result must satisfy **all** specified conditions.
+
+## Output Formats
+
+Choose output format with `-f` or `--format`:
+
+```bash
+rei intention list --format default    # Human-readable (default)
+rei intention list --format fzf        # Tab-separated for scripting
+rei intention list --format json       # JSON array
+```
+
+The `fzf` format outputs tab-separated values (`ID<tab>title<tab>horizon`) for shell scripting and fzf widgets.
+
+## Constraints
+
+- `--context` and `--category` are mutually exclusive
+- Property and state-tag filters require custom properties to be defined
+- `--dormant` takes precedence when combined with other status flags
+- State tag values are case-insensitive
+
+## Related
+
+- [`rei intention list`](/docs/commands/intention#list) — Full command reference
+- [Custom Properties](/docs/concepts/custom-properties) — Defining and using custom properties
+- [`rei help intention-filtering`](/docs/commands/help) — CLI help topic
