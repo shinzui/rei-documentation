@@ -840,3 +840,73 @@ rei intention clear-property -i intention_01h455vb4pex priority
 # Let fzf pick the intention
 rei intention clear-property priority
 ```
+
+### detach
+
+Detach an intention from its parent, making it a root intention.
+
+```bash
+rei intention detach [id]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from child intentions (those with parents).
+
+**Examples:**
+
+```bash
+# Detach with explicit ID
+rei intention detach intention_01h455vb4pex
+
+# Let fzf pick the intention
+rei intention detach
+```
+
+**Notes:**
+- Only Active and Future intentions can be detached
+- The intention's children remain attached to it (hierarchy is preserved)
+- After detaching, you can optionally set a context using `rei intention set-context`
+- Useful when reorganizing your intention hierarchy
+
+### note list
+
+List notes attached to an intention, including notes on its actions, outcomes, and reflections.
+
+```bash
+rei intention note list [intention-id] [options]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `-r, --recursive` — Include notes from all descendant intentions
+- `--json` — Output as JSON
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# List notes for a specific intention
+rei intention note list intention_01abc...
+
+# Let fzf pick the intention
+rei intention note list
+
+# Include notes from child intentions
+rei intention note list --recursive
+
+# Output as JSON for scripting
+rei intention note list intention_01abc... --json
+
+# Combine recursive and JSON
+rei intention note list --recursive --json
+```
+
+**Notes:**
+- Shows notes attached directly to the intention plus notes on its actions, outcomes, and reflections
+- Use `--recursive` to aggregate notes from the entire subtree of intentions
+- JSON output is useful for scripting and integration

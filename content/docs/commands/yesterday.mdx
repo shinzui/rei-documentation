@@ -1,0 +1,123 @@
+---
+title: rei yesterday
+description: Review yesterday's activity and accomplishments
+icon: CalendarMinus
+---
+
+Review yesterday's activity and accomplishments. This command provides a comprehensive view of what you did the previous day, including actions taken, intentions completed, habits scheduled, and reflections performed.
+
+```bash
+rei yesterday [options]
+```
+
+**Options:**
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+
+## Dashboard Sections
+
+The yesterday review displays the following sections:
+
+### Cycle Context
+
+If yesterday was part of an active focus cycle, shows:
+- Cycle name and progress (e.g., "Day 4/14")
+- Yesterday's designated focus area (if set)
+- "No focus was set for yesterday" if no focus was selected
+
+### Completed Yesterday
+
+Intentions that were completed yesterday, either:
+- **Grouped by context** (when no filter applied) — organized under context headers
+- **Flat list** (when filtered by `-c`) — showing only matching intentions
+
+Each completed intention shows its active days count (e.g., "[5d]").
+
+### Actions Taken
+
+All actions recorded yesterday:
+- Timestamp and description
+- Duration (if recorded)
+- Energy polarity indicator (if set)
+- Attached notes listed below each action
+
+Shows total count (e.g., "3 action(s) recorded").
+
+### Outcomes Recorded
+
+Outcomes recorded yesterday with timestamps. Only shown if there are outcomes.
+
+### Habits (Scheduled)
+
+Habits that were scheduled for yesterday:
+- Completion status icon (checkmark or X)
+- Habit name
+- Action count if multiple (e.g., "(2x)")
+- Status: "(done)" or "(missed)"
+
+Shows completion rate summary (e.g., "3/5 completed").
+
+### Reflections Performed
+
+Reflections completed yesterday with their type and completion time:
+- Daily Review, Weekly Review, etc.
+- Completion timestamp
+
+## Examples
+
+```bash
+# Review yesterday
+rei yesterday
+
+# Review yesterday for work context only
+rei yesterday --context work
+rei yesterday -c work
+```
+
+## Use Cases
+
+### Morning Review
+
+Start your day by reviewing what you accomplished yesterday:
+
+```bash
+rei yesterday
+```
+
+This helps you:
+- See which habits you completed or missed
+- Review actions taken and their outcomes
+- Note which intentions were completed
+- Build on momentum from the previous day
+
+### Context-Specific Review
+
+Focus on a specific life area:
+
+```bash
+rei yesterday --context work
+```
+
+### Stand-up Preparation
+
+Use before daily stand-ups to recall what you did:
+
+```bash
+rei yesterday -c work
+```
+
+## Comparison with `rei review day`
+
+| Feature | `rei yesterday` | `rei review day` |
+|---------|-----------------|------------------|
+| Date | Always yesterday | Any date (defaults to yesterday) |
+| Shorthand | Yes (quick access) | No (requires subcommand) |
+| Date argument | No | Yes (`rei review day 2025-01-15`) |
+
+Both commands show the same data structure. Use `rei yesterday` for quick access to the previous day, or `rei review day [DATE]` when you need to review a specific date.
+
+## Notes
+
+- Times are displayed in your local timezone
+- The command requires a database backend (PostgreSQL)
+- Context filtering shows data whose root ancestor has the matching context
+- Habit completion is determined by whether any actions were recorded for the habit on that day

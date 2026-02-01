@@ -3,6 +3,7 @@
 	"pages": [
 		"index",
 		"today",
+		"yesterday",
 		"tomorrow",
 		"neglected",
 		"review",

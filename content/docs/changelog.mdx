@@ -6,6 +6,44 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-01
+
+### New Command: Yesterday Dashboard
+
+Quick review of the previous day's activity:
+
+- `rei yesterday` — Review yesterday's activity and accomplishments
+- `rei yesterday --context work` — Filter to a specific context
+
+The yesterday dashboard shows:
+- Cycle context (if yesterday was part of an active cycle)
+- Completed intentions
+- Actions taken with timestamps, durations, and notes
+- Outcomes recorded
+- Habits scheduled with completion status
+- Reflections performed
+
+### New Command: Review Day
+
+Review any arbitrary date with the new `day` subcommand:
+
+- `rei review day` — Review yesterday (same data as `rei yesterday`)
+- `rei review day 2025-01-15` — Review a specific date
+- `rei review day --date 2025-01-15 -c work` — Combine date and context filter
+
+Use `rei yesterday` for quick access to the previous day, or `rei review day [DATE]` when you need to review a specific date.
+
+### New Commands: Intention Detach and Note List
+
+Manage intention hierarchy and notes:
+
+- `rei intention detach` — Detach an intention from its parent, making it a root intention
+- `rei intention note list` — List notes attached to an intention (including notes on actions, outcomes, and reflections)
+- `rei intention note list --recursive` — Include notes from all descendant intentions
+- `rei intention note list --json` — Output as JSON for scripting
+
+---
+
 ## 2026-01-31
 
 ### New Feature: State Tag Filtering

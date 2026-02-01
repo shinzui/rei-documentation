@@ -5,11 +5,31 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f99224d` (2026-01-31)
+**Last Source Commit Reviewed:** `09f1dfe` (2026-02-01)
 
 ---
 
 ## Changelog
+
+### 2026-02-01
+
+**Reviewed commits:** `f99224d` through `09f1dfe`
+
+**Files created:**
+- `commands/yesterday.mdx` — **NEW** — Yesterday dashboard command for reviewing previous day's activity
+
+**Files updated:**
+- `commands/review.mdx` — Added `day` subcommand for reviewing any arbitrary date
+- `commands/intention.mdx` — Added `detach` and `note list` subcommands
+- `commands/help.mdx` — Fixed icon from `CircleQuestionMark` to `CircleHelp`
+- `commands/meta.json` — Added `yesterday` to navigation
+
+**Source files synced:**
+- `docs/user/cli/yesterday.md` — New command documentation
+- `docs/user/cli/review.md` — Added `day` subcommand
+- `docs/user/cli/intention.md` — Added `detach` and `note list` subcommands
+
+---
 
 ### 2026-01-31
 

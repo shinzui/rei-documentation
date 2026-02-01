@@ -8,6 +8,52 @@ Display review summaries for analyzing your progress over time periods.
 
 ## Subcommands
 
+### day
+
+Show a day review dashboard for any date. Defaults to yesterday if no date is provided.
+
+```bash
+rei review day [DATE] [options]
+```
+
+**Arguments:**
+- `DATE` — Date to review in YYYY-MM-DD format (optional, defaults to yesterday)
+
+**Options:**
+- `-d, --date <DATE>` — Date to review in YYYY-MM-DD format (alternative to positional argument)
+- `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
+
+#### Day Review Sections
+
+The day review displays:
+
+- **Header** — Date with day name and relative indicator (e.g., "Wednesday, 2025-01-15 (3 days ago)")
+- **Cycle Context** — Shows the cycle name, day number, and that day's focus (if set)
+- **Completed** — Intentions completed on that day, grouped by context
+- **Actions Taken** — All actions recorded with timestamps, durations, and attached notes
+- **Outcomes Recorded** — Outcomes recorded on that day
+- **Habits (Scheduled)** — Habits scheduled for that day with completion status
+- **Reflections Performed** — Reflections completed on that day
+
+#### Examples
+
+```bash
+# Review yesterday (default)
+rei review day
+
+# Review a specific date
+rei review day 2025-01-15
+
+# Review with explicit date flag
+rei review day --date 2025-01-15
+
+# Review with context filter
+rei review day -c work
+
+# Combine date and context filter
+rei review day 2025-01-10 -c personal
+```
+
 ### week
 
 Show a weekly review summary for the current week (Monday to Sunday).
