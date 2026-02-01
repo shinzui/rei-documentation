@@ -5,11 +5,33 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `09f1dfe` (2026-02-01)
+**Last Source Commit Reviewed:** `925f9d8` (2026-02-01)
 
 ---
 
 ## Changelog
+
+### 2026-02-01 (2)
+
+**Reviewed commits:** `09f1dfe` through `925f9d8`
+
+**Files created:**
+- `guides/custom-properties.mdx` — **NEW** — Comprehensive guide for custom properties (from help topic)
+- `guides/time-formats.mdx` — **NEW** — Guide for time formats and --at flag (from help topic)
+
+**Files updated:**
+- `guides/intention-filtering.mdx` — Added Grouping section with `--group-by` option
+- `guides/meta.json` — Added custom-properties and time-formats to navigation
+- `commands/intention.mdx` — Added `-g, --group-by` option to list command with examples and Grouping Output section
+
+**Help topics synced:**
+- `rei-cli/help/intention-filtering.md` — Added --group-by option documentation
+- `rei-cli/help/custom-properties.md` — Added stateOrder documentation for display ordering
+
+**Source files synced:**
+- `docs/user/cli/intention.md` — Added --group-by flag and grouping examples
+
+---
 
 ### 2026-02-01
 

@@ -148,12 +148,41 @@ rei intention list --format json       # JSON array
 
 The `fzf` format outputs tab-separated values (`ID<tab>title<tab>horizon`) for shell scripting and fzf widgets.
 
+## Grouping
+
+Group results by a custom property value with `--group-by` (or `-g`):
+
+```bash
+rei intention list --group-by priority
+rei intention list --group-by workflow
+rei intention list -g effort
+```
+
+Intentions are organized into groups by their property value, with a count shown for each group. Intentions without the property appear in "(none)".
+
+### Group Sorting Order
+
+- **State machine properties**: by `stateOrder` (ascending), then alphabetically
+- **Numeric properties**: descending (higher values first)
+- **Text/enum properties**: alphabetically ascending
+- **"(none)" group**: always last
+
+### Combining Grouping with Filters
+
+```bash
+rei intention list --context work --group-by priority
+rei intention list --where "effort>=3" --group-by workflow
+```
+
+**Note:** Grouping only works with `--format default` (the default format).
+
 ## Constraints
 
 - `--context` and `--category` are mutually exclusive
-- Property and state-tag filters require custom properties to be defined
+- Property filters, state-tag filters, and `--group-by` require a database backend
 - `--dormant` takes precedence when combined with other status flags
 - State tag values are case-insensitive
+- `--group-by` only works with `--format default`
 
 ## Related
 

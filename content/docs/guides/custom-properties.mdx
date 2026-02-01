@@ -1,0 +1,247 @@
+---
+title: Custom Properties
+description: Extend rei entities with custom metadata fields for your workflow
+icon: Sliders
+---
+
+Custom properties allow you to extend rei entities with your own metadata fields. Define properties once, then assign values to individual entities to track information relevant to your workflow.
+
+## Property Definition
+
+A property definition specifies:
+
+| Field | Description |
+|-------|-------------|
+| **key** | Unique, immutable identifier (e.g., `priority`, `effort-level`) |
+| **label** | Human-readable display name |
+| **value type** | The data type and constraints |
+| **scope** | Which entity types can use this property |
+
+Property keys cannot be changed after creation. Use the label for display.
+
+## Value Types
+
+| Type | Description |
+|------|-------------|
+| `int` | Integer with min/max bounds |
+| `float` | Decimal with precision |
+| `text` | Free text with length limits |
+| `bool` | Boolean true/false |
+| `enum` | Predefined set of values |
+| `duration` | Time duration |
+| `quantity` | Numeric with units |
+| `state-machine` | States with allowed transitions |
+| `date` | Date (YYYY-MM-DD) |
+| `datetime` | Date and time |
+| `path` | File path |
+| `url` | URL |
+
+## Creating Properties
+
+### Enum Property
+
+```bash
+rei custom-property create priority \
+  --type-enum --values low,medium,high \
+  -e intention
+```
+
+### Integer Property with Constraints
+
+```bash
+rei custom-property create effort \
+  --type-int --min 1 --max 10 \
+  -e intention -e habit
+```
+
+### State Machine from YAML
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file kanban.yaml \
+  -e intention
+```
+
+### Scoped to a Category
+
+```bash
+rei custom-property create client \
+  --type-text --max-length 100 \
+  -e intention \
+  -c work
+```
+
+## Managing Properties
+
+```bash
+# List all properties
+rei custom-property list
+
+# Filter by entity type
+rei custom-property list -e intention
+
+# Show property details
+rei custom-property show priority
+
+# Rename the display label
+rei custom-property rename priority --label "Task Priority"
+
+# Archive a property
+rei custom-property archive priority
+```
+
+## Assigning Values
+
+```bash
+# Set property on an intention
+rei intention set-property <id> priority high
+
+# Set property on a habit
+rei habit set-property <id> effort 5
+
+# Clear a property
+rei intention clear-property <id> priority
+```
+
+## Filtering by Properties
+
+```bash
+# Filter by exact value
+rei intention list --where priority=high
+
+# Numeric comparisons
+rei intention list --where "effort>=5"
+rei habit list --where "effort<3"
+```
+
+For comprehensive filtering options, see [Intention Filtering](/docs/guides/intention-filtering).
+
+## Evolving Enum Properties
+
+```bash
+# Add a new enum value
+rei custom-property add-enum-value priority critical
+
+# Remove an unused value
+rei custom-property remove-enum-value priority low
+```
+
+**Note:** Values currently in use cannot be removed.
+
+## State Machine Properties
+
+State machines define workflow states and allowed transitions.
+
+### Example Configuration
+
+Create a YAML file (e.g., `kanban.yaml`):
+
+```yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateOrder: 1
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateOrder: 2
+    stateTags:
+      - systemTag: TagActive
+  - stateId: done
+    stateLabel: "Done"
+    stateOrder: 3
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+transitions:
+  - transitionFrom: backlog
+    transitionTo: in-progress
+    transitionLabel: "Start"
+  - transitionFrom: in-progress
+    transitionTo: done
+    transitionLabel: "Complete"
+```
+
+### State Options
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `stateId` | Yes | Unique identifier (lowercase, hyphens allowed) |
+| `stateLabel` | Yes | Human-readable display name |
+| `stateOrder` | No | Display order (lower numbers first) |
+| `stateDescription` | No | Description of the state |
+| `stateColor` | No | Hex color code (e.g., `#FF5733`) |
+| `stateTags` | No | System or user tags for filtering |
+
+### Display Order (stateOrder)
+
+When using `--group-by` with a state machine property, groups are sorted by `stateOrder` (ascending). States without an order come after those with order, then alphabetically.
+
+```bash
+rei intention list --group-by workflow
+# Groups appear as: Backlog (1), In Progress (2), Done (3)
+```
+
+### Modifying State Machines
+
+```bash
+# Add a state
+rei custom-property add-state workflow blocked --label "Blocked"
+
+# Add a transition
+rei custom-property add-transition workflow backlog blocked
+```
+
+Transitions are enforced — you cannot skip directly to a state without a valid transition path.
+
+## System Tags
+
+State machine states can have system tags for cross-property filtering:
+
+| Tag | Meaning |
+|-----|---------|
+| `TagQueue` | Items waiting to be worked on |
+| `TagActive` | Items currently in progress |
+| `TagDone` | Completed items |
+| `TagTerminal` | Items in final states (no further transitions) |
+
+Use these with `--state-tag` to filter across all state machine properties:
+
+```bash
+rei intention list --state-tag queue
+rei intention list --state-tag active
+```
+
+## Important Limitations
+
+**Property keys are immutable:**
+Once created, keys cannot be changed. Plan naming carefully.
+
+**Value type cannot change:**
+You cannot convert an enum to a state machine after creation.
+
+**Scope validation:**
+Properties can only be assigned to entities matching their scope.
+
+**State machine transitions are enforced:**
+```bash
+rei intention set-property <id> status backlog     # OK
+rei intention set-property <id> status done        # ERROR if no direct transition
+```
+
+## Supported Entity Types
+
+| Entity | Set Command | Clear Command |
+|--------|-------------|---------------|
+| Intention | `intention set-property` | `intention clear-property` |
+| Habit | `habit set-property` | `habit clear-property` |
+| Disruption | `disruption set-property` | `disruption clear-property` |
+| Note | `note set-property` | `note clear-property` |
+
+## Related
+
+- [`rei custom-property`](/docs/commands/custom-property) — Full command reference
+- [Intention Filtering](/docs/guides/intention-filtering) — Filtering by property values
+- [Custom Properties Concept](/docs/concepts/custom-properties) — Conceptual overview

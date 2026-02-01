@@ -1,0 +1,79 @@
+---
+title: Time Formats
+description: Relative and absolute time formats for backdating events
+icon: Clock
+---
+
+Rei uses relative and absolute time formats for the `--at` flag, allowing you to record events that happened in the past.
+
+## Relative Time
+
+Use natural language to specify times relative to now:
+
+```bash
+"2 hours ago"       # Two hours before now
+"1 hour ago"        # One hour before now
+"30 minutes ago"    # Thirty minutes before now
+"yesterday"         # Yesterday at current time
+"3 days ago"        # Three days before now
+```
+
+## Absolute Time
+
+Specify exact dates and times:
+
+```bash
+"2024-01-15"        # Specific date at current time
+"2024-01-15 14:30"  # Specific date and time
+"14:30"             # Today at specific time
+```
+
+## Examples
+
+### Recording Completed Actions
+
+```bash
+# Complete an action 2 hours ago
+rei action complete --at "2 hours ago"
+
+# Start an action at a specific time today
+rei action start --at "14:30"
+```
+
+### Logging Habits
+
+```bash
+# Log a habit for yesterday
+rei habit log --at yesterday
+```
+
+### Completing Tasks
+
+```bash
+# Complete a task at a specific date and time
+rei task complete --at "2024-01-15 09:00"
+```
+
+### Starting Focus Cycles
+
+```bash
+# Start a focus cycle 30 minutes ago
+rei cycle start --at "30 minutes ago"
+```
+
+## Commands That Support --at
+
+| Command | Description |
+|---------|-------------|
+| `action complete` | Complete an action with optional backdating |
+| `action start` | Start working on an action |
+| `task complete` | Mark a task as completed |
+| `habit log` | Log a habit occurrence |
+| `cycle start` | Start a focus cycle |
+
+## Related
+
+- [`rei action`](/docs/commands/action) — Action command reference
+- [`rei habit`](/docs/commands/habit) — Habit command reference
+- [`rei task`](/docs/commands/task) — Task command reference
+- [`rei cycle`](/docs/commands/cycle) — Focus cycle command reference

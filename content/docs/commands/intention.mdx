@@ -94,6 +94,7 @@ rei intention list [options]
 - `--category <slug>` — Filter by category slug
 - `-w, --where <filter>` — Filter by custom property value (see examples below)
 - `--state-tag <tag>` — Filter by state machine tag: `queue`, `active`, `done`, `terminal`
+- `-g, --group-by <property>` — Group output by custom property value
 - `--future` — Show only Future (deferred) intentions
 - `--all` — Show both Active and Future intentions
 - `--dormant` — Show only dormant intentions
@@ -138,6 +139,13 @@ rei intention list --state-tag queue      # Items waiting to be worked on
 rei intention list --state-tag active     # Items currently in progress
 rei intention list --state-tag done       # Completed items
 rei intention list --state-tag terminal   # Items in final states
+
+# Group output by custom property
+rei intention list --group-by priority
+rei intention list --group-by status --context work
+
+# Combine grouping with filters
+rei intention list --where "effort>=3" --group-by priority
 ```
 
 The `--format=fzf` output is designed for shell scripting and fzf widgets. Each line contains: `ID<tab>title<tab>horizon`
@@ -157,6 +165,34 @@ The `--state-tag` option filters intentions by state machine system tags across 
 | `active` | Items currently in progress |
 | `done` | Completed items |
 | `terminal` | Items in final states (no further transitions) |
+
+**Grouping Output:**
+
+The `--group-by` option groups intentions by a custom property value, displaying them in sections:
+
+```
+Found 12 active intention(s):
+
+priority: 5 (3)
+  intention_01abc... Critical bug fix         [1w]
+  intention_01def... Complete Q1 review       [2w]
+  intention_01ghi... Launch feature           [3d]
+
+priority: 3 (5)
+  intention_01jkl... Update documentation     [1m]
+  ...
+
+priority: (none) (4)
+  intention_01xyz... Explore new tech         [3m]
+  ...
+```
+
+- State machine properties are sorted by `stateOrder` (ascending), then alphabetically
+- Numeric values are sorted descending (highest first)
+- Text values are sorted alphabetically
+- Intentions without the property are grouped under "(none)" at the end
+- Only works with the default output format (ignored for `fzf` and `json`)
+- Compatible with all other filters (`--where`, `--context`, `--category`, `--state-tag`)
 
 **Notes:**
 - Default behavior shows only Active intentions

@@ -8,6 +8,38 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-02-01
 
+### New Feature: Intention Grouping
+
+Group intention list output by custom property values:
+
+```bash
+rei intention list --group-by priority
+rei intention list --group-by workflow
+rei intention list --context work --group-by priority
+rei intention list --where "effort>=3" --group-by priority
+```
+
+Intentions are organized into groups by their property value, with counts shown for each group. Group sorting order:
+
+- **State machine properties**: sorted by `stateOrder` (ascending), then alphabetically
+- **Numeric properties**: sorted descending (highest values first)
+- **Text/enum properties**: sorted alphabetically ascending
+- **"(none)" group**: always last (intentions without the property)
+
+Grouping only works with `--format default` and can be combined with all other filters.
+
+### New Guide: Custom Properties
+
+Added comprehensive **[Custom Properties Guide](/docs/guides/custom-properties)** covering property types, state machines, filtering, and best practices.
+
+### New Guide: Time Formats
+
+Added **[Time Formats Guide](/docs/guides/time-formats)** documenting relative and absolute time formats for the `--at` flag.
+
+---
+
+## 2026-02-01 (Earlier)
+
 ### New Command: Yesterday Dashboard
 
 Quick review of the previous day's activity:
