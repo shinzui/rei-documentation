@@ -272,14 +272,14 @@ Use these Lucide icons for command pages:
 - category: `Tags`
 - changelog: `History`
 - configuration: `Settings`
-- custom-property: `Sliders`
+- custom-property: `SlidersHorizontal`
 - cycle: `RefreshCw`
 - dependency: `GitBranch`
 - disruption: `AlertTriangle`
 - doc: `File`
 - focus: `Crosshair`
 - habit: `Repeat`
-- help: `CircleHelp`
+- help: `CircleQuestionMark`
 - intention: `Target`
 - knowledge: `Lightbulb`
 - link: `ExternalLink`
@@ -309,7 +309,7 @@ node -e "console.log(Object.keys(require('lucide-react').icons).join('\n'))"
 node -e "console.log(Object.keys(require('lucide-react').icons).filter(k => k.toLowerCase().includes('help')).join('\n'))"
 ```
 
-**Important:** Icon names are PascalCase (e.g., `CircleHelp`, not `circle-help`).
+**Important:** Icon names are PascalCase (e.g., `CircleQuestionMark`, not `circle-help`).
 
 ## Notes
 
