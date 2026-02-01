@@ -19,14 +19,20 @@ Skill for syncing documentation from the rei source repository to this documenta
 
 **Location:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei/rei-cli/help/`
 
-Help topics are accessed via `rei help <topic>` and define canonical explanations for complex features. **Guides in the documentation site MUST match these help topics.**
+Help topics are accessed via `rei help <topic>` and define canonical explanations for complex features. **Every help topic MUST have a corresponding guide in `content/docs/guides/`.**
 
-Current help topics:
-- `custom-properties.md` - Custom property types, creation, and usage
-- `intention-filtering.md` - Filtering intentions with --where, --context, --state-tag
-- `time.md` - Time formats for --at flag (relative and absolute)
+Current help topics and their required guides:
 
-**Sync requirement:** When help topics change, update corresponding concept pages in the documentation site.
+| Help Topic | Required Guide | Description |
+|------------|----------------|-------------|
+| `custom-properties.md` | `custom-properties.mdx` | Custom property types, creation, and usage |
+| `intention-filtering.md` | `intention-filtering.mdx` | Filtering intentions with --where, --context, --state-tag |
+| `time.md` | `time-formats.mdx` | Time formats for --at flag (relative and absolute) |
+
+**Sync requirements:**
+1. **Every help topic MUST have a corresponding guide** - if a help topic exists without a guide, create one
+2. **When help topics change, update the corresponding guide immediately**
+3. **When new help topics are added, create new guides**
 
 ### User Documentation (`docs/user/`)
 
@@ -68,7 +74,8 @@ Current help topics:
 
 **Content structure:**
 - `content/docs/commands/` - CLI command reference (`.mdx` files)
-- `content/docs/concepts/` - Concept documentation and guides
+- `content/docs/concepts/` - Concept documentation
+- `content/docs/guides/` - **Guides (MUST match help topics 1:1)**
 - `content/docs/changelog.mdx` - **Website changelog (user-facing)**
 - `content/docs/` - Root docs (quickstart, configuration, etc.)
 - `CHANGELOG.md` - Repository changelog (tracks sync status)
@@ -77,6 +84,11 @@ Current help topics:
 - index.mdx (Core Concepts overview)
 - intentions.mdx, habits.mdx, reflections.mdx
 - focus-cycles.mdx, custom-properties.mdx, ai-coaching.mdx
+
+**Current guide pages (must match help topics):**
+- custom-properties.mdx (from help/custom-properties.md)
+- intention-filtering.mdx (from help/intention-filtering.md)
+- time-formats.mdx (from help/time.md)
 
 ## Workflow
 
@@ -99,17 +111,36 @@ To see what changed:
 cd /Users/shinzui/Keikaku/bokuno/rei-project/rei && git diff --name-only <last-commit>..HEAD -- docs/ rei-cli/help/
 ```
 
-### Step 3: Check Help Topics
+### Step 3: Check Help Topics (CRITICAL)
 
-**IMPORTANT:** Always check if help topics have changed:
+**IMPORTANT:** Always check help topics for updates AND verify all have corresponding guides.
+
+#### 3a. Check for updates to existing help topics:
 ```bash
 cd /Users/shinzui/Keikaku/bokuno/rei-project/rei && git diff <last-commit>..HEAD -- rei-cli/help/
 ```
 
+#### 3b. List all current help topics:
+```bash
+ls /Users/shinzui/Keikaku/bokuno/rei-project/rei/rei-cli/help/
+```
+
+#### 3c. Verify corresponding guides exist:
+```bash
+ls /Users/shinzui/Keikaku/bokuno/rei-project/rei-documentation/content/docs/guides/
+```
+
+**Every help topic MUST have a corresponding guide.** If a help topic exists without a matching guide, create the guide.
+
 Help topics define canonical behavior. When they change:
-1. Update the corresponding concept page in `content/docs/concepts/`
+1. Update the corresponding guide in `content/docs/guides/`
 2. Ensure examples and syntax match exactly
-3. Add any new topics as concept pages
+3. Add any new topics as new guides
+
+**Checklist for each sync:**
+- [ ] All help topics have corresponding guides
+- [ ] Updated help topics have their guides updated
+- [ ] New help topics have new guides created
 
 ### Step 4: Identify Files to Update
 
@@ -146,13 +177,15 @@ Map source files to documentation files:
 | tomorrow.md | tomorrow.mdx |
 | workspace.md | workspace.mdx |
 
-Map help topics to concept pages:
+Map help topics to guides (**all help topics MUST have a corresponding guide**):
 
-| Help Topic (rei-cli/help/) | Target (content/docs/concepts/) |
-|----------------------------|--------------------------------|
-| custom-properties.md | custom-properties.mdx |
-| intention-filtering.md | (add to intentions.mdx or new page) |
-| time.md | (add as new time-formats.mdx or to relevant pages) |
+| Help Topic (rei-cli/help/) | Target (content/docs/guides/) | Status |
+|----------------------------|-------------------------------|--------|
+| custom-properties.md | custom-properties.mdx | Required |
+| intention-filtering.md | intention-filtering.mdx | Required |
+| time.md | time-formats.mdx | Required |
+
+**NOTE:** When new help topics are added in the source repo, add them to this table and create the corresponding guide.
 
 ### Step 5: Update Documentation
 
@@ -283,6 +316,7 @@ node -e "console.log(Object.keys(require('lucide-react').icons).filter(k => k.to
 - Always preserve existing MDX-specific features (components, imports)
 - The source docs are the source of truth for CLI command behavior
 - **Help topics are the source of truth for guides** - always sync them
+- **Every help topic MUST have a corresponding guide in `content/docs/guides/`**
 - Concepts pages may need manual curation beyond CLI docs
 - **Always update both changelogs** after each sync session
 - Website changelog should be user-friendly; repo changelog tracks git details
