@@ -153,6 +153,7 @@ The `--format=fzf` output is designed for shell scripting and fzf widgets. Each 
 **Property Filter Syntax:**
 - `key=value` — Exact match (works with enum, text, and state properties)
 - `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+- `key:exists` — Filter to intentions that have the property set (any value)
 - `key:tag=value` — State machine tag query
 
 **State Tag Filter:**
@@ -286,12 +287,24 @@ rei intention tree --tui
 The `--tui` flag launches an interactive terminal UI for browsing the intention hierarchy:
 
 - **Navigation**: Use `j`/`k` or arrow keys to move up/down
+- **Filter**: Press `/` to enter filter mode, type to fuzzy-search by title
 - **View details**: Press `Enter` to open the full detail view for an intention
 - **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
 - **Add child**: Press `a` to open the child intention creation form
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
-- **Close views**: Press `Esc` to close detail view or form, then quit
+- **Close views**: Press `Esc` to close detail view or form, or cancel filter
 - **Quit**: Press `q` to exit
+
+**Filtering:**
+
+Press `/` to enter filter mode. As you type, the list filters in real-time using fuzzy matching:
+
+- Type any characters to match against intention titles (non-contiguous matches work, e.g., "abc" matches "Add blocker component")
+- Matched characters are highlighted in yellow
+- Match count shows as `(3/15)` in the filter bar
+- Navigate with `j`/`k` while filtering
+- Press `Enter` to view details (filter persists when returning)
+- Press `Esc` to clear the filter and show all intentions
 
 **Child Intention Creation Form:**
 

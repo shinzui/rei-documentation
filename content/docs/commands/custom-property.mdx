@@ -334,12 +334,12 @@ rei custom-property archive old-priority
 - Existing property assignments are preserved
 - Use `list --all` to see archived properties
 
-### rename
+### relabel
 
 Update the display label of a custom property.
 
 ```bash
-rei custom-property rename KEY NEW_LABEL
+rei custom-property relabel KEY NEW_LABEL
 ```
 
 **Arguments:**
@@ -349,8 +349,8 @@ rei custom-property rename KEY NEW_LABEL
 **Examples:**
 
 ```bash
-# Rename a property's label
-rei custom-property rename priority "Priority Level"
+# Relabel a property
+rei custom-property relabel priority "Priority Level"
 ```
 
 **Notes:**
@@ -406,6 +406,7 @@ rei custom-property add-state KEY STATE_ID --label LABEL [options]
 - `-l, --label <label>` — Human-readable state label (required)
 - `-d, --description <desc>` — State description
 - `-t, --tag <tag>` — State tag (can be repeated). Common tags: queue, active, done, terminal
+- `-o, --order <N>` — Display order (lower numbers shown first)
 
 **Examples:**
 
@@ -415,6 +416,9 @@ rei custom-property add-state task-state blocked --label "Blocked" -t active
 
 # Add a terminal state
 rei custom-property add-state task-state cancelled --label "Cancelled" -t terminal
+
+# Add a state with display order
+rei custom-property add-state task-state review --label "In Review" -t active --order 2
 ```
 
 ### remove-state
@@ -439,6 +443,36 @@ rei custom-property remove-state task-state blocked
 **Notes:**
 - Cannot remove states that are currently in use by entities
 - Transitions involving the state are also removed
+
+### update-state-order
+
+Update the display order of a state in a state machine property.
+
+```bash
+rei custom-property update-state-order KEY STATE_ID [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `STATE_ID` — State identifier to update
+
+**Options:**
+- `-o, --order <N>` — Display order (lower numbers shown first). Omit to clear the order.
+
+**Examples:**
+
+```bash
+# Set display order for a state
+rei custom-property update-state-order task-state in-progress --order 1
+
+# Clear display order (state will sort by ID)
+rei custom-property update-state-order task-state in-progress
+```
+
+**Notes:**
+- States with display order are shown first (sorted by order)
+- States without display order are shown after (sorted alphabetically by ID)
+- Display order affects CLI output and grouped intention lists
 
 ### add-transition
 
@@ -565,6 +599,47 @@ rei habit list --where "effort<3"
 ```
 
 See [`rei intention list`](/docs/commands/intention), [`rei habit list`](/docs/commands/habit), and [`rei disruption list`](/docs/commands/disruption) for more filtering options.
+
+## Automatic Initialization
+
+### init-entities
+
+Retroactively initialize a state machine property for entities that have the matching category but don't have a value set.
+
+```bash
+rei custom-property init-entities KEY [options]
+```
+
+**Arguments:**
+- `KEY` — Property key of the state machine property to initialize
+
+**Options:**
+- `-n, --dry-run` — Show what would be done without making changes
+
+**Examples:**
+
+```bash
+# Preview what would be initialized
+rei custom-property init-entities task-state --dry-run
+
+# Initialize all matching entities
+rei custom-property init-entities task-state
+```
+
+**Notes:**
+- Only works with state machine properties that are scoped to a category
+- Only initializes entities that belong to the property's scoped category
+- Skips entities that already have a value for this property
+- Sets the property to the state machine's `initialState`
+
+**Automatic Initialization:**
+
+State machine properties scoped to a category are automatically initialized when:
+1. A category is assigned to an entity via `rei intention set-category` (or similar)
+2. The category has state machine properties scoped to it
+3. The entity doesn't already have a value for those properties
+
+The `init-entities` command is useful for retroactively initializing existing entities that were created before the property was defined.
 
 ## Related Commands
 

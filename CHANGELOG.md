@@ -5,11 +5,26 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `925f9d8` (2026-02-01)
+**Last Source Commit Reviewed:** `386e373` (2026-02-01)
 
 ---
 
 ## Changelog
+
+### 2026-02-01 (3)
+
+**Reviewed commits:** `925f9d8` through `386e373`
+
+**Files updated:**
+- `commands/custom-property.mdx` — Renamed `rename` to `relabel`, added `--order` to `add-state`, added `update-state-order` and `init-entities` subcommands
+- `commands/intention.mdx` — Added `key:exists` filter syntax, added TUI fuzzy filter with `/` key
+- `guides/intention-filtering.mdx` — Added Property Existence section for `key:exists` filter
+
+**Source files synced:**
+- `docs/user/cli/custom-property.md` — RelabelProperty, stateOrder, init-entities
+- `docs/user/cli/intention.md` — Property existence filter, TUI filtering
+
+---
 
 ### 2026-02-01 (2)
 

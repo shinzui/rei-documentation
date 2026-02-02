@@ -83,6 +83,17 @@ rei intention list --where "complexity<=7"
 
 **Operators:** `=` (equals), `>` (greater than), `>=` (greater or equal), `<` (less than), `<=` (less or equal)
 
+### Property Existence
+
+Filter to intentions that have a property set (any value):
+
+```bash
+rei intention list --where "priority:exists"
+rei intention list --where "workflow:exists"
+```
+
+This matches any intention that has the specified property assigned, regardless of its value.
+
 ### State Machine Tag Query
 
 Query state machine properties by tag:

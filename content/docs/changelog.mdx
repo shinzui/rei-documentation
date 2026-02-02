@@ -8,6 +8,39 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-02-01
 
+### New Feature: Tree TUI Fuzzy Filtering
+
+Press `/` in `rei intention tree --tui` to enter filter mode:
+
+- Type any characters to fuzzy-match against intention titles
+- Non-contiguous matches work (e.g., "abc" matches "Add blocker component")
+- Matched characters highlighted in yellow
+- Match count shows as `(3/15)` in the filter bar
+- Navigate with `j`/`k` while filtering
+- Press `Esc` to clear filter
+
+### New Feature: Property Existence Filter
+
+Filter intentions by whether they have a property set:
+
+```bash
+rei intention list --where "priority:exists"
+rei intention list --where "workflow:exists"
+```
+
+### Custom Property Enhancements
+
+- **`rei custom-property relabel`** — Renamed from `rename` for clarity
+- **`rei custom-property add-state --order`** — Set display order when adding states
+- **`rei custom-property update-state-order`** — Update display order for existing states
+- **`rei custom-property init-entities`** — Retroactively initialize state machine properties for entities with matching categories
+
+### Automatic State Machine Initialization
+
+State machine properties scoped to a category are now automatically initialized when a category is assigned to an entity. Use `init-entities` to retroactively initialize existing entities.
+
+---
+
 ### New Feature: Intention Grouping
 
 Group intention list output by custom property values:
