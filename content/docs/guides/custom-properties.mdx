@@ -71,6 +71,51 @@ rei custom-property create client \
   -c work
 ```
 
+## Category-Scoped Keys
+
+The same property key can exist in different categories with different configurations. This allows category-specific workflows while using consistent property names.
+
+### Creating Category-Scoped Properties
+
+```bash
+# Create workflow for work category
+rei custom-property create workflow \
+  --type-state-machine --from-file work-kanban.yaml \
+  -e intention -c work
+
+# Create workflow for personal category
+rei custom-property create workflow \
+  --type-state-machine --from-file personal-kanban.yaml \
+  -e intention -c personal
+```
+
+### Automatic Resolution
+
+When assigning properties to entities, the system automatically resolves based on the entity's category:
+
+- Work-categorized intention uses "workflow" from Work category
+- Personal-categorized intention uses "workflow" from Personal category
+
+### Disambiguation
+
+When viewing properties with duplicate keys, use `--category` to disambiguate:
+
+```bash
+rei custom-property show workflow --category work
+rei custom-property metrics workflow --category personal
+```
+
+Without `--category`, an error shows available options:
+
+```
+$ rei custom-property show workflow
+Error: Multiple properties found with key 'workflow':
+  - workflow (scoped to: work)
+  - workflow (scoped to: personal)
+
+Use --category to specify: rei custom-property show workflow --category work
+```
+
 ## Managing Properties
 
 ```bash
@@ -82,6 +127,12 @@ rei custom-property list -e intention
 
 # Show property details
 rei custom-property show priority
+
+# Show property with entity counts per state (state machine only)
+rei custom-property show workflow --with-counts
+
+# Disambiguate when multiple properties have the same key
+rei custom-property show workflow --category work
 
 # Rename the display label
 rei custom-property rename priority --label "Task Priority"
@@ -174,6 +225,7 @@ transitions:
 | `stateDescription` | No | Description of the state |
 | `stateColor` | No | Hex color code (e.g., `#FF5733`) |
 | `stateTags` | No | System or user tags for filtering |
+| `stateLimit` | No | WIP limit (set via CLI after creation) |
 
 ### Display Order (stateOrder)
 
@@ -195,6 +247,41 @@ rei custom-property add-transition workflow backlog blocked
 ```
 
 Transitions are enforced — you cannot skip directly to a state without a valid transition path.
+
+## State Limits (WIP Limits)
+
+State machines support optional WIP (Work In Progress) limits per state. Limits are advisory — they show warnings but don't block transitions.
+
+### Setting Limits
+
+```bash
+# Set a limit on a state
+rei custom-property set-state-limit workflow --state in-progress --limit 3
+
+# Clear a limit (make unlimited)
+rei custom-property clear-state-limit workflow --state in-progress
+```
+
+### Viewing Counts
+
+```bash
+rei custom-property show workflow --with-counts
+```
+
+Example output:
+
+```
+States:
+  STATE        TAGS             LIMIT   COUNT   STATUS
+  backlog      queue            -       5
+  in-progress  active           3       4       OVER LIMIT
+  done         done, terminal   -       12
+```
+
+The STATUS column shows:
+- **OVER LIMIT** — count exceeds limit
+- **At limit** — count equals limit
+- Empty — under limit or no limit set
 
 ## System Tags
 
@@ -231,6 +318,43 @@ rei intention set-property <id> status backlog     # OK
 rei intention set-property <id> status done        # ERROR if no direct transition
 ```
 
+**Category-scoped key uniqueness:**
+Property keys must be unique within their scope:
+- Global properties: key must be unique among all global properties
+- Category-scoped: key + category combination must be unique
+
+The same key CAN exist in different categories.
+
+## Command Summary
+
+### Property Definition
+
+| Command | Description |
+|---------|-------------|
+| `custom-property create` | Create a new property definition |
+| `custom-property list` | List all properties |
+| `custom-property show` | Show property details (use `--with-counts` for states) |
+| `custom-property rename` | Update display label |
+| `custom-property archive` | Archive a property |
+
+### Enum Evolution
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-enum-value` | Add an enum value |
+| `custom-property remove-enum-value` | Remove an unused enum value |
+
+### State Machine Evolution
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-state` | Add a state |
+| `custom-property remove-state` | Remove an unused state |
+| `custom-property add-transition` | Add a transition |
+| `custom-property remove-transition` | Remove a transition |
+| `custom-property set-state-limit` | Set WIP limit on a state |
+| `custom-property clear-state-limit` | Clear WIP limit from a state |
+
 ## Supported Entity Types
 
 | Entity | Set Command | Clear Command |
@@ -242,6 +366,7 @@ rei intention set-property <id> status done        # ERROR if no direct transiti
 
 ## Related
 
+- [State Machine Properties](/docs/guides/state-machines) — Detailed guide for state machines
 - [`rei custom-property`](/docs/commands/custom-property) — Full command reference
 - [Intention Filtering](/docs/guides/intention-filtering) — Filtering by property values
 - [Custom Properties Concept](/docs/concepts/custom-properties) — Conceptual overview

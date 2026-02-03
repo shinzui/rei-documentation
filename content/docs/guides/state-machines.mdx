@@ -1,0 +1,278 @@
+---
+title: State Machine Properties
+description: Workflow tracking with states, transitions, and WIP limits
+icon: Workflow
+---
+
+State machine properties enable workflow tracking for entities. Define states with allowed transitions to enforce workflow discipline while tracking progress.
+
+## Overview
+
+A state machine property defines:
+
+| Component | Description |
+|-----------|-------------|
+| **states** | Named workflow stages (e.g., backlog, in-progress, done) |
+| **transitions** | Allowed movements between states |
+| **initial state** | Starting state for new assignments |
+| **tags** | Semantic labels for filtering (queue, active, done, terminal) |
+| **WIP limits** | Advisory limits on how many items can be in a state |
+
+## Creating a State Machine
+
+### From a YAML File
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file kanban.yaml \
+  -e intention
+```
+
+### Scoped to a Category
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file work-kanban.yaml \
+  -e intention -c work
+```
+
+## YAML Configuration
+
+Example `kanban.yaml`:
+
+```yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateOrder: 1
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateOrder: 2
+    stateLimit: 3
+    stateTags:
+      - systemTag: TagActive
+  - stateId: done
+    stateLabel: "Done"
+    stateOrder: 3
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+transitions:
+  - transitionFrom: backlog
+    transitionTo: in-progress
+    transitionLabel: "Start"
+  - transitionFrom: in-progress
+    transitionTo: done
+    transitionLabel: "Complete"
+  - transitionFrom: in-progress
+    transitionTo: backlog
+    transitionLabel: "Return to Backlog"
+```
+
+### State Options
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `stateId` | Yes | Unique identifier (lowercase, hyphens allowed) |
+| `stateLabel` | Yes | Human-readable display name |
+| `stateOrder` | No | Display order (lower = first) |
+| `stateDescription` | No | Description of the state |
+| `stateLimit` | No | WIP limit (advisory, not enforced) |
+| `stateTags` | No | System or user tags for filtering |
+
+## State Tags
+
+System tags provide semantic meaning:
+
+| Tag | Meaning |
+|-----|---------|
+| `TagQueue` | Items waiting to be worked on (backlog, to-do) |
+| `TagActive` | Items currently in progress |
+| `TagDone` | Items completed |
+| `TagTerminal` | Final states (no further transitions expected) |
+
+Tags enable filtering:
+
+```bash
+rei intention list --state-tag active
+rei intention list --state-tag done
+```
+
+User-defined tags are also supported:
+
+```yaml
+stateTags:
+  - userTag: blocked
+  - userTag: expedited
+```
+
+## Transitions
+
+Transitions define allowed state changes. If the transitions list is empty, any state-to-state movement is allowed (free-form workflow).
+
+Transitions are enforced:
+
+```bash
+rei intention set-property <id> workflow in-progress   # OK from backlog
+rei intention set-property <id> workflow done          # ERROR if no direct path
+```
+
+The initial state can always be set on entities without a current value.
+
+## Assigning State Machine Properties
+
+```bash
+# Set state on an entity
+rei intention set-property <id> workflow in-progress
+
+# Clear property from entity
+rei intention clear-property <id> workflow
+```
+
+When multiple properties share the same key (category-scoped), resolution is automatic based on the entity's category.
+
+## WIP Limits
+
+WIP (Work In Progress) limits are advisory — they show warnings but don't block transitions.
+
+### Setting Limits
+
+```bash
+# Set a limit
+rei custom-property set-state-limit workflow --state in-progress --limit 3
+
+# Clear a limit
+rei custom-property clear-state-limit workflow --state in-progress
+```
+
+### Viewing Counts
+
+```bash
+rei custom-property show workflow --with-counts
+```
+
+Output shows limit status:
+
+```
+in-progress - In Progress (limit: 3) [count: 4] OVER LIMIT
+backlog - Backlog [count: 5]
+done - Done [count: 12]
+```
+
+## Evolving State Machines
+
+```bash
+# Add a state
+rei custom-property add-state workflow blocked --label "Blocked" --tags blocked
+
+# Remove an unused state
+rei custom-property remove-state workflow blocked
+
+# Add a transition
+rei custom-property add-transition workflow in-progress blocked
+
+# Remove a transition
+rei custom-property remove-transition workflow in-progress blocked
+
+# Update display order
+rei custom-property update-state-order workflow blocked --order 3
+```
+
+## Category-Scoped State Machines
+
+The same state machine key can exist in different categories with different configurations:
+
+```bash
+rei custom-property create workflow --from-file work.yaml -c work
+rei custom-property create workflow --from-file personal.yaml -c personal
+```
+
+Entity assignment automatically uses the correct property based on category:
+- Work-categorized intention uses workflow from Work category
+- Personal-categorized intention uses workflow from Personal category
+
+Use `--category` to disambiguate in CLI commands:
+
+```bash
+rei custom-property show workflow --category work
+rei custom-property metrics workflow --category personal
+```
+
+## Metrics
+
+View state machine metrics:
+
+```bash
+rei custom-property metrics workflow
+```
+
+Detailed breakdown by entity:
+
+```bash
+rei custom-property metrics workflow --detailed
+```
+
+Metrics show:
+- Current state distribution with entity counts
+- Average time in each state
+- Recent transitions (last 7 days)
+
+## Auto-Initialization
+
+When an entity is assigned to a category, state machine properties scoped to that category are automatically initialized with their initial state.
+
+For existing entities, manually initialize:
+
+```bash
+rei custom-property init-entities workflow
+```
+
+## Command Summary
+
+### Property Definition
+
+| Command | Description |
+|---------|-------------|
+| `custom-property create` | Create state machine from YAML |
+| `custom-property show` | Show states and transitions |
+| `custom-property show --with-counts` | Include entity counts per state |
+
+### State Evolution
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-state` | Add a new state |
+| `custom-property remove-state` | Remove an unused state |
+| `custom-property add-transition` | Add a transition rule |
+| `custom-property remove-transition` | Remove a transition rule |
+| `custom-property update-state-order` | Set display order for a state |
+
+### WIP Limits
+
+| Command | Description |
+|---------|-------------|
+| `custom-property set-state-limit` | Set WIP limit on a state |
+| `custom-property clear-state-limit` | Remove WIP limit |
+
+### Metrics
+
+| Command | Description |
+|---------|-------------|
+| `custom-property metrics` | View workflow metrics |
+
+### Assignment
+
+| Command | Description |
+|---------|-------------|
+| `intention set-property` | Set state on intention |
+| `intention clear-property` | Clear state from intention |
+| `habit set-property` | Set state on habit |
+| `disruption set-property` | Set state on disruption |
+
+## Related
+
+- [Custom Properties](/docs/guides/custom-properties) — General custom property information
+- [`rei custom-property`](/docs/commands/custom-property) — Full command reference

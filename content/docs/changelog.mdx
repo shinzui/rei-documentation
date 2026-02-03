@@ -6,6 +6,71 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-02
+
+### New Guide: State Machine Properties
+
+Added comprehensive **[State Machine Properties Guide](/docs/guides/state-machines)** covering:
+
+- State machine creation and YAML configuration
+- State tags (queue, active, done, terminal) for semantic filtering
+- Transition enforcement between states
+- WIP limits for managing work in progress
+- Category-scoped state machines with automatic resolution
+- Metrics and transition history
+
+Access the help topic with `rei help state-machines`.
+
+### New Feature: Category-Scoped Property Keys
+
+The same property key can now exist in different categories with different configurations:
+
+```bash
+# Create different workflows for different categories
+rei custom-property create workflow --from-file work.yaml -c work
+rei custom-property create workflow --from-file personal.yaml -c personal
+```
+
+Entity assignment automatically resolves based on category. Use `--category` to disambiguate:
+
+```bash
+rei custom-property show workflow --category work
+rei custom-property metrics workflow --category personal
+```
+
+### New Feature: WIP Limits
+
+State machine states now support advisory WIP (Work In Progress) limits:
+
+```bash
+# Set a limit on a state
+rei custom-property set-state-limit workflow --state in-progress --limit 3
+
+# Clear a limit
+rei custom-property clear-state-limit workflow --state in-progress
+
+# View counts and limit status
+rei custom-property show workflow --with-counts
+```
+
+Output shows when states exceed their limits:
+
+```
+in-progress - In Progress (limit: 3) [count: 4] OVER LIMIT
+backlog - Backlog [count: 5]
+done - Done [count: 12]
+```
+
+### Custom Properties Guide Enhancements
+
+The **[Custom Properties Guide](/docs/guides/custom-properties)** now includes:
+
+- Category-scoped keys section with resolution behavior
+- WIP limits section with commands and output examples
+- Complete command summary tables for property, enum, and state machine operations
+
+---
+
 ## 2026-02-01
 
 ### New Feature: Tree TUI Fuzzy Filtering

@@ -5,11 +5,37 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `386e373` (2026-02-01)
+**Last Source Commit Reviewed:** `b78e261` (2026-02-02)
 
 ---
 
 ## Changelog
+
+### 2026-02-02
+
+**Reviewed commits:** `386e373` through `b78e261`
+
+**Files created:**
+- `guides/state-machines.mdx` — **NEW** — Comprehensive guide for state machine properties (from help topic)
+
+**Files updated:**
+- `guides/custom-properties.mdx` — Added category-scoped keys, WIP limits, command summary, link to state-machines guide
+- `guides/meta.json` — Added state-machines to navigation
+
+**Help topics synced:**
+- `rei-cli/help/state-machines.md` — **NEW** — Detailed state machine property documentation
+- `rei-cli/help/custom-properties.md` — Added category-scoped keys, WIP limits, command summary
+
+**Features documented:**
+- State machine help topic (`rei help state-machines`)
+- Category-scoped property keys with automatic resolution
+- WIP (Work In Progress) limits for state machine states
+- `--with-counts` flag for viewing entity counts per state
+- `--category` flag for disambiguating duplicate property keys
+- State limit commands (`set-state-limit`, `clear-state-limit`)
+- State machine metrics command
+
+---
 
 ### 2026-02-01 (3)
 

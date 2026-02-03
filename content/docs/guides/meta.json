@@ -1,4 +1,9 @@
 {
 	"title": "Guides",
-	"pages": ["intention-filtering", "custom-properties", "time-formats"]
+	"pages": [
+		"intention-filtering",
+		"custom-properties",
+		"state-machines",
+		"time-formats"
+	]
 }
