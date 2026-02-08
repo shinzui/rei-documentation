@@ -6,6 +6,140 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-06
+
+### New Feature: LabelSet Property Type
+
+Multi-select labels for tagging with multiple values:
+
+```bash
+# Create a label-set property
+rei custom-property create areas --type-label-set --labels backend,frontend,mobile,infra -e intention
+
+# Assign multiple labels
+rei intention set-property areas backend,frontend
+
+# Add or remove individual labels
+rei intention add-property-label areas security
+rei intention remove-property-label areas mobile
+```
+
+**LabelSet Filtering:**
+
+Filter using `any` (has any of) or `all` (has all of) operators:
+
+```bash
+rei intention list --where "areas any backend,frontend"  # Has backend OR frontend
+rei intention list --where "areas all backend,security"  # Has BOTH backend AND security
+```
+
+### New Feature: Action List Command
+
+View recorded actions with date range filtering:
+
+```bash
+rei action list              # Today's actions (default)
+rei action list --week       # Last 7 days
+rei action list --month      # Last 30 days
+rei action list --from 2026-01-01 --to 2026-01-31  # Custom range
+rei action list -i intention_01abc...  # Filter by intention
+rei action list --format json  # JSON output
+```
+
+### New Feature: Habit Blockers
+
+Blockers can now be declared on habits with automatic pause/resume:
+
+```bash
+# Declare a blocker (auto-pauses the habit)
+rei blocker declare --habit habit_01abc... "Gym closed for renovation"
+
+# Resolve the blocker (auto-resumes if last blocker)
+rei blocker resolve --habit habit_01abc... blocker_01xyz...
+
+# List habit blockers
+rei blocker list --habits
+```
+
+### New Feature: Actor Attribution
+
+All write commands now support `--actor` for tracking who performed an action:
+
+```bash
+rei action record "Fixed bug" --actor claude-code
+rei intention create "New project" --actor user
+rei note new --actor claude-code
+```
+
+Useful for tracking changes made by different tools or users.
+
+### Dashboard Context Filtering
+
+Dashboard panels now respond to `--context` flag:
+
+- Panels with explicit context that doesn't match are hidden
+- Panels without explicit context filter to the CLI context
+- Category-scoped panels are further filtered by context
+
+---
+
+## 2026-02-04
+
+### New Guide: Dashboard Panels
+
+Added comprehensive **[Dashboard Panels Guide](/docs/guides/dashboard)** covering:
+
+- Panel configuration in `rei.yaml`
+- Filter expressions (`where`, `state_tag`, `group_by`, `context`, `category`)
+- State tag filtering for cross-property queries
+- Grouping behavior and sort order
+- Combining options with AND logic
+
+Access the help topic with `rei help dashboard`.
+
+### New Feature: Command Aliases
+
+Define short command aliases in your config file for frequently used commands:
+
+```bash
+# In rei.yaml:
+aliases:
+  tw: today -c work --no-intentions
+  ls: intention list --active
+```
+
+`rei tw` expands to `rei today -c work --no-intentions`. Additional arguments are appended.
+
+List configured aliases with `rei alias list`.
+
+### New Feature: Dashboard Panels
+
+Configure custom intention query panels that appear at the end of the `rei today` output:
+
+```yaml
+dashboard:
+  panels:
+    - label: "Kanban Board"
+      where: "workflow:exists"
+      group_by: "workflow"
+    - label: "Queue"
+      state_tag: "queue"
+```
+
+Each panel supports property filters, state tag filters, grouping, and context/category scoping.
+
+### Feature Enhancement: `--no-intentions` Flag
+
+- **`rei today --no-intentions`** — Hide the active intentions and completed today sections from the dashboard output
+
+### Dashboard Enhancements
+
+- **`rei today`** — Now shows Flexible Habits section with progress tracking for FreeWeekly, FreeMonthly, FreeQuarterly, and FreeYearly habits
+- **`rei tomorrow`** — Now shows Flexible Habits section with period progress
+- **`rei yesterday`** — Now shows Flexible Habits section with completion status
+
+---
+
 ## 2026-02-02
 
 ### New Guide: State Machine Properties

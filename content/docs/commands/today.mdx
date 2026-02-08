@@ -13,6 +13,7 @@ rei today [options]
 **Options:**
 - `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
 - `--include-dormant` — Include dormant intentions (excluded by default)
+- `--no-intentions` — Hide the active intentions and completed today sections
 - `--tui` — Launch interactive TUI dashboard
 
 ## Dashboard Sections
@@ -71,6 +72,16 @@ Scheduled habits for today with completion status:
 - ○ indicates pending
 - Active days indicator (e.g., `[30d]`) showing distinct days with recorded actions
 
+### Flexible Habits
+
+Habits with flexible schedules (FreeWeekly, FreeMonthly, FreeQuarterly, FreeYearly) showing:
+- Progress indicator (e.g., "2/3 this week", "1/5 this month")
+- Days performed in the current period (e.g., "Mon, Wed")
+- Color-coded urgency:
+  - Green: On track to meet target
+  - Yellow: Needs attention to meet target
+  - Red: Target unachievable with days remaining
+
 ### Cue-Based Habits
 
 Habits triggered by context/cues rather than schedules, showing:
@@ -107,6 +118,38 @@ The `--tui` flag launches an interactive terminal UI where you can:
 - Take quick actions
 
 **Note:** TUI mode requires a terminal that supports ANSI escape codes.
+
+## Dashboard Panels
+
+You can define custom intention query panels that appear at the end of the today output. Panels are configured in your `rei.yaml` config file under `dashboard.panels`.
+
+```yaml
+dashboard:
+  panels:
+    - label: "Kanban Board"
+      where: "workflow:exists"
+      group_by: "workflow"
+
+    - label: "In Development"
+      where: "version-phase=development"
+      context: "work"
+
+    - label: "Queue"
+      state_tag: "queue"
+      category: "projects"
+```
+
+Each panel supports:
+- `label` (required) — Display name shown as the panel header
+- `where` — Property filter expression (same syntax as `intention list --where`)
+- `state_tag` — Filter by state machine system tag (`queue`, `active`, `done`, `terminal`)
+- `group_by` — Property key to group results by
+- `context` — Limit to intentions within this context
+- `category` — Limit to intentions within this category slug
+
+All options combine with AND logic. Panels with no matching intentions show "No matching intentions".
+
+For full details, see the [Dashboard Panels Guide](/docs/guides/dashboard).
 
 ## Notes
 

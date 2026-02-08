@@ -5,11 +5,77 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `b78e261` (2026-02-02)
+**Last Source Commit Reviewed:** `6cf8088` (2026-02-06)
 
 ---
 
 ## Changelog
+
+### 2026-02-06
+
+**Reviewed commits:** `dbf35f8` through `6cf8088`
+
+**Files updated:**
+- `guides/custom-properties.mdx` — Added LabelSet property type, LabelSet filtering section, LabelSet evolution commands
+- `guides/dashboard.mdx` — Added Context Filtering section
+- `commands/action.mdx` — Added `list` subcommand, added `--actor` option to `record`
+- `commands/blocker.mdx` — Added habit blocker support with `--habit` option, added `--actor` option, added Habit Blocker Behavior section
+- `commands/category.mdx` — Added `--actor` option to `create`
+- `commands/custom-property.mdx` — Added `label-set` type, LabelSet evolution commands (`add-label`, `remove-label`), LabelSet filtering section, `--actor` option
+- `commands/habit.mdx` — Added `--actor` option to `create`
+- `commands/intention.mdx` — Added `--actor` option to `create`
+- `commands/note.mdx` — Already has `--actor` option for `new` and `today`
+- `commands/outcome.mdx` — Added `--actor` option to `record`
+- `commands/reminder.mdx` — Added `--actor` option to `create`
+- `commands/task.mdx` — Added `--actor` option to `complete`, `abandon`, and `reopen`
+- `commands/doc.mdx` — Added `--actor` option to `attach`
+
+**Help topics synced:**
+- `rei-cli/help/custom-properties.md` — Added LabelSet type, LabelSet filtering syntax
+- `rei-cli/help/dashboard.md` — Added Context Filtering section
+
+**Features documented:**
+- LabelSet property type for multi-select labels (`--type-label-set --labels`)
+- LabelSet filtering with `any` (has any of) and `all` (has all of) operators
+- LabelSet evolution commands (`add-label`, `remove-label`)
+- Dashboard panel context filtering behavior
+- `action list` subcommand with date range filters (`--today`, `--week`, `--month`, `--from/--to`)
+- Habit blockers with auto-pause/resume behavior
+- `--actor` option for action attribution across commands (action, blocker, category, custom-property, habit, intention, note, outcome, reminder, task, doc)
+
+---
+
+### 2026-02-04
+
+**Reviewed commits:** `b78e261` through `dbf35f8`
+
+**Files created:**
+- `guides/dashboard.mdx` — **NEW** — Comprehensive guide for dashboard panels (from help topic)
+
+**Files updated:**
+- `commands/today.mdx` — Added `--no-intentions` flag, Flexible Habits section, Dashboard Panels section
+- `commands/tomorrow.mdx` — Added Flexible Habits section
+- `commands/yesterday.mdx` — Added Flexible Habits section
+- `commands/custom-property.mdx` — Added `--category` flag to `show`, `archive`, `relabel`; added `set-state-limit`, `clear-state-limit`, `metrics` subcommands; added Category-Scoped Property Keys section; fixed icon to `SlidersHorizontal`
+- `commands/help.mdx` — Added `state-machines` and `dashboard` to available topics
+- `configuration.mdx` — Added Aliases section and Dashboard Panels section; noted local config (`./rei.yaml`) support
+- `guides/meta.json` — Added dashboard to navigation
+
+**Help topics synced:**
+- `rei-cli/help/dashboard.md` — **NEW** — Configurable dashboard panels for today command
+
+**Features documented:**
+- Dashboard help topic (`rei help dashboard`)
+- Dashboard panels configuration (`dashboard.panels` in rei.yaml)
+- Command aliases (`aliases` in rei.yaml, `rei alias list`)
+- `--no-intentions` flag on `rei today`
+- Flexible Habits section in today, tomorrow, and yesterday dashboards
+- `--category` flag for disambiguating `show`, `archive`, `relabel` commands
+- `set-state-limit` and `clear-state-limit` subcommands for WIP limits
+- `metrics` subcommand for state machine workflow analytics
+- Category-scoped property keys with automatic resolution
+
+---
 
 ### 2026-02-02
 

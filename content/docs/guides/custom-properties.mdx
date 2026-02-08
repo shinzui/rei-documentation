@@ -27,7 +27,8 @@ Property keys cannot be changed after creation. Use the label for display.
 | `float` | Decimal with precision |
 | `text` | Free text with length limits |
 | `bool` | Boolean true/false |
-| `enum` | Predefined set of values |
+| `enum` | Predefined set of values (single-select) |
+| `label-set` | Multi-select labels from a predefined set |
 | `duration` | Time duration |
 | `quantity` | Numeric with units |
 | `state-machine` | States with allowed transitions |
@@ -52,6 +53,15 @@ rei custom-property create priority \
 rei custom-property create effort \
   --type-int --min 1 --max 10 \
   -e intention -e habit
+```
+
+### Label-Set Property (Multi-Select)
+
+```bash
+rei custom-property create areas \
+  --type-label-set --labels backend,frontend,security,devops \
+  -e intention \
+  --label "Work Areas"
 ```
 
 ### State Machine from YAML
@@ -147,6 +157,9 @@ rei custom-property archive priority
 # Set property on an intention
 rei intention set-property <id> priority high
 
+# Set a label-set property (comma-separated labels)
+rei intention set-property <id> areas backend,security
+
 # Set property on a habit
 rei habit set-property <id> effort 5
 
@@ -163,6 +176,10 @@ rei intention list --where priority=high
 # Numeric comparisons
 rei intention list --where "effort>=5"
 rei habit list --where "effort<3"
+
+# LabelSet filtering (any = has any of, all = has all of)
+rei intention list --where "areas any backend,frontend"
+rei intention list --where "areas all backend,security"
 ```
 
 For comprehensive filtering options, see [Intention Filtering](/docs/guides/intention-filtering).
@@ -178,6 +195,18 @@ rei custom-property remove-enum-value priority low
 ```
 
 **Note:** Values currently in use cannot be removed.
+
+## Evolving Label-Set Properties
+
+```bash
+# Add a new label
+rei custom-property add-label areas infrastructure
+
+# Remove a label
+rei custom-property remove-label areas legacy
+```
+
+**Note:** Cannot remove the last label. Must have at least one label.
 
 ## State Machine Properties
 
@@ -343,6 +372,13 @@ The same key CAN exist in different categories.
 |---------|-------------|
 | `custom-property add-enum-value` | Add an enum value |
 | `custom-property remove-enum-value` | Remove an unused enum value |
+
+### Label-Set Evolution
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-label` | Add a label |
+| `custom-property remove-label` | Remove an unused label |
 
 ### State Machine Evolution
 

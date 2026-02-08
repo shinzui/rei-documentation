@@ -1,7 +1,7 @@
 ---
 title: rei custom-property
 description: Define and manage custom properties for entities
-icon: Settings
+icon: SlidersHorizontal
 ---
 
 Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes). Custom properties allow you to extend entities with your own metadata fields.
@@ -27,7 +27,8 @@ Custom properties support the following value types:
 | `float` | Decimal with optional precision | completion percentage |
 | `text` | Free text with optional length limits | notes field |
 | `bool` | Boolean true/false | is_urgent flag |
-| `enum` | Predefined set of values | priority (low, medium, high) |
+| `enum` | Predefined set of values (single-select) | priority (low, medium, high) |
+| `label-set` | Predefined set of labels (multi-select) | areas (backend, frontend, security) |
 | `duration` | Time duration | estimated time |
 | `quantity` | Numeric with units | distance (km, miles) |
 | `state-machine` | States with transitions | task workflow |
@@ -179,6 +180,7 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 - `-d, --description <desc>` — Property description
 - `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note
 - `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Type Flags (pick one):**
 
@@ -197,8 +199,11 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 
 - `--type-bool` — Boolean type
 
-- `--type-enum` — Enum type
+- `--type-enum` — Enum type (single-select)
   - `--values <val1,val2,...>` — Comma-separated enum values (required)
+
+- `--type-label-set` — Label set type (multi-select)
+  - `--labels <label1,label2,...>` — Comma-separated labels (required)
 
 - `--type-duration` — Duration type
 
@@ -243,6 +248,12 @@ rei custom-property create effort \
 rei custom-property create severity \
   --type-enum --values low,medium,high,critical \
   -e disruption
+
+# Create a label-set property for tagging areas (multi-select)
+rei custom-property create areas \
+  --type-label-set --labels backend,frontend,security,devops \
+  -e intention \
+  --label "Work Areas"
 
 # Create a state machine property from YAML config
 rei custom-property create task-state \
@@ -293,11 +304,15 @@ rei custom-property list -c work
 Show details of a custom property.
 
 ```bash
-rei custom-property show [KEY]
+rei custom-property show [KEY] [options]
 ```
 
 **Arguments:**
 - `[KEY]` — Property key or ID (optional if fzf is available)
+
+**Options:**
+- `--with-counts` — Include entity counts per state (state machine properties only)
+- `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
 
 > **FZF Support:** If the key is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available properties.
 
@@ -309,24 +324,39 @@ rei custom-property show priority
 
 # Use FZF to select
 rei custom-property show
+
+# Show state machine property with entity counts per state
+rei custom-property show workflow --with-counts
+
+# Show category-scoped property (when key exists in multiple categories)
+rei custom-property show workflow --category work
 ```
+
+**Notes:**
+- The `--with-counts` flag shows the number of entities currently in each state, useful for tracking WIP limits
 
 ### archive
 
 Archive a custom property (soft delete).
 
 ```bash
-rei custom-property archive KEY
+rei custom-property archive KEY [options]
 ```
 
 **Arguments:**
 - `KEY` — Property key or ID
+
+**Options:**
+- `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
 
 **Examples:**
 
 ```bash
 # Archive a property
 rei custom-property archive old-priority
+
+# Archive a category-scoped property (when key exists in multiple categories)
+rei custom-property archive workflow --category work
 ```
 
 **Notes:**
@@ -339,18 +369,24 @@ rei custom-property archive old-priority
 Update the display label of a custom property.
 
 ```bash
-rei custom-property relabel KEY NEW_LABEL
+rei custom-property relabel KEY NEW_LABEL [options]
 ```
 
 **Arguments:**
 - `KEY` — Property key or ID
 - `NEW_LABEL` — New display label
 
+**Options:**
+- `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
+
 **Examples:**
 
 ```bash
 # Relabel a property
 rei custom-property relabel priority "Priority Level"
+
+# Relabel a category-scoped property (when key exists in multiple categories)
+rei custom-property relabel workflow "Work Workflow" --category work
 ```
 
 **Notes:**
@@ -520,6 +556,89 @@ rei custom-property remove-transition KEY FROM_STATE TO_STATE
 rei custom-property remove-transition task-state todo blocked
 ```
 
+### set-state-limit
+
+Set a WIP (Work In Progress) limit on a state machine state.
+
+```bash
+rei custom-property set-state-limit KEY --state STATE_ID --limit N
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+
+**Options:**
+- `-s, --state <state_id>` — State identifier to set limit on (required)
+- `-l, --limit <N>` — Maximum entities allowed in this state (required)
+
+**Examples:**
+
+```bash
+# Set a WIP limit of 3 on the in-progress state
+rei custom-property set-state-limit workflow --state in-progress --limit 3
+
+# Set a limit on a category-scoped property
+rei custom-property set-state-limit workflow --state in-progress --limit 5 --category work
+```
+
+**Notes:**
+- WIP limits are advisory — they show warnings but don't block transitions
+- Use `--with-counts` on `show` command to see current entity counts per state
+
+### clear-state-limit
+
+Remove a WIP limit from a state machine state.
+
+```bash
+rei custom-property clear-state-limit KEY --state STATE_ID
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+
+**Options:**
+- `-s, --state <state_id>` — State identifier to clear limit from (required)
+
+**Examples:**
+
+```bash
+# Remove the WIP limit from a state
+rei custom-property clear-state-limit workflow --state in-progress
+```
+
+### metrics
+
+View state machine transition metrics and workflow analytics.
+
+```bash
+rei custom-property metrics [KEY] [options]
+```
+
+**Arguments:**
+- `[KEY]` — Property key or ID (state machine properties only, optional if fzf is available)
+
+**Options:**
+- `-d, --detailed` — Show detailed breakdown by entity
+- `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
+
+**Examples:**
+
+```bash
+# View metrics for a state machine property
+rei custom-property metrics workflow
+
+# View detailed metrics with entity breakdown
+rei custom-property metrics workflow --detailed
+
+# View metrics for category-scoped property
+rei custom-property metrics workflow --category work
+```
+
+**Notes:**
+- Metrics show current state distribution with entity counts
+- Average time in each state
+- Recent transitions (last 7 days)
+
 ## Enum Evolution
 
 Enum properties can be evolved after creation using these commands.
@@ -565,6 +684,52 @@ rei custom-property remove-enum-value priority low
 **Notes:**
 - Cannot remove values that are currently in use by entities
 
+## LabelSet Evolution
+
+LabelSet properties can be evolved after creation using these commands.
+
+### add-label
+
+Add a label to a label-set property.
+
+```bash
+rei custom-property add-label KEY LABEL
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `LABEL` — Label to add
+
+**Examples:**
+
+```bash
+# Add a new area label
+rei custom-property add-label areas infrastructure
+```
+
+### remove-label
+
+Remove a label from a label-set property.
+
+```bash
+rei custom-property remove-label KEY LABEL
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+- `LABEL` — Label to remove
+
+**Examples:**
+
+```bash
+# Remove a label
+rei custom-property remove-label areas legacy
+```
+
+**Notes:**
+- Cannot remove labels that are currently in use by entities
+- Cannot remove the last label from a label-set
+
 ## Using Properties
 
 Once properties are defined, assign values to entities:
@@ -572,6 +737,9 @@ Once properties are defined, assign values to entities:
 ```bash
 # Set a property on an intention
 rei intention set-property intention_01abc... priority high
+
+# Set a label-set property (multiple labels, comma-separated)
+rei intention set-property intention_01abc... areas backend,security
 
 # Set a property on a habit
 rei habit set-property habit_01abc... effort 5
@@ -596,6 +764,24 @@ rei intention list --where "effort>=5"
 
 # Filter habits by effort
 rei habit list --where "effort<3"
+```
+
+### LabelSet Filtering
+
+LabelSet properties support two special operators for filtering:
+
+- `any` — Match entities that have **any** of the specified labels
+- `all` — Match entities that have **all** of the specified labels
+
+```bash
+# Find intentions with any of the specified areas
+rei intention list --where "areas any backend,frontend"
+
+# Find intentions that have all specified areas
+rei intention list --where "areas all backend,security"
+
+# Works with disruptions too
+rei disruption list --where "impact-areas any infrastructure,api"
 ```
 
 See [`rei intention list`](/docs/commands/intention), [`rei habit list`](/docs/commands/habit), and [`rei disruption list`](/docs/commands/disruption) for more filtering options.
@@ -641,9 +827,58 @@ State machine properties scoped to a category are automatically initialized when
 
 The `init-entities` command is useful for retroactively initializing existing entities that were created before the property was defined.
 
+## Category-Scoped Property Keys
+
+The same property key can exist in different categories with different configurations. This allows category-specific workflows while using consistent property names.
+
+### Creating Properties with Same Key in Different Categories
+
+```bash
+# Create a workflow property for work category
+rei custom-property create workflow \
+  --type-state-machine --from-file work-kanban.yaml \
+  -e intention -c work
+
+# Create a workflow property for personal category with different states
+rei custom-property create workflow \
+  --type-state-machine --from-file personal-kanban.yaml \
+  -e intention -c personal
+```
+
+### Automatic Resolution
+
+When assigning properties to entities, the system automatically resolves the correct property based on the entity's category:
+
+```bash
+# Sets the work workflow property (automatic resolution)
+rei intention set-property intention_01abc... workflow in-progress
+```
+
+### Disambiguation with --category
+
+When viewing or modifying properties with duplicate keys, use `--category` to specify which one:
+
+```bash
+# Show the work version of workflow
+rei custom-property show workflow --category work
+
+# Show metrics for personal workflow
+rei custom-property metrics workflow --category personal
+
+# Relabel the work version
+rei custom-property relabel workflow "Work Pipeline" --category work
+```
+
+### Key Uniqueness Rules
+
+- **Global properties** — key must be unique among all global properties
+- **Category-scoped** — key + category combination must be unique
+- The same key CAN exist in different categories
+
 ## Related Commands
 
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
 - [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
 - [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions
 - [`rei category`](/docs/commands/category) — Manage categories for scoping properties
+- [`rei help state-machines`](/docs/guides/state-machines) — Detailed help for state machine properties

@@ -1,0 +1,178 @@
+---
+title: Dashboard Panels
+description: Configure custom intention query panels for the today command
+icon: LayoutDashboard
+---
+
+Dashboard panels are configurable intention views that appear in the `rei today` command output. Define panels in your `rei.yaml` config file to create custom filtered and grouped views of your intentions.
+
+## Configuration
+
+Add a `dashboard.panels` section to your `rei.yaml` config file:
+
+```yaml title="rei.yaml"
+dashboard:
+  panels:
+    - label: "By Version Phase"
+      where: "version-phase:exists"
+      group_by: "version-phase"
+
+    - label: "In Development"
+      where: "version-phase=development"
+      context: "work"
+
+    - label: "Active Projects"
+      state_tag: "active"
+      category: "projects"
+      group_by: "version-phase"
+```
+
+Panels appear at the end of the `rei today` command output after the standard dashboard sections.
+
+## Panel Options
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `label` | Yes | Display name shown as the panel header |
+| `where` | No | Property filter expression (same syntax as `intention list --where`) |
+| `state_tag` | No | Filter by state machine system tag: `queue`, `active`, `done`, `terminal` |
+| `group_by` | No | Property key to group results by (sorted by state machine order when applicable) |
+| `context` | No | Limit to intentions within this context (cannot combine with `category`) |
+| `category` | No | Limit to intentions within this category slug (cannot combine with `context`) |
+
+## Filter Expressions
+
+The `where` field accepts the same syntax as the `--where` flag on `intention list`:
+
+**Exact match:**
+```yaml
+where: "priority=high"
+```
+
+**Existence check:**
+```yaml
+where: "effort:exists"
+```
+
+**Numeric comparison:**
+```yaml
+where: "effort>=5"
+where: "complexity<3"
+```
+
+**State machine tag query:**
+```yaml
+where: "workflow:queue=backlog"
+```
+
+**Operators:** `=` (equals), `>` (greater), `>=` (greater or equal), `<` (less), `<=` (less or equal), `:exists` (has any value)
+
+For full filter syntax details, see the [Intention Filtering Guide](/docs/guides/intention-filtering).
+
+## State Tag Filter
+
+The `state_tag` field matches intentions that have any state machine property whose current state carries the specified system tag:
+
+| Tag | Description |
+|-----|-------------|
+| `queue` | Items waiting to start |
+| `active` | Items in progress |
+| `done` | Completed items |
+| `terminal` | Items in final states |
+
+For more on state tags, see the [State Machine Properties Guide](/docs/guides/state-machines).
+
+## Grouping
+
+When `group_by` is set, intentions are organized under sub-headers by their property value. Sorting follows the same rules as `intention list`:
+
+- **State machine properties** — by stateOrder (ascending)
+- **Other properties** — alphabetically
+- **"(none)" group** — always last
+
+## Combining Options
+
+All panel options combine with AND logic. A panel with both `where` and `state_tag` will only show intentions matching both conditions:
+
+```yaml
+- label: "High Priority Active Work"
+  where: "priority=high"
+  state_tag: "active"
+  context: "work"
+```
+
+## Examples
+
+**Track a kanban board across all intentions:**
+
+```yaml
+- label: "Kanban Board"
+  where: "workflow:exists"
+  group_by: "workflow"
+```
+
+**Show only blocked items:**
+
+```yaml
+- label: "Blocked Items"
+  where: "workflow=blocked"
+```
+
+**Weekly review of personal projects:**
+
+```yaml
+- label: "Personal Projects"
+  category: "personal"
+  group_by: "priority"
+```
+
+**Items in the queue that need attention:**
+
+```yaml
+- label: "Queue"
+  state_tag: "queue"
+```
+
+## Context Filtering
+
+When the `rei today` command is run with `--context`, panels are filtered:
+
+- Panels with an explicit context that does not match are hidden entirely
+- Panels with no explicit context have the CLI context applied as a filter, showing only intentions belonging to that context
+- Panels with a category scope are additionally filtered by the CLI context, showing only intentions in both the category and the context
+
+**Example:**
+
+```bash
+rei today --context work
+```
+
+With this config:
+
+```yaml title="rei.yaml"
+dashboard:
+  panels:
+    - label: "All Active"           # Filtered to work intentions
+    - label: "Work Board"           # Shown (context matches)
+      context: "work"
+    - label: "Personal Board"       # Hidden (context mismatch)
+      context: "personal"
+    - label: "Active Projects"      # Filtered to work + projects
+      category: "projects"
+```
+
+## Behavior
+
+- Panels only appear when configured (empty default)
+- Invalid filter expressions are silently skipped
+- Category slugs that don't exist produce no results
+- Panels with no matching intentions show "No matching intentions"
+- Each panel runs an independent query against the read model
+
+## Related
+
+- [Intention Filtering Guide](/docs/guides/intention-filtering) — Property filter syntax
+- [State Machine Properties Guide](/docs/guides/state-machines) — State machine properties and tags
+- [Custom Properties Guide](/docs/guides/custom-properties) — Custom property types
+- [`rei today`](/docs/commands/today) — The today command that displays panels
+- [Configuration](/docs/configuration) — Full configuration reference

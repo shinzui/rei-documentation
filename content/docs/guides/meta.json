@@ -4,6 +4,7 @@
 		"intention-filtering",
 		"custom-properties",
 		"state-machines",
+		"dashboard",
 		"time-formats"
 	]
 }

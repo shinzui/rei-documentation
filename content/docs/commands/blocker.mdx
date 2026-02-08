@@ -1,58 +1,137 @@
 ---
 title: rei blocker
-description: Track what's preventing progress
+description: Manage blockers for intentions and habits
 icon: Ban
 ---
 
-Blockers track what's preventing the next meaningful action on an intention.
+Manage blockers for intentions and habits. Blockers represent obstacles or things preventing progress.
 
 ## Subcommands
 
 ### declare
 
-Declare a blocker for an intention.
+Declare a new blocker for an intention or habit.
 
 ```bash
-rei blocker declare <intention-id> <description>
+rei blocker declare [description] [options]
 ```
 
 **Arguments:**
-- `<intention-id>` — The blocked intention
-- `<description>` — What's blocking progress
+- `[description]` — Description of the blocker (optional, can be provided via stdin)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--habit <id>` — Habit ID (for habit blockers instead of intention blockers)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+> **FZF Support:** If neither `-i` nor `--habit` is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
 **Examples:**
 
 ```bash
-# Waiting on something external
-rei blocker declare intention_01h455vb4pex "Waiting for API access approval"
+# Declare a blocker on an intention with explicit ID
+rei blocker declare -i intention_01h455vb4pex "Waiting for API credentials"
 
-# Internal blocker
-rei blocker declare intention_01h455vb4pex "Need to learn React before proceeding"
+# Let fzf pick the intention interactively
+rei blocker declare "Waiting for API credentials"
 
-# Resource constraint
-rei blocker declare intention_01h455vb4pex "Need to set up development environment"
+# Declare a blocker on a habit (auto-pauses the habit)
+rei blocker declare --habit habit_01abc... "Gym is closed for renovation"
+
+# Declare via stdin
+echo "Need to learn GraphQL before proceeding" | rei blocker declare -i intention_01h455vb4pex
 ```
+
+**Notes:**
+- Habit blockers automatically pause the habit when declared
+- Cannot specify both `--intention` and `--habit` at the same time
 
 ### resolve
 
-Resolve a blocker.
+Resolve (remove) a blocker.
 
 ```bash
-rei blocker resolve [id]
+rei blocker resolve [blocker-id] [options]
 ```
 
-If ID is not provided and fzf is installed, you'll get an interactive picker.
+**Arguments:**
+- `[blocker-id]` — Blocker ID (optional if fzf is available)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--habit <id>` — Habit ID (for habit blockers instead of intention blockers)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from intentions/habits with blockers, then select the blocker.
+
+**Examples:**
+
+```bash
+# Resolve intention blocker with explicit IDs
+rei blocker resolve blocker_01h455vb4pex -i intention_01h455vb4pex
+
+# Let fzf pick the intention and blocker
+rei blocker resolve
+
+# Resolve a habit blocker (auto-resumes habit if last blocker)
+rei blocker resolve --habit habit_01abc... blocker_01xyz...
+
+# Let fzf pick habit with blockers, then pick blocker
+rei blocker resolve --habit
+```
+
+**Notes:**
+- When the last blocker on a habit is resolved, the habit automatically resumes
+- Cannot specify both `--intention` and `--habit` at the same time
 
 ### list
 
-List unresolved blockers.
+List all active blockers.
 
 ```bash
 rei blocker list [options]
 ```
 
 **Options:**
-- `-f, --format <format>` — Output format
+- `--intentions` — Show only intention blockers
+- `--habits` — Show only habit blockers
+
+**Examples:**
+
+```bash
+# List all active blockers (intentions and habits)
+rei blocker list
+
+# List only intention blockers
+rei blocker list --intentions
+
+# List only habit blockers
+rei blocker list --habits
+```
+
+**Output:**
+
+When showing all blockers:
+```
+=== Intention Blockers ===
+  • blocker_01abc...
+    Intention: Learn GraphQL
+    Waiting for course access
+
+=== Habit Blockers ===
+  • blocker_01xyz...
+    Habit: Morning Gym
+    Gym closed for renovation
+```
+
+## Habit Blocker Behavior
+
+Habit blockers have automatic pause/resume behavior:
+
+1. **Auto-pause:** When a blocker is declared on an active habit, the habit is automatically paused
+2. **Auto-resume:** When the last blocker is resolved, the habit automatically resumes
+
+This means you don't need to manually pause/resume habits when blockers are involved.
 
 ## Viewing Blocked Intentions
 
@@ -64,6 +143,10 @@ rei intention blocked
 
 This helps you identify what's stuck and why.
 
-## Blockers in Daily View
+## Related Commands
 
-Blockers appear in `rei today` to remind you what's preventing progress on your intentions.
+- `rei intention blocked` — List all intentions with unresolved blockers
+- `rei intention show <id>` — Shows blockers for a specific intention
+- `rei habit show <id>` — Shows blockers for a specific habit
+- `rei habit pause` — Manually pause a habit (without a blocker)
+- `rei habit resume` — Manually resume a paused habit

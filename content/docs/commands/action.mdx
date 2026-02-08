@@ -8,6 +8,58 @@ Record actions taken toward intentions. Actions are the concrete steps and work 
 
 ## Subcommands
 
+### list
+
+List recorded actions with date range filtering.
+
+```bash
+rei action list [options]
+```
+
+**Date Filters (mutually exclusive):**
+- `-t, --today` — Show today's actions (default)
+- `-w, --week` — Show last 7 days
+- `-m, --month` — Show last 30 days
+- `--from DATE --to DATE` — Custom date range (YYYY-MM-DD format)
+
+**Scope Filters:**
+- `-i, --intention <id>` — Filter by intention ID
+
+**Output Options:**
+- `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+
+**Examples:**
+
+```bash
+# List today's actions (default)
+rei action list
+
+# List actions from the last week
+rei action list --week
+
+# List actions from the last month
+rei action list --month
+
+# List actions in a custom date range
+rei action list --from 2026-01-01 --to 2026-01-31
+
+# List actions for a specific intention
+rei action list --intention intention_01h455vb4pex
+
+# Output as JSON for scripting
+rei action list --week --format json
+
+# Output in FZF format (tab-separated)
+rei action list --format fzf
+```
+
+**Output Columns:**
+- Timestamp (in local timezone)
+- Description
+- Intention title (when not filtered by intention)
+- Duration (if recorded)
+- Polarity indicator (⚡, ≈, 🔻)
+
 ### record
 
 Record an action for an intention.
@@ -26,6 +78,7 @@ rei action record [description] [options]
 - `-t, --at <time>` — When action was completed (optional, defaults to now)
 - `-d, --duration <duration>` — How long the action took (optional)
 - `-p, --polarity <polarity>` — Energy impact (optional, see Polarity section below)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions. Press **Ctrl-F** to toggle between active intentions only and all intentions (including future). After selecting an intention, another picker will let you optionally select a habit (with a "Skip" option at the top). Use `--no-habit` to skip the habit selection prompt entirely.
 

@@ -44,7 +44,7 @@ If no config file is found, defaults are used.
 
 ### Example Config File
 
-Save as `~/.config/rei/config.yaml`:
+Save as `~/.config/rei/config.yaml` (global) or `./rei.yaml` (local):
 
 ```yaml title="~/.config/rei/config.yaml"
 workspace:
@@ -68,6 +68,66 @@ git:
 <Callout type="info">
 The `~` prefix is expanded to your home directory.
 </Callout>
+
+The local config (`./rei.yaml`) is useful for project-specific settings that override your global configuration.
+
+## Aliases
+
+Define short command aliases in your config file, similar to git aliases. Each alias maps a short name to a full command with arguments.
+
+```yaml title="rei.yaml"
+aliases:
+  tw: today -c work --no-intentions
+  i: intention
+  sh: intention show --full
+  ls: intention list --active
+  h: habit
+```
+
+With the above config, `rei tw` expands to `rei today -c work --no-intentions`. Additional arguments are appended, so `rei tw --verbose` becomes `rei today -c work --no-intentions --verbose`.
+
+**Rules:**
+- Built-in commands take precedence — an alias cannot shadow a built-in command name (e.g., `today`, `intention`)
+- No recursive expansion — aliases are expanded once, not recursively
+- First argument only — only the first CLI argument is checked for alias matches
+
+**Listing aliases:**
+
+```bash
+rei alias list    # Show all configured aliases
+rei alias         # Same as above (list is the default)
+```
+
+## Dashboard Panels
+
+Configure custom intention query panels that appear in the `rei today` command output. Each panel runs an independent query against the read model.
+
+```yaml title="rei.yaml"
+dashboard:
+  panels:
+    - label: "Kanban Board"
+      where: "workflow:exists"
+      group_by: "workflow"
+
+    - label: "In Development"
+      where: "version-phase=development"
+      context: "work"
+
+    - label: "Queue"
+      state_tag: "queue"
+      category: "projects"
+```
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `label` | Yes | Display name shown as the panel header |
+| `where` | No | Property filter expression (same syntax as `intention list --where`) |
+| `state_tag` | No | Filter by state machine system tag: `queue`, `active`, `done`, `terminal` |
+| `group_by` | No | Property key to group results by (sorted by state machine order when applicable) |
+| `context` | No | Limit to intentions within this context (cannot combine with `category`) |
+| `category` | No | Limit to intentions within this category slug (cannot combine with `context`) |
+
+For full details and examples, see the [Dashboard Panels Guide](/docs/guides/dashboard).
 
 ## Environment Variables
 

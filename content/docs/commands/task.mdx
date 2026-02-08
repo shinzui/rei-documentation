@@ -87,6 +87,7 @@ rei task complete <task-id> [options]
 
 **Options:**
 - `-c, --at <time>` — When the task was completed (defaults to now)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Time Expressions (--at):**
 
@@ -133,6 +134,7 @@ rei task abandon <task-id> [options]
 **Options:**
 - `-r, --reason <reason>` — Reason for abandoning (optional)
 - `-c, --at <time>` — When the task was abandoned (defaults to now)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Time Expressions (--at):**
 
@@ -162,11 +164,14 @@ rei task abandon task_01abc... --at yesterday --reason "Decided not to pursue"
 Reopen a completed or abandoned task.
 
 ```bash
-rei task reopen <task-id>
+rei task reopen <task-id> [options]
 ```
 
 **Arguments:**
 - `<task-id>` — Task ID (required)
+
+**Options:**
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Notes:**
 - Works on both completed and abandoned tasks
