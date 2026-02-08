@@ -29,6 +29,8 @@
 		"help",
 		"system",
 		"subscription",
+		"worker",
+		"periodic-check",
 		"workspace"
 	]
 }

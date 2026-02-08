@@ -1,0 +1,86 @@
+---
+title: rei worker
+description: Run background job workers for queue-based processing
+icon: Cog
+---
+
+Run background job workers for queue-based processing.
+
+## Overview
+
+The worker command runs background processors that consume messages from PGMQ queues. Workers handle tasks like git commits, dormancy evaluation, and reminder triggering.
+
+## Subcommands
+
+### all
+
+Run all queue workers in a single process.
+
+```bash
+rei worker all
+```
+
+This is the recommended way to run workers in production. It starts:
+- `workspace-git-sync` — Commits note files to git with batching and deduplication
+- `intention-dormancy` — Evaluates dormancy for intentions (triggered by pg_cron)
+- `reminder-trigger` — Triggers due reminders (triggered by pg_cron)
+
+### git-sync
+
+Run only the git sync worker.
+
+```bash
+rei worker git-sync
+```
+
+Useful for testing or when you only need git commit functionality.
+
+## Usage
+
+Workers should be run as a background process alongside the subscription workers:
+
+```bash
+# Run all workers (recommended for production)
+rei worker all &
+
+# Also run subscriptions (enqueues messages)
+rei subscription run all &
+```
+
+Or with a process manager like systemd:
+
+```ini
+[Unit]
+Description=Rei Worker
+After=network.target
+
+[Service]
+ExecStart=/path/to/rei worker all
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+## How It Works
+
+1. **Subscriptions** listen to event streams and enqueue messages to PGMQ queues
+2. **Workers** poll the queues and process messages
+3. Messages are batched with configurable delays for efficiency
+
+For example, the git sync flow:
+- `git-commit` subscription sees a `NoteCreated` event
+- It enqueues a message to the `workspace_git_sync` queue (with 30s delay)
+- The `git-sync` worker picks up the message and commits the file
+
+## Requirements
+
+- Database backend (PostgreSQL with PGMQ extension)
+- PGMQ extension must be installed
+- For periodic checks: pg_cron extension must be installed and configured
+
+## See Also
+
+- [`rei subscription`](/docs/commands/subscription) — Event stream subscriptions that enqueue work
+- [`rei periodic-check`](/docs/commands/periodic-check) — Manual triggering of periodic checks
+- [`rei workspace`](/docs/commands/workspace) — Git integration configuration

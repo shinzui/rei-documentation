@@ -6,6 +6,53 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-07
+
+### New Command: Background Workers
+
+Run background job workers that process messages from PGMQ queues:
+
+```bash
+# Run all workers (recommended for production)
+rei worker all
+
+# Run only the git sync worker
+rei worker git-sync
+```
+
+Workers handle:
+- `workspace-git-sync` — Commits note files to git with batching and deduplication
+- `intention-dormancy` — Evaluates dormancy for intentions (triggered by pg_cron)
+- `reminder-trigger` — Triggers due reminders (triggered by pg_cron)
+
+See [`rei worker`](/docs/commands/worker) for full documentation.
+
+### New Command: Periodic Checks
+
+Manage automated periodic checks scheduled via pg_cron:
+
+```bash
+# Manually trigger dormancy evaluation
+rei periodic-check enqueue dormancy
+
+# Trigger reminder check
+rei periodic-check enqueue reminder
+
+# View pg_cron job status
+rei periodic-check status
+
+# View execution history
+rei periodic-check history
+```
+
+Periodic checks automate:
+- **Dormancy evaluation** — Marks inactive intentions as dormant (daily at 7 AM)
+- **Reminder triggering** — Triggers due reminders (every 5 minutes)
+
+See [`rei periodic-check`](/docs/commands/periodic-check) for full documentation.
+
+---
+
 ## 2026-02-06
 
 ### New Feature: LabelSet Property Type

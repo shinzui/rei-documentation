@@ -5,11 +5,27 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `6cf8088` (2026-02-06)
+**Last Source Commit Reviewed:** `425509f` (2026-02-07)
 
 ---
 
 ## Changelog
+
+### 2026-02-07
+
+**Reviewed commits:** `6cf8088` through `425509f`
+
+**Files created:**
+- `commands/worker.mdx` — **NEW** — Background job workers for queue-based processing
+- `commands/periodic-check.mdx` — **NEW** — Periodic checks for automated dormancy evaluation and reminder triggering
+
+**Features documented:**
+- Worker command (`rei worker all`, `rei worker git-sync`) — Background processors for PGMQ queues
+- Periodic check command (`rei periodic-check enqueue`, `status`, `history`) — Manual triggering and monitoring of automated checks
+- Queue-based architecture with workspace-git-sync, intention-dormancy, and reminder-trigger workers
+- pg_cron integration for scheduled dormancy evaluation and reminder triggering
+
+---
 
 ### 2026-02-06
 

@@ -1,0 +1,105 @@
+---
+title: rei periodic-check
+description: Manage periodic checks for automated dormancy evaluation and reminder triggering
+icon: Clock
+---
+
+Manage periodic checks for automated dormancy evaluation and reminder triggering.
+
+## Overview
+
+Periodic checks are automated operations scheduled via pg_cron:
+- **Dormancy evaluation** — Marks inactive intentions as dormant (daily at 7 AM)
+- **Reminder triggering** — Triggers due reminders (every 5 minutes)
+
+This command allows manual triggering and monitoring of these automated checks.
+
+## Subcommands
+
+### enqueue
+
+Manually enqueue a periodic check for immediate processing.
+
+```bash
+rei periodic-check enqueue <target>
+```
+
+**Targets:**
+- `dormancy` — Enqueue dormancy evaluation check
+- `reminder` — Enqueue reminder trigger check
+- `all` — Enqueue all periodic checks
+
+**Examples:**
+
+```bash
+# Trigger dormancy evaluation now (normally runs daily at 7 AM)
+rei periodic-check enqueue dormancy
+
+# Trigger reminder check now (normally runs every 5 minutes)
+rei periodic-check enqueue reminder
+
+# Trigger all periodic checks
+rei periodic-check enqueue all
+```
+
+Useful for:
+- Testing the periodic check system
+- Forcing an immediate check when you know something changed
+- Debugging check behavior
+
+### status
+
+Show the status of pg_cron scheduled jobs.
+
+```bash
+rei periodic-check status
+```
+
+Displays:
+- Job name and schedule (cron expression)
+- Active/inactive status
+- Last run time and result
+
+### history
+
+Show recent execution history for periodic checks.
+
+```bash
+rei periodic-check history
+```
+
+Displays:
+- Recent check executions with timestamps
+- Source (pg_cron scheduled vs manual enqueue)
+- Results and any errors
+
+## How It Works
+
+1. **pg_cron** schedules messages to be enqueued at configured intervals
+2. Messages are placed in **module-owned PGMQ queues**:
+   - `intention_dormancy` queue for dormancy checks
+   - `reminder_triggers` queue for reminder checks
+3. **Workers** (`rei worker all`) process the messages
+
+```
+pg_cron schedule → PGMQ queue → Worker → Check logic
+```
+
+## Schedule
+
+| Check | Schedule | Queue |
+|-------|----------|-------|
+| Dormancy | `0 7 * * *` (daily 7 AM) | `intention_dormancy` |
+| Reminder | `*/5 * * * *` (every 5 min) | `reminder_triggers` |
+
+## Requirements
+
+- PostgreSQL with pg_cron extension installed
+- pg_cron scheduled jobs created (via migrations)
+- Worker running to process queued checks (`rei worker all`)
+
+## See Also
+
+- [`rei worker`](/docs/commands/worker) — Background job workers that process checks
+- [`rei system`](/docs/commands/system) — Manual dormancy evaluation with `evaluate-dormancy`
+- [`rei reminder`](/docs/commands/reminder) — Reminder management including `check` command
