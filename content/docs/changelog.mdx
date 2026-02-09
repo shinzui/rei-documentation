@@ -6,6 +6,45 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-08
+
+### New Feature: Intention Views
+
+Create reusable, multi-section views for displaying intentions and related entities:
+
+```bash
+# Create a view from YAML configuration
+rei view create project-overview --from-file project.yaml
+
+# Execute a view
+rei view exec project-overview
+
+# Execute a view scoped to an intention
+rei view exec project-overview --scope int_01abc...
+
+# Execute via intention command
+rei intention view int_01abc... project-overview
+```
+
+**Key features:**
+- Multi-section layouts (children + notes + tasks in one view)
+- Grouping by custom properties (state machines, enums)
+- Flexible filtering (status, dormancy, state tags, properties)
+- Recursive queries on descendants at any depth
+
+**View commands:**
+- `rei view create` — Create a view from YAML
+- `rei view list` — List all views
+- `rei view show` — Show view definition
+- `rei view exec` — Execute a view
+- `rei view update` — Update from YAML
+- `rei view export` — Export to YAML
+- `rei view archive` / `restore` — Archive management
+
+See [`rei view`](/docs/commands/view) and the [Views Guide](/docs/guides/views) for complete documentation.
+
+---
+
 ## 2026-02-07
 
 ### New Command: Background Workers

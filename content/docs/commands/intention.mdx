@@ -829,6 +829,38 @@ rei intention tracker -d 180 --style heatmap --include-children
 - `--include-children` recursively includes actions from all descendant intentions
 - Useful for visualizing work patterns and maintaining consistency
 
+### view
+
+Execute a view scoped to an intention. Views provide reusable, multi-section configurations for displaying intentions and related entities.
+
+```bash
+rei intention view [INTENTION_ID] [VIEW_NAME]
+```
+
+**Arguments:**
+- `INTENTION_ID` — Intention ID (optional, uses FZF selection if not provided)
+- `VIEW_NAME` — View name (optional, uses FZF selection if not provided)
+
+> **FZF Support:** If arguments are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select the intention and view.
+
+**Examples:**
+
+```bash
+# Execute a view on an intention with explicit IDs
+rei intention view int_01abc123 project-review
+
+# Let fzf pick both the intention and view
+rei intention view
+
+# Let fzf pick just the view
+rei intention view int_01abc123
+```
+
+**Notes:**
+- Views are created using `rei view create` from YAML configuration files
+- See [`rei view`](/docs/commands/view) for view management commands
+- See the [Views Guide](/docs/guides/views) for YAML configuration details
+
 ### set-property
 
 Set a custom property on an intention.

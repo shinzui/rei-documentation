@@ -5,6 +5,7 @@
 		"custom-properties",
 		"state-machines",
 		"dashboard",
+		"views",
 		"time-formats"
 	]
 }

@@ -1,0 +1,332 @@
+---
+title: Intention Views
+description: Configure reusable multi-section views for displaying intentions and related entities
+icon: LayoutDashboard
+---
+
+Intention views provide reusable, multi-section configurations for displaying intentions and related entities. Each view defines sections that query children, descendants, notes, tasks, or actions with optional filtering, grouping, and ordering.
+
+## Overview
+
+Views are first-class entities that define how to display intention data. Unlike the fixed `--full` display, views let you configure exactly what data to show and how to organize it.
+
+**Key features:**
+- Multi-section layouts (e.g., children + notes + tasks in one view)
+- Grouping by custom properties (state machines, enums, etc.)
+- Recursive queries on descendants at any depth
+- Configurable metadata display per section
+- Reusable across different intentions
+
+**Example workflow:**
+1. Create a view from a YAML file
+2. Execute the view on any intention
+3. See organized, grouped output
+
+## Creating Views
+
+Create from a YAML file:
+
+```bash
+rei view create project-overview --from-file project.yaml
+```
+
+Create with description:
+
+```bash
+rei view create daily-planning \
+  --from-file daily.yaml \
+  -d "Daily planning dashboard"
+```
+
+## YAML Configuration
+
+Views are defined using YAML files with sections:
+
+```yaml
+sections:
+  - label: "Active Children"
+    target: children
+    filters:
+      - type: status
+        value: active
+    groupBy: priority
+    orderBy: created_at
+    limit: 10
+    hideIfEmpty: true
+
+  - label: "Recent Notes"
+    target: notes
+    limit: 5
+
+showDormant: false
+```
+
+## Section Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `label` | string | Required. Display name for the section header |
+| `target` | string | Required. What to query (see Target Types below) |
+| `filters` | array | Optional. Array of filter conditions |
+| `groupBy` | string | Optional. Property key to group results by |
+| `orderBy` | string | Optional. Field to order by: `created_at`, `title`, `deadline`, `active_days` |
+| `limit` | integer | Optional. Maximum number of results in this section |
+| `hideIfEmpty` | boolean | Optional. If true, hides section when no results |
+
+### Target Types
+
+| Target | Description |
+|--------|-------------|
+| `self` | The scoped intention itself |
+| `children` | Direct children only |
+| `descendants` | All descendants at any depth |
+| `descendants:N` | Descendants up to depth N |
+| `notes` | Notes on the scope intention |
+| `tasks` | Tasks under the scope |
+| `actions` | Actions recorded on the scope |
+
+### Grouping
+
+When `groupBy` is set, results are organized under sub-headers by property value. Groups follow property order (state machine `stateOrder` for state machines).
+
+## Filters
+
+### Status Filter
+
+Filter by intention status:
+
+```yaml
+- type: status
+  value: active    # active, future, completed, abandoned
+```
+
+### Dormancy Filter
+
+Control dormant intention inclusion:
+
+```yaml
+- type: dormancy
+  value: exclude   # include, exclude, only
+```
+
+### State Tag Filter
+
+Filter by state machine system tag:
+
+```yaml
+- type: state_tag
+  property: workflow
+  tag: active      # queue, active, done, terminal
+```
+
+### Property Filter
+
+Filter by custom property value:
+
+```yaml
+- type: property
+  property: priority
+  operator: eq     # exists, not_exists, eq, neq, contains
+  value: high
+```
+
+**Property filter operators:**
+
+| Operator | Description |
+|----------|-------------|
+| `exists` | Property exists |
+| `not_exists` | Property does not exist |
+| `eq` | Equals value |
+| `neq` | Not equals value |
+| `contains` | Contains text |
+
+## Executing Views
+
+Execute a view (global scope):
+
+```bash
+rei view exec my-view
+```
+
+Execute scoped to an intention:
+
+```bash
+rei view exec project-overview --scope int_01abc...
+```
+
+Execute via intention command (FZF selection):
+
+```bash
+rei intention view
+```
+
+Execute with explicit IDs:
+
+```bash
+rei intention view int_01abc... project-overview
+```
+
+## Managing Views
+
+List all views:
+
+```bash
+rei view list
+```
+
+Include archived views:
+
+```bash
+rei view list --include-archived
+```
+
+Show view definition:
+
+```bash
+rei view show my-view
+```
+
+Update from YAML file:
+
+```bash
+rei view update my-view --from-file updated.yaml
+```
+
+Export view to YAML:
+
+```bash
+rei view export my-view > my-view.yaml
+```
+
+Archive a view:
+
+```bash
+rei view archive old-view
+```
+
+Restore archived view:
+
+```bash
+rei view restore old-view
+```
+
+## Example: Daily Planning View
+
+```yaml
+sections:
+  - label: "Today's Focus"
+    target: children
+    filters:
+      - type: status
+        value: active
+      - type: dormancy
+        value: exclude
+    orderBy: created_at
+    limit: 5
+
+  - label: "Blocked"
+    target: descendants
+    filters:
+      - type: state_tag
+        property: workflow
+        tag: blocked
+    hideIfEmpty: true
+
+  - label: "Upcoming"
+    target: children
+    filters:
+      - type: status
+        value: future
+    limit: 3
+
+showDormant: false
+```
+
+## Example: Project Review View
+
+```yaml
+sections:
+  - label: "Project Overview"
+    target: self
+
+  - label: "Active Work"
+    target: children
+    filters:
+      - type: status
+        value: active
+    groupBy: version-phase
+
+  - label: "Recent Notes"
+    target: notes
+    limit: 10
+
+showDormant: false
+```
+
+## Example: Kanban Board View
+
+```yaml
+sections:
+  - label: "Work Items"
+    target: descendants:2
+    filters:
+      - type: property
+        property: workflow
+        operator: exists
+    groupBy: workflow
+
+showDormant: false
+```
+
+## Output
+
+View output shows sections with optional grouping:
+
+```
+View: project-overview
+  Project planning dashboard
+
+## Active Children (5)
+
+  [*] Implement user auth (int_01ab...)
+  [*] Review documentation (int_01cd...)
+  [*] Fix database migration (int_01ef...)
+
+## Blocked (grouped by workflow)
+
+  ### blocked (1)
+    [*] Deploy to staging (int_01gh...)
+
+## Recent Notes
+
+  (notes listed here)
+```
+
+## View Names
+
+View names must be:
+- Unique (case-insensitive)
+- Valid identifiers (lowercase, hyphens/underscores, no spaces)
+
+Examples: `daily-planning`, `project_review`, `quarterly-okrs`
+
+## View Commands
+
+| Command | Description |
+|---------|-------------|
+| `view create` | Create a new view from YAML |
+| `view list` | List all views |
+| `view show` | Show view definition |
+| `view exec` | Execute a view and display results |
+| `view update` | Update view configuration from YAML |
+| `view export` | Export view configuration to YAML |
+| `view archive` | Archive a view |
+| `view restore` | Restore an archived view |
+
+## Related
+
+- [Custom Properties Guide](/docs/guides/custom-properties) — Property grouping and filtering
+- [State Machine Properties Guide](/docs/guides/state-machines) — State machine configuration
+- [Dashboard Panels Guide](/docs/guides/dashboard) — Config-based dashboard panels
+- [`rei view`](/docs/commands/view) — View command reference
+- [`rei intention`](/docs/commands/intention) — Intention command reference

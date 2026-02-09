@@ -1,0 +1,324 @@
+---
+title: rei view
+description: Manage reusable multi-section views for displaying intentions
+icon: LayoutDashboard
+---
+
+Views provide reusable, multi-section configurations for displaying intentions and their related entities. Each view defines sections that query children, descendants, notes, tasks, or actions with optional filtering, grouping, and ordering.
+
+## Overview
+
+Views are configured via YAML files and can be executed with an optional scope (an intention to focus on). This enables custom dashboards for different contexts like "daily planning", "project review", or "quarterly OKRs".
+
+```bash
+# Create a view from a YAML config file
+rei view create my-planning-view --from-file planning.yaml
+
+# List all views
+rei view list
+
+# Execute a view
+rei view exec my-planning-view
+
+# Execute a view scoped to a specific intention
+rei view exec my-planning-view --scope int_01abc...
+
+# Execute a view on an intention
+rei intention view int_01abc my-planning-view
+```
+
+## Subcommands
+
+### create
+
+Create a new view from a YAML configuration file.
+
+```bash
+rei view create NAME --from-file FILE [options]
+```
+
+**Arguments:**
+- `NAME` — Name of the view
+
+**Options:**
+- `-f, --from-file FILE` — Path to YAML configuration file (required)
+- `-d, --description DESC` — Description of the view
+
+**Examples:**
+
+```bash
+# Create a simple view
+rei view create daily-planning --from-file daily.yaml -d "Daily planning dashboard"
+
+# Create a project review view
+rei view create project-review --from-file review.yaml
+```
+
+**Output:**
+```
+Created view: daily-planning
+  ID: int_view_01abc123...
+  Sections: 3
+```
+
+### list
+
+List all views.
+
+```bash
+rei view list [options]
+```
+
+**Options:**
+- `-a, --include-archived` — Include archived views
+
+**Examples:**
+
+```bash
+# List active views
+rei view list
+
+# List all views including archived
+rei view list --include-archived
+```
+
+**Output:**
+```
+Views (3):
+
+  [*] daily-planning (3 sections)
+  [*] project-review (2 sections)
+  [*] quarterly-okrs (4 sections)
+```
+
+### show
+
+Show details of a specific view.
+
+```bash
+rei view show [NAME]
+```
+
+**Arguments:**
+- `NAME` — View name (optional, uses FZF selection if not provided)
+
+**Examples:**
+
+```bash
+# Show view details
+rei view show daily-planning
+
+# Interactive selection via FZF
+rei view show
+```
+
+**Output:**
+```
+View: daily-planning
+  ID: int_view_01abc123...
+  Description: Daily planning dashboard
+  Status: Active
+  Created: 2026-02-08 10:00
+
+Sections:
+  1. Active Children
+     Target: children
+  2. Blocked Items
+     Target: descendants
+  3. Recent Notes
+     Target: notes
+```
+
+### exec
+
+Execute a view and display results.
+
+```bash
+rei view exec [NAME] [options]
+```
+
+**Arguments:**
+- `NAME` — View name (optional, uses FZF selection if not provided)
+
+**Options:**
+- `-s, --scope INTENTION_ID` — Scope the view to a specific intention
+
+**Examples:**
+
+```bash
+# Execute a view
+rei view exec daily-planning
+
+# Execute scoped to an intention
+rei view exec project-review --scope int_01abc123...
+
+# Interactive selection via FZF
+rei view exec
+```
+
+**Output:**
+```
+View: daily-planning
+  Daily planning dashboard
+
+## Active Children (5)
+
+  [*] Implement user auth (int_01ab...)
+  [*] Review documentation (int_01cd...)
+  [*] Fix database migration (int_01ef...)
+  [*] Update tests (int_01gh...)
+  [-] Deploy to staging (int_01ij...)
+
+## Blocked Items (1)
+
+  [*] API integration (int_01kl...)
+
+## Recent Notes (3)
+
+  (notes would be listed here)
+```
+
+### update
+
+Update a view's configuration from a YAML file.
+
+```bash
+rei view update NAME --from-file FILE
+```
+
+**Arguments:**
+- `NAME` — View name
+
+**Options:**
+- `-f, --from-file FILE` — Path to YAML configuration file (required)
+
+**Examples:**
+
+```bash
+# Update view configuration
+rei view update daily-planning --from-file daily-v2.yaml
+```
+
+### export
+
+Export a view's configuration to YAML.
+
+```bash
+rei view export [NAME]
+```
+
+**Arguments:**
+- `NAME` — View name (optional, uses FZF selection if not provided)
+
+**Examples:**
+
+```bash
+# Export view configuration to stdout
+rei view export daily-planning > daily.yaml
+
+# Interactive selection
+rei view export
+```
+
+### archive
+
+Archive a view.
+
+```bash
+rei view archive NAME
+```
+
+**Arguments:**
+- `NAME` — View name
+
+**Examples:**
+
+```bash
+rei view archive old-dashboard
+```
+
+### restore
+
+Restore an archived view.
+
+```bash
+rei view restore NAME
+```
+
+**Arguments:**
+- `NAME` — View name
+
+**Examples:**
+
+```bash
+rei view restore old-dashboard
+```
+
+## YAML Configuration
+
+Views are defined using YAML configuration files. See [`rei help views`](/docs/guides/views) for the complete configuration reference.
+
+**Basic structure:**
+
+```yaml
+sections:
+  - label: "Active Children"
+    target: children
+    filters:
+      - type: status
+        value: active
+    groupBy: priority
+    orderBy: created_at
+    limit: 10
+    hideIfEmpty: true
+
+  - label: "All Descendants"
+    target: descendants
+    filters:
+      - type: dormancy
+        value: exclude
+
+showDormant: false
+```
+
+### Section Configuration
+
+Each section has the following properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `label` | string | Display name for the section |
+| `target` | string | What to query: `self`, `children`, `descendants`, `descendants:N`, `notes`, `tasks`, `actions` |
+| `filters` | array | Optional filters to apply |
+| `groupBy` | string | Optional property to group results by |
+| `orderBy` | string | Optional field to order by |
+| `limit` | integer | Optional limit on results |
+| `hideIfEmpty` | boolean | Whether to hide section when empty |
+
+## Intention View Integration
+
+Views can also be executed via the `intention view` command, which scopes the view to a specific intention.
+
+```bash
+rei intention view [INTENTION_ID] [VIEW_NAME]
+```
+
+**Arguments:**
+- `INTENTION_ID` — Intention ID (optional, uses FZF selection if not provided)
+- `VIEW_NAME` — View name (optional, uses FZF selection if not provided)
+
+**Examples:**
+
+```bash
+# Execute with explicit IDs
+rei intention view int_01abc123 project-review
+
+# Interactive selection of both
+rei intention view
+```
+
+## See Also
+
+- [`rei help views`](/docs/guides/views) — Complete view configuration reference
+- [`rei intention`](/docs/commands/intention) — Manage intentions
+- [`rei custom-property`](/docs/commands/custom-property) — Define custom properties for filtering/grouping

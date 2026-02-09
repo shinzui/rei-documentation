@@ -5,11 +5,39 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `425509f` (2026-02-07)
+**Last Source Commit Reviewed:** `8da03d7` (2026-02-08)
 
 ---
 
 ## Changelog
+
+### 2026-02-08
+
+**Reviewed commits:** `425509f` through `8da03d7`
+
+**Files created:**
+- `commands/view.mdx` — **NEW** — Reusable multi-section views for displaying intentions
+- `guides/views.mdx` — **NEW** — Complete views configuration guide (from help topic)
+
+**Files updated:**
+- `commands/intention.mdx` — Added `view` subcommand for executing views on intentions
+- `commands/help.mdx` — Added `views` to available help topics
+- `commands/index.mdx` — Added `view` to Organization Commands
+- `guides/meta.json` — Added views to navigation
+- `commands/meta.json` — Added view to navigation
+
+**Help topics synced:**
+- `rei-cli/help/views.md` — **NEW** — Intention views configuration and usage
+
+**Features documented:**
+- Intention views (`rei view create`, `list`, `show`, `exec`, `update`, `export`, `archive`, `restore`)
+- View YAML configuration with sections, targets, filters, grouping, and ordering
+- Filter types: status, dormancy, state_tag, property
+- Target types: self, children, descendants, descendants:N, notes, tasks, actions
+- `rei intention view` command for scoped view execution
+- Views help topic (`rei help views`)
+
+---
 
 ### 2026-02-07
 
