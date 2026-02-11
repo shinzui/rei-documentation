@@ -16,13 +16,13 @@
 	},
 	"dependencies": {
 		"@orama/orama": "^3.1.18",
-		"@tanstack/react-router": "1.157.16",
-		"@tanstack/react-router-devtools": "1.157.16",
-		"@tanstack/react-start": "1.157.16",
-		"@tanstack/start-static-server-functions": "1.157.16",
-		"fumadocs-core": "^16.4.10",
-		"fumadocs-mdx": "^14.2.6",
-		"fumadocs-ui": "^16.4.10",
+		"@tanstack/react-router": "1.159.5",
+		"@tanstack/react-router-devtools": "1.159.5",
+		"@tanstack/react-start": "1.159.5",
+		"@tanstack/start-static-server-functions": "1.159.5",
+		"fumadocs-core": "^16.5.4",
+		"fumadocs-mdx": "^14.2.7",
+		"fumadocs-ui": "^16.5.4",
 		"lucide-react": "^0.563.0",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
@@ -30,17 +30,17 @@
 		"vite": "^7.3.1"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.3.13",
+		"@biomejs/biome": "^2.3.14",
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/mdx": "^2.0.13",
-		"@types/node": "^25.1.0",
-		"@types/react": "^19.2.10",
+		"@types/node": "^25.2.3",
+		"@types/react": "^19.2.13",
 		"@types/react-dom": "^19.2.3",
-		"@vitejs/plugin-react": "^5.1.2",
-		"oxlint": "^1.42.0",
+		"@vitejs/plugin-react": "^5.1.4",
+		"oxlint": "^1.46.0",
 		"serve": "^14.2.5",
 		"tailwindcss": "^4.1.18",
 		"typescript": "^5.9.3",
-		"vite-tsconfig-paths": "^6.0.5"
+		"vite-tsconfig-paths": "^6.1.0"
 	}
 }
