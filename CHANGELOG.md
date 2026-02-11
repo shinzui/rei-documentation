@@ -5,11 +5,36 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `8da03d7` (2026-02-08)
+**Last Source Commit Reviewed:** `f26ba4a` (2026-02-10)
 
 ---
 
 ## Changelog
+
+### 2026-02-10
+
+**Reviewed commits:** `8da03d7` through `f26ba4a`
+
+**Files updated:**
+- `guides/custom-properties.mdx` — Added `note` value type and note reference property creation example
+- `guides/views.mdx` — Added `showProperties` and `excludeProperties` section options, Property Display section, updated Output example with properties
+- `commands/action.mdx` — Added FZF support to `list --intention` and interactive example
+- `commands/custom-property.mdx` — Added `note` value type, `--type-note` flag, note reference creation example
+- `commands/intention.mdx` — Added `--where` flag to tree command with examples and output behavior
+- `commands/note.mdx` — Added `--include-descendants` flag to list command with example
+
+**Help topics synced:**
+- `rei-cli/help/custom-properties.md` — Added `note` value type and creation example
+- `rei-cli/help/views.md` — Added `showProperties`, `excludeProperties`, and Property Display section
+
+**Features documented:**
+- Note value type for custom properties (`--type-note`)
+- View property display (`showProperties`, `excludeProperties`)
+- Intention tree property filtering (`--where` flag)
+- Note list descendant category inclusion (`--include-descendants`)
+- Action list FZF intention selection
+
+---
 
 ### 2026-02-08
 

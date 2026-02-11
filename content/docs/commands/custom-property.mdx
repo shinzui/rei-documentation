@@ -36,6 +36,7 @@ Custom properties support the following value types:
 | `datetime` | Date and time | deadline |
 | `path` | File path | reference file |
 | `url` | URL | documentation link |
+| `note` | Reference to a note entity | spec note, next action note |
 
 ## State Machine YAML Format
 
@@ -229,6 +230,8 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
   - `--allowed-schemes <s1,s2,...>` — Comma-separated allowed schemes
   - `--allowed-hosts <h1,h2,...>` — Comma-separated allowed hosts
 
+- `--type-note` — Note reference type (value is a note ID)
+
 **Examples:**
 
 ```bash
@@ -258,6 +261,11 @@ rei custom-property create areas \
 # Create a state machine property from YAML config
 rei custom-property create task-state \
   --type-state-machine --from-file task-states.yaml \
+  -e intention
+
+# Create a note reference property for cross-referencing
+rei custom-property create spec \
+  --type-note \
   -e intention
 
 # Create a text property scoped to a category

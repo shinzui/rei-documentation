@@ -72,6 +72,8 @@ showDormant: false
 | `orderBy` | string | Optional. Field to order by: `created_at`, `title`, `deadline`, `active_days` |
 | `limit` | integer | Optional. Maximum number of results in this section |
 | `hideIfEmpty` | boolean | Optional. If true, hides section when no results |
+| `showProperties` | mixed | Optional. Display custom properties inline under each entity (see Property Display) |
+| `excludeProperties` | array | Optional. Property keys to exclude when using `showProperties: all` |
 
 ### Target Types
 
@@ -88,6 +90,60 @@ showDormant: false
 ### Grouping
 
 When `groupBy` is set, results are organized under sub-headers by property value. Groups follow property order (state machine `stateOrder` for state machines).
+
+## Property Display
+
+Sections can display custom properties inline under each entity using `showProperties`.
+
+**Values:**
+
+| Value | Description |
+|-------|-------------|
+| `true` or `all` | Show all properties |
+| `false` | Don't show properties (default) |
+| `[key1, key2]` | Show specific properties in order |
+
+Use `excludeProperties` to hide specific keys when using `showProperties: all`. Ignored for specific property lists.
+
+### Show All Properties
+
+```yaml
+sections:
+  - label: "Active Work"
+    target: children
+    showProperties: all
+```
+
+### Show Specific Properties
+
+```yaml
+sections:
+  - label: "Priority View"
+    target: children
+    showProperties: [priority, status, owner]
+```
+
+### Exclude Certain Properties
+
+```yaml
+sections:
+  - label: "User-facing View"
+    target: children
+    showProperties: all
+    excludeProperties: [internal_id, debug_flag]
+```
+
+Properties are displayed inline under each entity:
+
+```
+## Active Work (2)
+
+  [*] Implement auth (intentio...)
+      priority: high
+      status: in-progress
+  [*] Review docs (intentio...)
+      priority: medium
+```
 
 ## Filters
 
@@ -280,7 +336,7 @@ showDormant: false
 
 ## Output
 
-View output shows sections with optional grouping:
+View output shows sections with optional grouping and properties:
 
 ```
 View: project-overview
@@ -289,13 +345,18 @@ View: project-overview
 ## Active Children (5)
 
   [*] Implement user auth (int_01ab...)
+      priority: high
+      status: in-progress
   [*] Review documentation (int_01cd...)
+      priority: medium
   [*] Fix database migration (int_01ef...)
 
 ## Blocked (grouped by workflow)
 
   ### blocked (1)
     [*] Deploy to staging (int_01gh...)
+        priority: high
+        blocked-by: infra team
 
 ## Recent Notes
 

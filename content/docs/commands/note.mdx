@@ -129,6 +129,7 @@ rei note list [options]
 - `-h, --habit <id>` — Filter by habit
 - `-t, --tag <tag>` — Filter by tag
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
+- `-d, --include-descendants` — Include notes from descendant categories (use with `-c`)
 - `--json` — Output as JSON (for scripting)
 
 > **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
@@ -163,6 +164,9 @@ rei note list
 
 # List notes by category (e.g., daily journal notes)
 rei note list --category system/journal
+
+# List notes from a category and all its subcategories
+rei note list --category work --include-descendants
 
 # Output as JSON (for scripting)
 rei note list --json

@@ -6,6 +6,43 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-10
+
+### New Feature: Note Value Type for Custom Properties
+
+A new `note` value type allows creating custom properties that reference note entities:
+
+```bash
+rei custom-property create spec --type-note -e intention
+```
+
+Use note references to cross-link specs, next actions, or other structured note relationships on intentions.
+
+### New Feature: View Property Display
+
+View sections can now display custom properties inline under each entity:
+
+```yaml
+sections:
+  - label: "Active Work"
+    target: children
+    showProperties: all              # Show all properties
+  - label: "Priority View"
+    target: children
+    showProperties: [priority, status]  # Show specific properties
+    excludeProperties: [internal_id]    # Exclude when using 'all'
+```
+
+Properties appear inline under each entity in view output.
+
+### Feature Enhancements
+
+- **`rei intention tree --where`** — Highlight intentions matching a property filter in the tree view. Matching intentions are displayed in bold, non-matching ones are dimmed.
+- **`rei note list --include-descendants`** (`-d`) — When filtering by category, include notes from all descendant categories
+- **`rei action list`** — FZF support for intention selection when `-i` is omitted
+
+---
+
 ## 2026-02-08
 
 ### New Feature: Intention Views

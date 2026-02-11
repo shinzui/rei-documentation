@@ -250,6 +250,7 @@ rei intention tree [options]
 - `-a, --all` — Show both active and future intentions with status indicators
 - `--completed` — Show completed intentions with their parent chains
 - `-c, --context <context>` — Filter by context
+- `-w, --where <filter>` — Highlight intentions matching a property filter (same syntax as `list --where`)
 - `--tui` — Launch interactive TUI for browsing the hierarchy
 
 **Examples:**
@@ -273,6 +274,16 @@ rei intention tree --context work
 # Combine flags
 rei intention tree --future --context personal
 
+# Highlight intentions with a specific property value
+rei intention tree --where priority=high
+
+# Highlight intentions that have any priority set
+rei intention tree --where priority:exists
+
+# Combine with other flags
+rei intention tree --all --where effort>=5
+rei intention tree --context work --where status:active=started
+
 # Launch interactive TUI
 rei intention tree --tui
 ```
@@ -282,6 +293,7 @@ rei intention tree --tui
 - `--future` shows future intentions with their active parent chains (future items highlighted in cyan)
 - `--completed` shows completed intentions with their parent chains (completed items highlighted in green)
 - `--all` shows active and future together, with `(future)` indicators on deferred items
+- `--where` shows the full tree with matching intentions in bold and non-matching ones dimmed (grayed out). If no intentions match, a message is displayed instead. Works with all tree modes and can be combined with `--context`.
 
 **Interactive TUI Mode:**
 

@@ -36,6 +36,7 @@ Property keys cannot be changed after creation. Use the label for display.
 | `datetime` | Date and time |
 | `path` | File path |
 | `url` | URL |
+| `note` | Reference to a note entity |
 
 ## Creating Properties
 
@@ -69,6 +70,14 @@ rei custom-property create areas \
 ```bash
 rei custom-property create workflow \
   --type-state-machine --from-file kanban.yaml \
+  -e intention
+```
+
+### Note Reference Property
+
+```bash
+rei custom-property create spec \
+  --type-note \
   -e intention
 ```
 
