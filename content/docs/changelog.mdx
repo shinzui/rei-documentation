@@ -6,6 +6,46 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-11
+
+### New Feature: State Machine Required Property Rules
+
+States can now require specific property values before allowing transitions. This enables checklist-gated workflows where prerequisites must be met before advancing:
+
+```bash
+# Require deploy-ready=true before entering production
+rei custom-property add-state-rule workflow \
+  --state production --require deploy-ready=true
+
+# Remove a rule
+rei custom-property remove-state-rule workflow \
+  --state production --property deploy-ready
+```
+
+When adding a rule with a boolean value, if the referenced property doesn't exist, it is automatically created as a boolean property.
+
+### New Feature: Task Completion Links
+
+Boolean properties can be automatically set based on task completion in linked notes:
+
+```bash
+# Link note tasks to a boolean property
+rei intention link-tasks -i <id> \
+  --note <note-id> --property deploy-ready
+
+# Remove the link
+rei intention unlink-tasks -i <id> \
+  --note <note-id> --property deploy-ready
+```
+
+When all tasks in the linked note are complete, the property is set to `true`. When any task is reopened, it reverts to `false`. Combined with state rules, this enables checklist-gated workflow transitions.
+
+### Feature Enhancements
+
+- **`rei intention show --full`** — Now displays category slug in intention details
+
+---
+
 ## 2026-02-10
 
 ### New Feature: Note Value Type for Custom Properties

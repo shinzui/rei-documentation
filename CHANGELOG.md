@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f26ba4a` (2026-02-10)
+**Last Source Commit Reviewed:** `f0d6c15` (2026-02-11)
 
 ---
 
 ## Changelog
+
+### 2026-02-11
+
+**Reviewed commits:** `f26ba4a` through `f0d6c15`
+
+**Files updated:**
+- `guides/state-machines.mdx` — Added State Rules section, Task Completion Links section, state rules in overview and command summary
+- `commands/custom-property.mdx` — Added State Rules section with auto-create behavior
+- `commands/intention.mdx` — Added `link-tasks` and `unlink-tasks` commands, added category to `show --full` includes
+
+**Help topics synced:**
+- `rei-cli/help/state-machines.md` — Added state rules, task completion links, auto-create bool properties, commands summary updates
+
+**Features documented:**
+- State machine required property rules (`add-state-rule`, `remove-state-rule`)
+- Auto-creation of boolean properties in `add-state-rule`
+- Task completion links (`intention link-tasks`, `intention unlink-tasks`)
+- Checklist-gated workflow pattern
+- Category display in `intention show --full`
+
+---
 
 ### 2026-02-10
 

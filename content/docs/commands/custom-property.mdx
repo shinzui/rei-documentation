@@ -883,6 +883,18 @@ rei custom-property relabel workflow "Work Pipeline" --category work
 - **Category-scoped** — key + category combination must be unique
 - The same key CAN exist in different categories
 
+## State Rules
+
+State rules require specific property values before an entity can transition into a state. See the [State Machine Properties Guide](/docs/guides/state-machines) for full documentation.
+
+**Key behavior:** When adding a state rule with a boolean value (e.g., `--require deploy-ready=true`), if the referenced property doesn't exist, it is automatically created as a boolean property inheriting the state machine's scope. This eliminates the need to manually create boolean gate properties.
+
+```bash
+# This auto-creates "deploy-ready" as a bool property if it doesn't exist
+rei custom-property add-state-rule workflow \
+  --state production --require deploy-ready=true
+```
+
 ## Related Commands
 
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions

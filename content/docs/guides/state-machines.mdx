@@ -17,6 +17,7 @@ A state machine property defines:
 | **initial state** | Starting state for new assignments |
 | **tags** | Semantic labels for filtering (queue, active, done, terminal) |
 | **WIP limits** | Advisory limits on how many items can be in a state |
+| **state rules** | Required property values to enter a state |
 
 ## Creating a State Machine
 
@@ -181,6 +182,86 @@ rei custom-property remove-transition workflow in-progress blocked
 rei custom-property update-state-order workflow blocked --order 3
 ```
 
+## State Rules (Required Properties)
+
+States can require specific property values before an entity may transition into them. This enables checklist-gated workflows where prerequisites must be satisfied before advancing.
+
+### Adding Rules
+
+```bash
+# Require deploy-ready=true before entering production state
+rei custom-property add-state-rule workflow \
+  --state production --require deploy-ready=true
+
+# Remove a rule
+rei custom-property remove-state-rule workflow \
+  --state production --property deploy-ready
+```
+
+When a user attempts to transition into a state with rules, each required property is checked against the entity's current values. If any rule is unsatisfied, the transition is rejected with an error listing the unmet requirements.
+
+### Supported Value Types
+
+| Rule | Type |
+|------|------|
+| `--require key=true` | Boolean (auto-creates property if needed) |
+| `--require key=42` | Integer |
+| `--require key=some-text` | Text or enum value |
+
+### Auto-Creation of Boolean Properties
+
+When adding a rule with a boolean value (e.g., `--require deploy-ready=true`), if the referenced property doesn't exist, it is automatically created as a boolean property inheriting the state machine's scope. Non-boolean values still require the property to exist beforehand.
+
+### Example: Checklist-Gated Workflow
+
+1. Add a state rule (auto-creates `deploy-ready` as a bool property):
+
+```bash
+rei custom-property add-state-rule workflow \
+  --state production --require deploy-ready=true
+```
+
+2. Create a checklist note on the intention:
+
+```bash
+rei note new -i <id> --category system/checklist
+```
+
+3. Link the note's tasks to the boolean property:
+
+```bash
+rei intention link-tasks -i <id> \
+  --note <note-id> --property deploy-ready
+```
+
+When all tasks in the checklist are completed, `deploy-ready` is automatically set to `true`, unblocking the transition to production.
+
+## Task Completion Links
+
+Boolean properties can be automatically set based on task completion in linked notes. When all tasks in a linked note are complete, the property is set to `true`. When any task is reopened, it reverts to `false`.
+
+### Linking Tasks
+
+```bash
+# Link a note's tasks to a boolean property
+rei intention link-tasks -i <id> \
+  --note <note-id> --property <property-key>
+
+# Remove the link
+rei intention unlink-tasks -i <id> \
+  --note <note-id> --property <property-key>
+```
+
+### Behavior
+
+| Condition | Result |
+|-----------|--------|
+| All tasks complete | Property set to `true` |
+| Any task reopened | Property set to `false` (if currently true) |
+| No tasks in note | No change (avoids premature true) |
+
+The task completion reactor subscription must be running for automatic property updates.
+
 ## Category-Scoped State Machines
 
 The same state machine key can exist in different categories with different configurations:
@@ -250,12 +331,26 @@ rei custom-property init-entities workflow
 | `custom-property remove-transition` | Remove a transition rule |
 | `custom-property update-state-order` | Set display order for a state |
 
+### State Rules
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-state-rule` | Require a property value to enter a state |
+| `custom-property remove-state-rule` | Remove a required property rule |
+
 ### WIP Limits
 
 | Command | Description |
 |---------|-------------|
 | `custom-property set-state-limit` | Set WIP limit on a state |
 | `custom-property clear-state-limit` | Remove WIP limit |
+
+### Task Completion Links
+
+| Command | Description |
+|---------|-------------|
+| `intention link-tasks` | Auto-set property when tasks complete |
+| `intention unlink-tasks` | Remove task completion link |
 
 ### Metrics
 

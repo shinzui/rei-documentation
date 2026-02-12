@@ -221,7 +221,7 @@ rei intention show [id] [options]
 > **FZF Support:** If ID is not provided, an interactive picker will let you select from active intentions.
 
 **Full view includes:**
-- Intention details (title, horizon, context, status)
+- Intention details (title, horizon, context, category, status)
 - **Overview Note** (designated entry-point note, if set)
 - Recent actions taken (with associated notes, links, and docs)
 - Recorded outcomes
@@ -933,6 +933,53 @@ rei intention clear-property -i intention_01h455vb4pex priority
 
 # Let fzf pick the intention
 rei intention clear-property priority
+```
+
+### link-tasks
+
+Link a note's tasks to a boolean property. When all tasks in the note are completed, the property is automatically set to `true`. When any task is reopened, it reverts to `false`.
+
+```bash
+rei intention link-tasks -i ID --note NOTE_ID --property PROPERTY_KEY
+```
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--note <note-id>` — Note ID whose tasks to monitor
+- `--property <key>` — Boolean property key to auto-set
+
+**Examples:**
+
+```bash
+# Link deploy checklist tasks to deploy-ready property
+rei intention link-tasks -i intention_01abc... \
+  --note note_01xyz... --property deploy-ready
+```
+
+**Notes:**
+- The property must be a boolean type
+- The task completion reactor subscription must be running for automatic updates
+- See the [State Machine Properties Guide](/docs/guides/state-machines) for full checklist-gated workflow examples
+
+### unlink-tasks
+
+Remove a task completion link from an intention.
+
+```bash
+rei intention unlink-tasks -i ID --note NOTE_ID --property PROPERTY_KEY
+```
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--note <note-id>` — Note ID to unlink
+- `--property <key>` — Property key to unlink
+
+**Examples:**
+
+```bash
+# Remove the link
+rei intention unlink-tasks -i intention_01abc... \
+  --note note_01xyz... --property deploy-ready
 ```
 
 ### detach
