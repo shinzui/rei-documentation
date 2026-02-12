@@ -199,6 +199,32 @@ rei view update NAME --from-file FILE
 rei view update daily-planning --from-file daily-v2.yaml
 ```
 
+### edit
+
+Edit a view's configuration inline using `$EDITOR`. Opens a temporary YAML file with the current config, and applies any changes on save.
+
+```bash
+rei view edit [NAME]
+```
+
+**Arguments:**
+- `NAME` — View name (optional, uses FZF selection if not provided)
+
+**Examples:**
+
+```bash
+# Edit a view by name
+rei view edit daily-planning
+
+# Interactive selection via FZF
+rei view edit
+```
+
+**Notes:**
+- The temporary file includes comment headers with the view name and description
+- If no changes are detected, the view is not updated
+- If the edited YAML has parse errors, an error is shown and the view is unchanged
+
 ### export
 
 Export a view's configuration to YAML.

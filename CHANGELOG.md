@@ -5,11 +5,25 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `94e57a2` (2026-02-11)
+**Last Source Commit Reviewed:** `e0c328a` (2026-02-12)
 
 ---
 
 ## Changelog
+
+### 2026-02-12
+
+**Reviewed commits:** `94e57a2` through `e0c328a`
+
+**Files updated:**
+- `commands/intention.mdx` — Added `--category` flag to `create` command options, examples, and notes
+- `commands/view.mdx` — Added `edit` subcommand for inline YAML editing via `$EDITOR`
+
+**Features documented:**
+- Category assignment at intention creation (`--category <slug>`)
+- View inline editing (`rei view edit`)
+
+---
 
 ### 2026-02-11 (2)
 

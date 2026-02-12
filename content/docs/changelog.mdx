@@ -6,6 +6,22 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-12
+
+### Feature Enhancements
+
+- **`rei intention create --category`** — Assign a category at creation time instead of using a separate `set-category` command:
+  ```bash
+  rei intention create "Review Q1 goals" --category Work
+  rei intention create "Plan health routine" --category "Personal/Health" --horizon 3m
+  ```
+- **`rei view edit`** — Edit a view's YAML configuration inline using `$EDITOR`. Opens a temporary file with the current config and applies changes on save:
+  ```bash
+  rei view edit daily-planning
+  ```
+
+---
+
 ## 2026-02-11
 
 ### New Command: Agent Assist
