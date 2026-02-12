@@ -93,7 +93,7 @@ rei intention list [options]
 - `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
 - `-c, --context <context>` — Filter by context (includes child intentions of matching roots)
 - `--category <slug>` — Filter by category slug
-- `-w, --where <filter>` — Filter by custom property value (see examples below)
+- `-w, --where <filter>` — Filter by custom property value; repeatable for AND logic (see examples below)
 - `--state-tag <tag>` — Filter by state machine tag: `queue`, `active`, `done`, `terminal`
 - `-g, --group-by <property>` — Group output by custom property value
 - `--future` — Show only Future (deferred) intentions
@@ -131,6 +131,10 @@ rei intention list --where priority=high
 rei intention list --where "effort>=5"
 rei intention list --where "effort<3"
 
+# Combine multiple property filters (AND logic)
+rei intention list --where priority=high --where "effort>=5"
+rei intention list -w status=in-progress -w "complexity<=7"
+
 # Filter by category
 rei intention list --category projects
 rei intention list --category projects --future
@@ -155,6 +159,9 @@ The `--format=fzf` output is designed for shell scripting and fzf widgets. Each 
 - `key=value` — Exact match (works with enum, text, and state properties)
 - `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
 - `key:exists` — Filter to intentions that have the property set (any value)
+- `key:missing` — Filter to intentions that do not have the property set
+- `key any label1,label2` — LabelSet membership: has any of the listed labels
+- `key all label1,label2` — LabelSet membership: has all of the listed labels
 - `key:tag=value` — State machine tag query
 
 **State Tag Filter:**
@@ -250,7 +257,7 @@ rei intention tree [options]
 - `-a, --all` — Show both active and future intentions with status indicators
 - `--completed` — Show completed intentions with their parent chains
 - `-c, --context <context>` — Filter by context
-- `-w, --where <filter>` — Highlight intentions matching a property filter (same syntax as `list --where`)
+- `-w, --where <filter>` — Highlight intentions matching a property filter; repeatable for AND logic (same syntax as `list --where`)
 - `--tui` — Launch interactive TUI for browsing the hierarchy
 
 **Examples:**
@@ -284,6 +291,9 @@ rei intention tree --where priority:exists
 rei intention tree --all --where effort>=5
 rei intention tree --context work --where status:active=started
 
+# Multiple property filters (AND logic)
+rei intention tree --where priority=high --where "effort>=5"
+
 # Launch interactive TUI
 rei intention tree --tui
 ```
@@ -293,7 +303,7 @@ rei intention tree --tui
 - `--future` shows future intentions with their active parent chains (future items highlighted in cyan)
 - `--completed` shows completed intentions with their parent chains (completed items highlighted in green)
 - `--all` shows active and future together, with `(future)` indicators on deferred items
-- `--where` shows the full tree with matching intentions in bold and non-matching ones dimmed (grayed out). If no intentions match, a message is displayed instead. Works with all tree modes and can be combined with `--context`.
+- `--where` shows the full tree with matching intentions in bold and non-matching ones dimmed (grayed out). If no intentions match, a message is displayed instead. Works with all tree modes and can be combined with `--context`. Specify multiple times for AND logic.
 
 **Interactive TUI Mode:**
 

@@ -8,6 +8,32 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-02-11
 
+### New Command: Agent Assist
+
+Start an interactive AI assistant for setup and management of your Rei system:
+
+```bash
+rei agent assist
+```
+
+Unlike other agent commands, assist is **always interactive** — it opens a Claude Code session pre-loaded with your complete Rei state. The assistant helps you organize, configure, and maintain your system.
+
+### Filter Enhancements
+
+- **Multiple `--where` filters** — Specify `--where` multiple times for AND logic on both `rei intention list` and `rei intention tree`:
+  ```bash
+  rei intention list --where priority=high --where "effort>=5"
+  rei intention tree --where priority=high --where "effort>=5"
+  ```
+- **`key:missing` filter** — Filter to intentions that do not have a property set: `--where priority:missing`
+- **LabelSet membership operators** — Filter by label-set membership with `any` (has any of) or `all` (has all of):
+  ```bash
+  rei intention list --where "tags any bug,feature"
+  rei intention list --where "tags all urgent,blocking"
+  ```
+
+---
+
 ### New Feature: State Machine Required Property Rules
 
 States can now require specific property values before allowing transitions. This enables checklist-gated workflows where prerequisites must be met before advancing:

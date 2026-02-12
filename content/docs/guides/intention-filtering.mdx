@@ -4,7 +4,7 @@ description: Filter intentions using contexts, categories, custom properties, an
 icon: ListFilter
 ---
 
-The `rei intention list` command supports multiple filters to narrow down results. Filters combine with **AND** logic — all specified conditions must be satisfied for an intention to appear in the results.
+The `rei intention list` and `rei intention tree` commands support multiple filters to narrow down results. Filters combine with **AND** logic — all specified conditions must be satisfied for an intention to appear in the results.
 
 ## Basic Usage
 
@@ -60,7 +60,8 @@ Supports hierarchical slugs. Category filtering cannot be combined with `--conte
 
 ## Custom Property Filter
 
-Use `--where` (or `-w`) to filter by [custom property](/docs/concepts/custom-properties) values:
+Use `--where` (or `-w`) to filter by [custom property](/docs/concepts/custom-properties) values.
+Specify `--where` multiple times for AND logic (all conditions must match).
 
 ### Exact Match
 
@@ -85,14 +86,24 @@ rei intention list --where "complexity<=7"
 
 ### Property Existence
 
-Filter to intentions that have a property set (any value):
+Filter to intentions that have a property set (any value), or that do not have it set:
 
 ```bash
 rei intention list --where "priority:exists"
-rei intention list --where "workflow:exists"
+rei intention list --where "priority:missing"
 ```
 
-This matches any intention that has the specified property assigned, regardless of its value.
+- `key:exists` matches any intention that has the specified property assigned, regardless of its value
+- `key:missing` matches intentions that do not have the property set
+
+### LabelSet Membership
+
+Filter by label-set property membership using `any` (has any of) or `all` (has all of) operators:
+
+```bash
+rei intention list --where "tags any bug,feature"   # Has any of the labels
+rei intention list --where "tags all urgent,blocking" # Has all of the labels
+```
 
 ### State Machine Tag Query
 
@@ -143,6 +154,10 @@ rei intention list --category projects --future --where "effort>=3"
 
 # Dormant items waiting in queue
 rei intention list --dormant --state-tag queue
+
+# Multiple property conditions (AND)
+rei intention list --where priority=high --where "effort>=5"
+rei intention list --context work -w priority=high -w "effort>=3"
 ```
 
 Each result must satisfy **all** specified conditions.

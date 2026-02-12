@@ -168,6 +168,28 @@ rei agent reflect today -i
 rei agent reflect week -i
 ```
 
+### assist
+
+Start an interactive AI assistant for setup and management of your Rei system.
+
+```bash
+rei agent assist
+```
+
+Unlike other agent commands, assist is **always interactive** — it opens a Claude Code session pre-loaded with your complete Rei state including categories, contexts, intentions, habits, blockers, and disruptions.
+
+The assistant helps you organize, configure, and maintain your system: creating intentions, setting up categories, establishing habits, managing blockers, and keeping everything well-structured.
+
+**Examples:**
+
+```bash
+# Start the assistant
+rei agent assist
+
+# Debug: see the prompt that would be sent
+rei agent --debug assist
+```
+
 ### create-note
 
 Create a note using category guidance. The agent uses the category's note guidance to structure the note appropriately.

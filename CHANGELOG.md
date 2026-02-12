@@ -5,11 +5,31 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `f0d6c15` (2026-02-11)
+**Last Source Commit Reviewed:** `94e57a2` (2026-02-11)
 
 ---
 
 ## Changelog
+
+### 2026-02-11 (2)
+
+**Reviewed commits:** `f0d6c15` through `94e57a2`
+
+**Files updated:**
+- `commands/agent.mdx` — Added `assist` subcommand: always-interactive AI assistant for setup and management
+- `commands/intention.mdx` — Added repeatable `--where` AND logic, `:missing` filter, `any`/`all` LabelSet operators, multiple filter examples for both `list` and `tree`
+- `guides/intention-filtering.mdx` — Updated intro to mention both list and tree commands, added `:missing` filter, LabelSet membership section, multiple conditions examples, repeatable `--where` documentation
+
+**Help topics synced:**
+- `rei-cli/help/intention-filtering.md` — Added existence checks (`:missing`), LabelSet operators (`any`/`all`), multiple `--where` AND semantics, updated scope to include tree command
+
+**Features documented:**
+- Agent assist subcommand (`rei agent assist`) — always-interactive AI assistant
+- Multiple `--where` filters with AND semantics on both `list` and `tree`
+- Property missing filter (`key:missing`)
+- LabelSet membership operators (`key any label1,label2`, `key all label1,label2`)
+
+---
 
 ### 2026-02-11
 
