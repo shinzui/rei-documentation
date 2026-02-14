@@ -5,11 +5,36 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `e0c328a` (2026-02-12)
+**Last Source Commit Reviewed:** `3811c50` (2026-02-13)
 
 ---
 
 ## Changelog
+
+### 2026-02-13
+
+**Reviewed commits:** `e0c328a` through `3811c50`
+
+**Files created:**
+- `commands/day.mdx` — **NEW** — Daily properties on journal entries (set-property, clear-property, show)
+
+**Files updated:**
+- `commands/intention.mdx` — Added `--has-deadline` and `--roots` list filters; added `set-addresses` and `clear-addresses` subcommands for linking intentions to disruptions
+- `commands/reflect.mdx` — Added `schedule` subcommand with 8 variants: daily, weekly, quarterly, yearly, on, pause, resume, cancel
+- `commands/custom-property.mdx` — Added `journal_entry` as valid entity type; added `rei day set-property` examples and related command link
+- `commands/index.mdx` — Added `day` to Organization Commands table
+- `commands/meta.json` — Added `day` to navigation
+- `changelog.mdx` — Added 2026-02-13 entries
+
+**Features documented:**
+- `rei day set-property/clear-property/show` — Track daily metrics (mood, energy, sleep) via journal entry properties
+- `rei reflect schedule daily/weekly/quarterly/yearly/on` — Schedule recurring reflections
+- `rei reflect schedule pause/resume/cancel` — Manage recurring reflection schedules
+- `rei intention set-addresses/clear-addresses` — Link/unlink intentions to disruptions
+- `rei intention list --has-deadline` — Filter intentions by deadline presence
+- `rei intention list --roots` — Filter to root intentions only
+
+---
 
 ### 2026-02-12
 

@@ -106,6 +106,8 @@ rei intention list [options]
 - `-g, --group-by <property>` — Group output by custom property value
 - `--future` — Show only Future (deferred) intentions
 - `--all` — Show both Active and Future intentions
+- `--has-deadline` — Show only intentions with deadlines
+- `--roots` — Show only root intentions (no parent)
 - `--dormant` — Show only dormant intentions
 
 **Examples:**
@@ -152,6 +154,15 @@ rei intention list --state-tag queue      # Items waiting to be worked on
 rei intention list --state-tag active     # Items currently in progress
 rei intention list --state-tag done       # Completed items
 rei intention list --state-tag terminal   # Items in final states
+
+# Show only intentions with deadlines
+rei intention list --has-deadline
+
+# Show only root intentions (no parent)
+rei intention list --roots
+
+# Combine new filters
+rei intention list --roots --has-deadline --context work
 
 # Group output by custom property
 rei intention list --group-by priority
@@ -952,6 +963,63 @@ rei intention clear-property -i intention_01h455vb4pex priority
 # Let fzf pick the intention
 rei intention clear-property priority
 ```
+
+### set-addresses
+
+Link an intention to a disruption it addresses. When an intention addresses a disruption, the disruption is marked as being actively worked on.
+
+```bash
+rei intention set-addresses [id] [-d|--disruption SOURCE]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `-d, --disruption <source>` — Disruption source to address (optional if fzf is available)
+
+> **FZF Support:** If values are not provided, interactive pickers will let you select from active intentions and active disruptions.
+
+**Examples:**
+
+```bash
+# Link with explicit IDs
+rei intention set-addresses intention_01abc... --disruption redis-timeouts
+
+# Let fzf pick both
+rei intention set-addresses
+```
+
+**Notes:**
+- The disruption must be in Active status
+- If the intention already addresses a different disruption, the old one reverts to Active and the new one becomes Addressed
+- Use `clear-addresses` to remove the link
+
+### clear-addresses
+
+Remove the disruption link from an intention.
+
+```bash
+rei intention clear-addresses [id]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from intentions that address a disruption.
+
+**Examples:**
+
+```bash
+# Clear with explicit ID
+rei intention clear-addresses intention_01abc...
+
+# Let fzf pick the intention
+rei intention clear-addresses
+```
+
+**Notes:**
+- The previously linked disruption reverts to Active status
 
 ### link-tasks
 

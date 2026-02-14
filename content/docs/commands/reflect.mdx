@@ -228,3 +228,174 @@ rei reflect skip [reflection-id] [options]
 ```bash
 rei reflect skip reflection_01h455vb4pex --reason "Traveling today"
 ```
+
+### schedule
+
+Schedule recurring or one-off reflections. Recurring reflections automatically create a new instance when the previous one is completed or skipped.
+
+#### schedule daily
+
+Schedule a daily recurring reflection.
+
+```bash
+rei reflect schedule daily [options]
+```
+
+**Options:**
+- `-p, --prompt <text>` — Custom prompt/focus for the reflection
+- `-c, --context <context>` — Context for filtering (e.g., `work`, `personal`)
+- `--actor <actor>` — Actor performing this action
+
+**Examples:**
+
+```bash
+rei reflect schedule daily --prompt "What did I accomplish today?"
+rei reflect schedule daily --context work --prompt "Work review"
+```
+
+#### schedule weekly
+
+Schedule a weekly recurring reflection on a specific day.
+
+```bash
+rei reflect schedule weekly [options]
+```
+
+**Options:**
+- `-d, --day <day>` — Day of the week (default: sunday). Accepts: monday, tuesday, ..., sunday (or mon, tue, ..., sun)
+- `-p, --prompt <text>` — Custom prompt/focus
+- `-c, --context <context>` — Context for filtering
+- `--actor <actor>` — Actor performing this action
+
+**Examples:**
+
+```bash
+# Weekly reflection on Sundays (default)
+rei reflect schedule weekly
+
+# Weekly reflection on Fridays
+rei reflect schedule weekly --day friday --prompt "Week in review"
+```
+
+#### schedule quarterly
+
+Schedule a quarterly recurring reflection.
+
+```bash
+rei reflect schedule quarterly [options]
+```
+
+**Options:**
+- `-p, --prompt <text>` — Custom prompt/focus
+- `-c, --context <context>` — Context for filtering
+- `--actor <actor>` — Actor performing this action
+
+**Example:**
+
+```bash
+rei reflect schedule quarterly --prompt "Quarter review and planning"
+```
+
+#### schedule yearly
+
+Schedule a yearly recurring reflection on a specific date.
+
+```bash
+rei reflect schedule yearly --month M --day D [options]
+```
+
+**Options:**
+- `-m, --month <N>` — Month (1-12, required)
+- `-d, --day <N>` — Day of month (1-31, required)
+- `-p, --prompt <text>` — Custom prompt/focus
+- `-c, --context <context>` — Context for filtering
+- `--actor <actor>` — Actor performing this action
+
+**Example:**
+
+```bash
+rei reflect schedule yearly --month 12 --day 31 --prompt "Year in review"
+```
+
+#### schedule on
+
+Schedule a one-off reflection for a specific date.
+
+```bash
+rei reflect schedule on DATE [options]
+```
+
+**Arguments:**
+- `DATE` — Target date in YYYY-MM-DD format (required)
+
+**Options:**
+- `-k, --kind <kind>` — Reflection kind (e.g., `daily-review`, `weekly-review`, `custom:label`)
+- `-p, --prompt <text>` — Custom prompt/focus
+- `-c, --context <context>` — Context for filtering
+- `--actor <actor>` — Actor performing this action
+
+**Example:**
+
+```bash
+rei reflect schedule on 2026-03-01 --kind "quarterly-review" --prompt "Q1 review"
+```
+
+#### schedule pause
+
+Pause a recurring reflection. Paused reflections stop generating new instances.
+
+```bash
+rei reflect schedule pause [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from recurring reflections.
+
+**Example:**
+
+```bash
+rei reflect schedule pause reflection_01abc...
+```
+
+#### schedule resume
+
+Resume a paused recurring reflection.
+
+```bash
+rei reflect schedule resume [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from paused reflections.
+
+**Example:**
+
+```bash
+rei reflect schedule resume reflection_01abc...
+```
+
+#### schedule cancel
+
+Permanently cancel a recurring reflection.
+
+```bash
+rei reflect schedule cancel [reflection-id]
+```
+
+**Arguments:**
+- `[reflection-id]` — Reflection ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided, an interactive picker will let you select from recurring reflections.
+
+**Example:**
+
+```bash
+rei reflect schedule cancel reflection_01abc...
+```
+
+**Notes:**
+- Cancelled reflections cannot be resumed; create a new schedule instead

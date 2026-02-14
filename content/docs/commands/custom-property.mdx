@@ -4,7 +4,7 @@ description: Define and manage custom properties for entities
 icon: SlidersHorizontal
 ---
 
-Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes). Custom properties allow you to extend entities with your own metadata fields.
+Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries). Custom properties allow you to extend entities with your own metadata fields.
 
 ## Concepts
 
@@ -179,7 +179,7 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 **Options:**
 - `-l, --label <label>` — Human-readable label (defaults to key)
 - `-d, --description <desc>` — Property description
-- `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note
+- `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note, journal_entry
 - `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
@@ -757,6 +757,12 @@ rei disruption set-property redis-timeouts severity critical
 
 # Clear a property from an intention
 rei intention clear-property intention_01abc... priority
+
+# Set a property on a journal entry (today's day)
+rei day set-property mood great
+
+# Set a property on a specific date
+rei day set-property --date 2026-02-12 mood good
 ```
 
 ## Filtering by Properties
@@ -900,5 +906,6 @@ rei custom-property add-state-rule workflow \
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
 - [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
 - [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions
+- [`rei day set-property`](/docs/commands/day) — Set properties on journal entries (daily metrics)
 - [`rei category`](/docs/commands/category) — Manage categories for scoping properties
 - [`rei help state-machines`](/docs/guides/state-machines) — Detailed help for state machine properties

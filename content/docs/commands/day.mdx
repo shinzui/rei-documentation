@@ -1,0 +1,132 @@
+---
+title: rei day
+description: Manage daily properties on journal entries
+icon: Calendar1
+---
+
+Manage daily properties on journal entries. Track day-level metrics like mood, energy level, sleep quality, and other custom properties.
+
+## Overview
+
+The `day` command works with journal entries — one per calendar date — to store custom property values. Properties must first be defined with `rei custom-property create` using `--entity-type journal_entry`.
+
+Running `rei day` with no subcommand defaults to `show` for today.
+
+## Subcommands
+
+### set-property
+
+Set a custom property on a day's journal entry.
+
+```bash
+rei day set-property KEY VALUE [options]
+```
+
+**Arguments:**
+- `KEY` — Property key (must be defined with `journal_entry` entity type)
+- `VALUE` — Property value (validated against property definition)
+
+**Options:**
+- `-d, --date YYYY-MM-DD` — Target date (defaults to today)
+
+**Examples:**
+
+```bash
+# Set today's mood
+rei day set-property mood great
+
+# Set sleep hours for a specific date
+rei day set-property --date 2026-02-12 sleep-hours 7.5
+
+# Set energy level
+rei day set-property energy high
+```
+
+### clear-property
+
+Clear a custom property from a day's journal entry.
+
+```bash
+rei day clear-property KEY [options]
+```
+
+**Arguments:**
+- `KEY` — Property key to clear
+
+**Options:**
+- `-d, --date YYYY-MM-DD` — Target date (defaults to today)
+
+**Examples:**
+
+```bash
+# Clear today's mood
+rei day clear-property mood
+
+# Clear a property for a specific date
+rei day clear-property --date 2026-02-12 mood
+```
+
+### show
+
+Show all properties set on a day's journal entry.
+
+```bash
+rei day show [options]
+```
+
+**Options:**
+- `-d, --date YYYY-MM-DD` — Target date (defaults to today)
+
+**Examples:**
+
+```bash
+# Show today's properties
+rei day show
+
+# Show properties for a specific date
+rei day show --date 2026-02-12
+```
+
+**Output:**
+
+```
+Day: 2026-02-13
+  mood: great
+  energy: high
+  sleep-hours: 7.5
+```
+
+## Setup
+
+Create properties scoped to journal entries before using `rei day`:
+
+```bash
+# Create a mood enum property
+rei custom-property create mood \
+  --type-enum --values "great,good,okay,low,bad" \
+  -e journal_entry \
+  --label Mood
+
+# Create a numeric property for sleep
+rei custom-property create sleep-hours \
+  --type-float --min 0 --max 24 \
+  -e journal_entry \
+  --label "Sleep Hours"
+
+# Create an energy level enum
+rei custom-property create energy \
+  --type-enum --values "high,medium,low" \
+  -e journal_entry \
+  --label "Energy Level"
+```
+
+## Notes
+
+- Each date has at most one journal entry; it is created automatically on first use
+- Only global properties (not category-scoped) apply to journal entries
+- The entity property read model subscription must be running for `show` to display recently set values
+
+## Related Commands
+
+- [`rei custom-property`](/docs/commands/custom-property) — Define custom properties
+- [`rei reflect`](/docs/commands/reflect) — Schedule and complete reflections

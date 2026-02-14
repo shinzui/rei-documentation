@@ -6,6 +6,48 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-13
+
+### New Command: Day (Daily Properties)
+
+Track day-level metrics on journal entries using custom properties:
+
+- `rei day set-property mood great` — Set a property on today's journal entry
+- `rei day set-property --date 2026-02-12 sleep-hours 7.5` — Set a property for a specific date
+- `rei day clear-property mood` — Clear a property
+- `rei day show` — Show all properties for today
+
+Properties must be created with `--entity-type journal_entry` before use. See [`rei day`](/docs/commands/day) for full documentation.
+
+### New Feature: Scheduled Reflections
+
+Schedule recurring or one-off reflections that automatically create new instances:
+
+- `rei reflect schedule daily --prompt "What did I accomplish?"` — Daily recurring reflection
+- `rei reflect schedule weekly --day friday` — Weekly on a specific day
+- `rei reflect schedule quarterly` — Quarterly recurring reflection
+- `rei reflect schedule yearly --month 12 --day 31` — Yearly on a specific date
+- `rei reflect schedule on 2026-03-01` — One-off reflection for a specific date
+- `rei reflect schedule pause/resume/cancel` — Manage recurring schedules
+
+### New Feature: Intention-Disruption Links
+
+Link intentions to the disruptions they address:
+
+- `rei intention set-addresses --disruption redis-timeouts` — Link an intention to a disruption
+- `rei intention clear-addresses` — Remove the link
+
+When linked, the disruption is marked as being actively worked on.
+
+### Feature Enhancements
+
+- **`rei intention list --has-deadline`** — Filter to intentions with deadlines
+- **`rei intention list --roots`** — Filter to root intentions only (no parent)
+- **`rei custom-property create -e journal_entry`** — Custom properties now support journal entries as an entity type
+- **`rei day set-property`** — Set custom properties on journal entries (daily metrics)
+
+---
+
 ## 2026-02-12
 
 ### Feature Enhancements
