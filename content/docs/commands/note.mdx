@@ -86,9 +86,25 @@ Daily notes are anchored to a **JournalEntry** entity — each day gets its own 
 1. Determines the target day (today or from `--date` override)
 2. Gets or creates a JournalEntry for that day
 3. Checks if a note already exists for that journal entry
-4. If note exists → opens it in `$EDITOR`
-5. If no note exists → creates a new note and opens it in `$EDITOR`
-6. On save, emits events for async processing (title extraction, tasks)
+4. Injects custom properties as YAML frontmatter (see below)
+5. If note exists → opens it in `$EDITOR`
+6. If no note exists → creates a new note with frontmatter and opens it in `$EDITOR`
+7. On save, emits events for async processing (title extraction, tasks)
+
+**Daily Note Frontmatter:**
+
+Custom properties set on a journal entry (e.g., via `rei day set-property`) are rendered as YAML frontmatter at the top of the daily note file. Frontmatter is regenerated from the event store each time the note is opened, keeping the event store authoritative.
+
+```markdown
+---
+mood: great
+energy: high
+sleep-hours: 7.5
+---
+<!-- Note: note_01abc... -->
+```
+
+No frontmatter delimiters are added when no properties are set.
 
 **Examples:**
 

@@ -5,11 +5,31 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `3811c50` (2026-02-13)
+**Last Source Commit Reviewed:** `9ed6666` (2026-02-15)
 
 ---
 
 ## Changelog
+
+### 2026-02-15
+
+**Reviewed commits:** `3811c50` through `9ed6666`
+
+**Files updated:**
+- `commands/note.mdx` — Added daily note frontmatter behavior: custom properties set via `rei day set-property` are rendered as YAML frontmatter when opening daily notes
+- `commands/day.mdx` — Added cross-reference to daily note frontmatter feature
+- `commands/outcome.mdx` — Documented that outcomes can be recorded on both Active and Completed intentions
+- `commands/intention.mdx` — Updated defer notes to reflect that outcome recording is allowed on Completed intentions
+- `changelog.mdx` — Added 2026-02-15 entries
+
+**Features documented:**
+- Daily note YAML frontmatter from journal entry custom properties
+- Retrospective outcome recording on completed intentions
+
+**No documentation needed:**
+- `a2e8a6f` Allow recording outcomes on completed intentions (internal implementation)
+
+---
 
 ### 2026-02-13
 

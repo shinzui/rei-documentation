@@ -6,6 +6,32 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-15
+
+### New Feature: Daily Note Frontmatter
+
+Custom properties set on journal entries via `rei day set-property` are now rendered as YAML frontmatter when opening daily notes with `rei note today`. Frontmatter is regenerated from the event store each time the note is opened, keeping the event store authoritative.
+
+```markdown
+---
+mood: great
+energy: high
+sleep-hours: 7.5
+---
+```
+
+No frontmatter is added when no properties are set.
+
+### New Feature: Outcome Recording on Completed Intentions
+
+Outcomes can now be recorded on both **Active** and **Completed** intentions. This allows retrospective evidence to be added after an intention is finished:
+
+- `rei outcome record -i <completed-intention> "Results discovered later"` — Record evidence after completion
+
+Future intentions block operational changes (actions, blockers) but outcome recording is allowed on both Active and Completed states.
+
+---
+
 ## 2026-02-13
 
 ### New Command: Day (Daily Properties)

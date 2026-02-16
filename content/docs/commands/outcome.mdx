@@ -4,7 +4,7 @@ description: Record observable evidence of progress
 icon: Trophy
 ---
 
-Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results.
+Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results. Outcomes can be recorded on both **Active** and **Completed** intentions, allowing retrospective evidence to be added after an intention is finished.
 
 ## Subcommands
 
@@ -25,6 +25,8 @@ rei outcome record [description] [options]
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+> **Completed Intentions:** You can record outcomes on completed intentions too. This is useful when results or evidence are discovered after an intention has been marked complete.
 
 **Relative Time:**
 
