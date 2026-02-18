@@ -247,11 +247,17 @@ rei agent explore [COLLECTION] [options]
 **Examples:**
 
 ```bash
-# Explore with AI
+# Explore a collection by name
 rei agent explore "Research Papers"
+
+# Let FZF pick the collection
+rei agent explore
 
 # Limit notes for large collections
 rei agent explore "Category Notes" --limit 5
+
+# Interactive exploration session
+rei agent explore "Research Papers" -i
 
 # Debug: see the prompt
 rei agent --debug explore "Category Notes"

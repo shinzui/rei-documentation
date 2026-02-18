@@ -47,9 +47,25 @@ Set stable titles on notes to prevent wikilink breakage when editing content:
 - `rei note set-title -n note_01abc... "Architecture Overview"` — Set an explicit title (overrides H1 extraction)
 - `rei note clear-title note_01abc...` — Revert to automatic H1 extraction
 
+### New Feature: Doc Remove Command
+
+Remove document attachments from entities:
+
+- `rei doc remove doc_01abc...` — Remove a specific document attachment
+- `rei doc remove` — Use FZF to select the document interactively
+
+### New Feature: State-Qualified Notes
+
+Attach notes qualified by a state machine property's current state. Maintain per-state documentation (e.g., separate notes for "in-progress" vs "in-review"):
+
+- `rei custom-property note workflow -i intention_01abc` — Open/create a note for the current state
+- `rei custom-property note workflow --state in-review` — Open a note for a specific state
+- `rei custom-property notes workflow -i intention_01abc` — List state-qualified notes
+
 ### Feature Enhancements
 
 - **`rei note list --collection`** — Filter notes by collection membership (manual or virtual)
+- **`rei doc open`** — Now supports FZF selection when doc-id is omitted
 
 ---
 

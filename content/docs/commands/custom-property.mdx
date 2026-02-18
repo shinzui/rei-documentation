@@ -889,6 +889,78 @@ rei custom-property relabel workflow "Work Pipeline" --category work
 - **Category-scoped** — key + category combination must be unique
 - The same key CAN exist in different categories
 
+## State-Qualified Notes
+
+State machine properties support attaching notes that are qualified by the entity's current state. This lets you maintain per-state documentation (e.g., notes for "in-progress" vs "in-review").
+
+### note
+
+Open or create a state-qualified note for a property's current state on an entity.
+
+```bash
+rei custom-property note PROPERTY_KEY [options]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — Property key (must be a state machine property)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (uses FZF if not provided)
+- `-s, --state <state_id>` — Override state (default: current state from property value)
+- `-p, --print` — Print the note path instead of opening editor
+- `-t, --tag <tag>` — Tag to add to the note (can be repeated)
+- `--actor <actor>` — Actor name
+- `-c, --category <slug>` — Category scope for property disambiguation
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available intentions.
+
+**Examples:**
+
+```bash
+# Open/create a note for the current state
+rei custom-property note workflow -i intention_01abc
+
+# Open a note for a specific state (overrides current)
+rei custom-property note workflow -i intention_01abc --state in-review
+
+# Print the note path without opening
+rei custom-property note workflow -i intention_01abc --print
+
+# Let FZF pick the intention
+rei custom-property note workflow
+```
+
+### notes
+
+List state-qualified notes for a property on an entity.
+
+```bash
+rei custom-property notes PROPERTY_KEY [options]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — Property key (must be a state machine property)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (uses FZF if not provided)
+- `-s, --state <state_id>` — Filter to a specific state
+- `-c, --category <slug>` — Category scope for property disambiguation
+
+> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available intentions.
+
+**Examples:**
+
+```bash
+# List all state-qualified notes for an entity
+rei custom-property notes workflow -i intention_01abc
+
+# Filter to notes from a specific state
+rei custom-property notes workflow -i intention_01abc --state in-progress
+
+# Let FZF pick the intention
+rei custom-property notes workflow
+```
+
 ## State Rules
 
 State rules require specific property values before an entity can transition into a state. See the [State Machine Properties Guide](/docs/guides/state-machines) for full documentation.

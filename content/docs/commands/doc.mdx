@@ -113,14 +113,39 @@ rei doc list -n note_01h455vb4pex
 Open a document in your editor.
 
 ```bash
-rei doc open <doc-id>
+rei doc open [doc-id]
 ```
 
 **Arguments:**
-- `<doc-id>` — Document ID (required)
+- `[doc-id]` — Document ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available documents.
 
 **Example:**
 
 ```bash
 rei doc open doc_01h455vb4pex
+```
+
+### remove
+
+Remove a document attachment from an entity.
+
+```bash
+rei doc remove [doc-id]
+```
+
+**Arguments:**
+- `[doc-id]` — Document ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available documents.
+
+**Examples:**
+
+```bash
+# Remove a specific document
+rei doc remove doc_01h455vb4pex
+
+# Let fzf pick the document
+rei doc remove
 ```

@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `51f77dc` (2026-02-17)
+**Last Source Commit Reviewed:** `641c5d0` (2026-02-17)
 
 ---
 
 ## Changelog
+
+### 2026-02-17 (2)
+
+**Reviewed commits:** `51f77dc` through `641c5d0`
+
+**Files updated:**
+- `commands/doc.mdx` — Added `remove` subcommand; updated `open` with FZF support (optional doc-id)
+- `commands/agent.mdx` — Refined `explore` subcommand with FZF and interactive mode examples
+- `commands/custom-property.mdx` — Added State-Qualified Notes section (`note` and `notes` subcommands)
+
+**Features documented:**
+- `rei doc remove` removes document attachments from entities (with FZF support)
+- `rei doc open` now supports FZF selection when doc-id is omitted
+- `rei custom-property note` opens/creates state-qualified notes for state machine properties
+- `rei custom-property notes` lists state-qualified notes for a property on an entity
+- `rei agent explore` FZF selection and interactive mode examples
+
+**No documentation needed:**
+- Dev module docs update (docs/dev/modules/custom-property/README.md)
+
+---
 
 ### 2026-02-17
 
