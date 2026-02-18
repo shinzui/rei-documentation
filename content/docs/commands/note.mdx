@@ -10,7 +10,9 @@ Create and manage markdown notes attached to entities, including daily notes.
 
 ### Automatic Title Extraction
 
-Notes automatically extract their title from the first `# ` (H1) heading in the markdown content. The title is displayed in note listings and stored for querying.
+Notes automatically extract their title from the first `# ` (H1) heading in the markdown content. This processing happens asynchronously via the content processor subscription after note events are emitted. The title is displayed in note listings and stored in the database for querying.
+
+You can override automatic extraction with `rei note set-title` to set a stable title that won't change when the note content is edited. This is useful for wikilinks — other notes linking to `[[My Note]]` won't break if you edit the H1 heading. Use `rei note clear-title` to revert to automatic extraction.
 
 ### Task Extraction
 
@@ -146,6 +148,7 @@ rei note list [options]
 - `-t, --tag <tag>` — Filter by tag
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
 - `-d, --include-descendants` — Include notes from descendant categories (use with `-c`)
+- `--collection <name>` — Filter by collection membership (manual or virtual)
 - `--json` — Output as JSON (for scripting)
 
 > **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
@@ -183,6 +186,9 @@ rei note list --category system/journal
 
 # List notes from a category and all its subcategories
 rei note list --category work --include-descendants
+
+# Filter notes by collection membership
+rei note list --collection "Reading List"
 
 # Output as JSON (for scripting)
 rei note list --json
@@ -555,6 +561,65 @@ rei note clear-category -n note_01h455vb4pex
 
 # Let fzf pick the note
 rei note clear-category
+```
+
+### set-title
+
+Set an explicit title for a note. This overrides automatic H1 extraction — subsequent edits will not change the title back. Useful for stabilizing wikilinks (`[[Note Title]]`) that other notes reference.
+
+```bash
+rei note set-title [-n NOTE_ID] <title>
+```
+
+**Arguments:**
+- `<title>` — Title to set for the note (required)
+
+**Options:**
+- `-n, --note <id>` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Behavior:**
+- Sets the title source to "UserSet", preventing automatic extraction from overwriting it
+- Wikilinks referencing the old title are re-resolved to match the new title
+- Emits a `NoteTitleSet` event
+
+**Examples:**
+
+```bash
+# Set a stable title
+rei note set-title -n note_01h455vb4pex "Project Architecture Overview"
+
+# Use fzf to select note
+rei note set-title "My Custom Title"
+```
+
+### clear-title
+
+Clear an explicit title override, reverting to automatic H1 extraction.
+
+```bash
+rei note clear-title [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Behavior:**
+- Resets the title source to "Extracted", allowing automatic H1 extraction on next edit
+- Triggers re-extraction of the title from current note content
+- Emits a `NoteTitleCleared` event
+
+**Examples:**
+
+```bash
+# Clear title override for a specific note
+rei note clear-title note_01h455vb4pex
+
+# Use fzf to select note
+rei note clear-title
 ```
 
 ### embeds

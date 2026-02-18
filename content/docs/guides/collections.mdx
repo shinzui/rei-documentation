@@ -1,0 +1,166 @@
+---
+title: Collections
+description: Group knowledge artifacts into curated sets for browsing, analysis, and AI exploration
+---
+
+Collections group knowledge artifacts (notes, links, documents) into curated sets for browsing, analysis, and AI exploration. Access this guide with `rei help collections`.
+
+## Collection Kinds
+
+| Kind | Description |
+|------|-------------|
+| **Manual** | Hand-picked members. You add and remove items explicitly. |
+| **Virtual** | Saved queries. Dynamically match notes by category or custom property filters. Membership is computed at read time. |
+
+## Creating Collections
+
+```bash
+# Create a manual collection
+rei collection create "Reading List" -d "Books and articles to read"
+
+# Create a virtual collection from a YAML query file
+rei collection create "Japanese Notes" --virtual --from-file query.yaml
+```
+
+The `--virtual` flag requires `--from-file` with a YAML query definition.
+
+## Virtual Collection Queries
+
+Virtual collections use YAML-defined filters composed with AND semantics:
+
+```yaml
+filters:
+  - type: category
+    category_id: "category_01abc..."
+
+  - type: property
+    property_key: "status"
+    operator: "equals"
+    value: "active"
+
+limit: 50
+```
+
+### Filter Types
+
+| Type | Description | Fields |
+|------|-------------|--------|
+| `category` | Match notes assigned to a category | `category_id` |
+| `property` | Match notes with a custom property value | `property_key`, `operator`, `value` |
+
+**Property operators:** `equals`, `not_equals`, `is_set`, `is_not_set`
+
+### Managing Queries
+
+```bash
+# Edit an existing query in $EDITOR
+rei collection edit-query "Japanese Notes"
+
+# Export a query as YAML
+rei collection export-query "Japanese Notes"
+```
+
+## Managing Members (Manual Collections)
+
+```bash
+# Add a note
+rei collection add "Reading List" --note note_01abc...
+
+# Add a link
+rei collection add "Reading List" --link link_01def...
+
+# Add a document
+rei collection add "Reading List" --doc doc_01ghi...
+
+# Interactive add (FZF selection)
+rei collection add "Reading List"
+
+# Remove a member
+rei collection remove "Reading List" --member col_member_01abc...
+
+# Interactive remove (lists members for selection)
+rei collection remove "Reading List"
+```
+
+## Viewing Collections
+
+```bash
+# List all collections
+rei collection list
+
+# Include archived
+rei collection list --all
+
+# Show details with members
+rei collection show "Reading List"
+
+# Execute virtual collection query
+rei collection exec "Japanese Notes"
+```
+
+## Lifecycle
+
+```bash
+# Rename a collection
+rei collection rename "Reading List" "Must Read"
+
+# Update description
+rei collection describe "Reading List" -d "Curated reading materials"
+
+# Clear description
+rei collection describe "Reading List" --clear
+
+# Archive (hide from default listing)
+rei collection archive "Old Papers"
+
+# Restore
+rei collection restore "Old Papers"
+```
+
+## AI Exploration
+
+Explore a collection's contents with AI analysis:
+
+```bash
+rei agent explore "Reading List"
+```
+
+The explore command gathers all member content (note text, link metadata, document paths) and sends it to Claude for thematic analysis. It identifies patterns, connections, gaps, and suggestions.
+
+```bash
+# Limit notes for large collections
+rei agent explore "Japanese Notes" --limit 5
+
+# Preview the prompt without calling the agent
+rei agent --debug explore "Japanese Notes"
+```
+
+## Note List Integration
+
+Filter notes by collection membership:
+
+```bash
+rei note list --collection "Reading List"
+```
+
+This works for both manual and virtual collections. For virtual collections, the query is executed and matching notes are shown.
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `collection create` | Create a new collection |
+| `collection list` | List collections |
+| `collection show` | Show collection details and members |
+| `collection exec` | Execute virtual collection query |
+| `collection add` | Add member to manual collection |
+| `collection remove` | Remove member from manual collection |
+| `collection rename` | Rename a collection |
+| `collection describe` | Update or clear description |
+| `collection archive` | Archive a collection |
+| `collection restore` | Restore archived collection |
+| `collection edit-query` | Edit virtual collection query in `$EDITOR` |
+| `collection export-query` | Export virtual collection query as YAML |
+| `agent explore` | Explore collection contents with AI |
+
+See [`rei collection`](/docs/commands/collection) for full command reference.

@@ -1,0 +1,409 @@
+---
+title: rei collection
+description: Group knowledge artifacts into curated sets for browsing and AI exploration
+icon: Library
+---
+
+Collections group knowledge artifacts (notes, links, documents) into curated sets. Two kinds exist:
+
+- **Manual collections** — You pick which items belong
+- **Virtual collections** — A saved query that dynamically matches notes by category or custom property
+
+## Overview
+
+```bash
+# Create a manual collection
+rei collection create "Research Papers" -d "Academic papers to review"
+
+# Create a virtual collection from a YAML query file
+rei collection create "Category Notes" --virtual --from-file query.yaml
+
+# List all collections
+rei collection list
+
+# Add a note to a manual collection
+rei collection add "Research Papers" --note note_01abc...
+
+# Explore a collection with AI
+rei agent explore "Research Papers"
+```
+
+## Commands
+
+### create
+
+Create a new collection.
+
+```bash
+rei collection create NAME [options]
+```
+
+**Arguments:**
+- `NAME` — Name of the collection (must be unique)
+
+**Options:**
+- `-d, --description DESC` — Description of the collection
+- `--virtual` — Create a virtual (query-based) collection
+- `--from-file FILE` — YAML file defining the virtual collection query
+
+**Examples:**
+
+```bash
+# Create a manual collection
+rei collection create "Reading List" -d "Books and articles to read"
+
+# Create a virtual collection
+rei collection create "Japanese Notes" --virtual --from-file japanese-query.yaml
+```
+
+**Virtual collection YAML format:**
+
+```yaml
+filters:
+  - type: category
+    category_id: "category_01abc..."
+  - type: property
+    property_key: "status"
+    operator: "equals"
+    value: "active"
+limit: 50
+```
+
+**Output:**
+```
+Created collection: Reading List
+  ID: collection_01abc...
+  Kind: manual
+```
+
+### list
+
+List all collections.
+
+```bash
+rei collection list [options]
+```
+
+**Options:**
+- `-a, --all` — Include archived collections
+
+**Output:**
+```
+NAME              | KIND    | MEMBERS | DESCRIPTION
+------------------+---------+---------+---------------------------
+Category Notes    | virtual |      -- | Notes in Personal category
+Research Papers   | manual  |       3 | Academic papers to review
+```
+
+Virtual collections show `--` for member count since membership is dynamic.
+
+### show
+
+Show collection details including members.
+
+```bash
+rei collection show [NAME_OR_ID]
+```
+
+**Arguments:**
+- `[NAME_OR_ID]` — Collection name or ID (optional if fzf is available)
+
+> **FZF Support:** If the name is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing collections.
+
+**Output (manual collection):**
+```
+Collection: Research Papers
+  ID: collection_01abc...
+  Kind: manual
+  Status: Active
+  Description: Academic papers to review
+  Created: 2026-02-15 10:30
+
+Members (3):
+  [note] New User Title (note_01abc...)
+  [link] Example Link (link_01def...)
+  [doc]  ./CLAUDE.md (doc_01ghi...)
+```
+
+**Output (virtual collection):**
+```
+Collection: Category Notes
+  ID: collection_01abc...
+  Kind: virtual
+  Status: Active
+  Query:
+    Filters:
+      - category: category_01abc...
+    Limit: (none)
+
+Matching Notes (2):
+  語 (note_01abc...)
+  Learning 日 (note_01def...)
+```
+
+### exec
+
+Execute a virtual collection's query and show matching notes.
+
+```bash
+rei collection exec [NAME_OR_ID]
+```
+
+**Arguments:**
+- `[NAME_OR_ID]` — Virtual collection name or ID (optional if fzf is available)
+
+This command only works with virtual collections. Use `show` for manual collections.
+
+**Output:**
+```
+NOTE ID                              | TITLE           | CATEGORY
+-------------------------------------+-----------------+----------
+note_01abc...                        | 語              | learning/japanese
+note_01def...                        | Learning 日      | learning/japanese
+```
+
+### add
+
+Add a member to a manual collection.
+
+```bash
+rei collection add NAME_OR_ID [options]
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID
+
+**Options (specify one):**
+- `--note NOTE_ID` — Add a note by ID
+- `--link LINK_ID` — Add a link by ID
+- `--doc DOC_ID` — Add a document by ID
+
+If no option is provided and fzf is available, an interactive picker lets you select a note, link, or doc.
+
+**Examples:**
+
+```bash
+# Add a note
+rei collection add "Reading List" --note note_01abc...
+
+# Add a link
+rei collection add "Reading List" --link link_01def...
+
+# Interactive selection
+rei collection add "Reading List"
+```
+
+**Output:**
+```
+Added member to collection: Reading List
+  Type: note
+  ID: note_01abc...
+```
+
+### remove
+
+Remove a member from a manual collection.
+
+```bash
+rei collection remove NAME_OR_ID [options]
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID
+
+**Options:**
+- `--member MEMBER_ID` — Member ID to remove
+
+If `--member` is not provided, the command lists current members and prompts for selection.
+
+**Example:**
+
+```bash
+rei collection remove "Reading List" --member col_member_01abc...
+```
+
+### rename
+
+Rename a collection.
+
+```bash
+rei collection rename NAME_OR_ID NEW_NAME
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Current collection name or ID
+- `NEW_NAME` — New name for the collection
+
+**Example:**
+
+```bash
+rei collection rename "Reading List" "Must Read"
+```
+
+### describe
+
+Update or clear a collection's description.
+
+```bash
+rei collection describe NAME_OR_ID [options]
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID
+
+**Options:**
+- `-d, --description DESC` — New description text
+- `--clear` — Clear the description
+
+**Examples:**
+
+```bash
+# Set description
+rei collection describe "Reading List" -d "Curated reading materials"
+
+# Clear description
+rei collection describe "Reading List" --clear
+```
+
+### archive
+
+Archive a collection. Archived collections are hidden from default listings.
+
+```bash
+rei collection archive NAME_OR_ID
+```
+
+**Example:**
+
+```bash
+rei collection archive "Old Papers"
+```
+
+### restore
+
+Restore an archived collection.
+
+```bash
+rei collection restore NAME_OR_ID
+```
+
+**Example:**
+
+```bash
+rei collection restore "Old Papers"
+```
+
+### edit-query
+
+Edit a virtual collection's query in `$EDITOR`.
+
+```bash
+rei collection edit-query [NAME_OR_ID]
+```
+
+Opens the collection's query as YAML in your editor. On save, the updated query is applied to the collection.
+
+**Example:**
+
+```bash
+rei collection edit-query "Category Notes"
+```
+
+### export-query
+
+Export a virtual collection's query as YAML to stdout.
+
+```bash
+rei collection export-query [NAME_OR_ID]
+```
+
+**Examples:**
+
+```bash
+# Print query YAML
+rei collection export-query "Category Notes"
+
+# Save to file
+rei collection export-query "Category Notes" > query.yaml
+```
+
+**Output:**
+```yaml
+filters:
+  - type: category
+    category_id: "category_01abc..."
+limit: null
+```
+
+## Agent Integration
+
+### explore
+
+Explore a collection's contents with AI analysis. See [`rei agent`](/docs/commands/agent) for more on AI commands.
+
+```bash
+rei agent explore [COLLECTION] [options]
+```
+
+**Options:**
+- `-n, --limit N` — Maximum number of notes with content (default 20)
+- `--debug` — Show the prompt without calling the agent
+
+The explore command gathers all collection members (note content, link metadata, doc paths) and sends them to Claude for thematic analysis.
+
+**Examples:**
+
+```bash
+# Explore with AI
+rei agent explore "Research Papers"
+
+# Limit notes for large collections
+rei agent explore "Category Notes" --limit 5
+
+# Debug: see the prompt
+rei agent --debug explore "Category Notes"
+```
+
+## Note List Integration
+
+Filter notes by collection membership using the `--collection` flag on `rei note list`:
+
+```bash
+# List notes in a manual collection
+rei note list --collection "Reading List"
+
+# List notes matching a virtual collection's query
+rei note list --collection "Category Notes"
+```
+
+This works for both manual and virtual collections. For virtual collections, the query is executed and matching notes are shown.
+
+## Virtual Collection Query Format
+
+Virtual collections use YAML queries with AND-composed filters:
+
+```yaml
+# Filter by category
+filters:
+  - type: category
+    category_id: "category_01abc..."
+
+# Filter by custom property
+  - type: property
+    property_key: "status"
+    operator: "equals"       # equals | not_equals | is_set | is_not_set
+    value: "active"          # omit for is_set/is_not_set
+
+# Optional: limit results
+limit: 50
+```
+
+## Tips
+
+- **Start with manual collections** for hand-curated groups (photo sets, reading lists)
+- **Use virtual collections** for dynamic queries (all notes in a category, notes with a specific property)
+- **Use `--from-file`** to create virtual collections from saved YAML queries
+- **Use `export-query`** to back up or share virtual collection definitions
+- **Use `agent explore`** to get AI analysis of a collection's themes and connections
+
+See the [Collections Guide](/docs/guides/collections) for a comprehensive overview and `rei help collections` for the help topic.

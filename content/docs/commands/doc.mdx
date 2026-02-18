@@ -1,16 +1,50 @@
 ---
 title: rei doc
-description: Attach existing documents to entities
+description: Attach and manage documents for entities
 icon: File
 ---
 
-Attach existing files to entities for reference and context.
+Attach and manage documents for entities.
 
 ## Subcommands
 
+### add
+
+Copy an external file into `workspace/docs/` and attach it to an entity. The file is renamed using the generated DocId to avoid collisions (e.g., `doc_01h455vb4pex.pdf`).
+
+```bash
+rei doc add <file> [options]
+```
+
+**Arguments:**
+- `<file>` — Path to the source file to copy (required)
+
+**Options:**
+- `-i, --intention <id>` — Attach to intention (optional if fzf is available)
+- `-a, --action <id>` — Attach to action (optional)
+- `-o, --outcome <id>` — Attach to outcome (optional)
+- `-r, --reflection <id>` — Attach to reflection (optional)
+- `-n, --note <id>` — Attach to note (optional)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+> **FZF Support:** If no entity is specified and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available entities.
+
+**Examples:**
+
+```bash
+# Copy a file into workspace/docs and attach to an intention
+rei doc add ~/Downloads/architecture.pdf -i intention_01h455vb4pex
+
+# Let fzf pick the entity interactively
+rei doc add ~/Documents/spec.md
+
+# Add to a note
+rei doc add ~/Downloads/diagram.png -n note_01h455vb4pex
+```
+
 ### attach
 
-Attach an existing file to an entity.
+Attach an existing file to an entity. By default, uses the file path as-is. Use `--copy` to copy the file into the workspace first.
 
 ```bash
 rei doc attach <file> [options]
@@ -26,13 +60,14 @@ rei doc attach <file> [options]
 - `-r, --reflection <id>` — Attach to reflection (optional)
 - `-n, --note <id>` — Attach to note (optional)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+- `--copy` — Copy the file into `workspace/docs/` before attaching (names file by DocId)
 
 > **FZF Support:** If no entity is specified and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available entities.
 
 **Examples:**
 
 ```bash
-# Attach a document to an intention
+# Attach a workspace-relative document to an intention
 rei doc attach ./architecture.md -i intention_01h455vb4pex
 
 # Let fzf pick the entity interactively
@@ -43,6 +78,9 @@ rei doc attach ./meeting-notes.md -i intention_01h455vb4pex -a action_01h455vb4p
 
 # Attach to a note
 rei doc attach ./diagram.pdf -n note_01h455vb4pex
+
+# Copy an external file into workspace/docs, then attach
+rei doc attach ~/Downloads/report.pdf -i intention_01h455vb4pex --copy
 ```
 
 ### list

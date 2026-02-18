@@ -6,6 +6,53 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-17
+
+### New Command: Collections
+
+Group knowledge artifacts (notes, links, documents) into curated sets for browsing, analysis, and AI exploration:
+
+- `rei collection create "Reading List" -d "Books to read"` — Create a manual collection
+- `rei collection create "Japanese Notes" --virtual --from-file query.yaml` — Create a virtual collection from a YAML query
+- `rei collection add "Reading List" --note note_01abc...` — Add members to manual collections
+- `rei collection show "Reading List"` — View collection details and members
+- `rei collection exec "Japanese Notes"` — Execute a virtual collection's query
+
+**Two kinds of collections:**
+- **Manual** — Hand-picked members (notes, links, documents)
+- **Virtual** — Saved queries that dynamically match notes by category or custom property
+
+**Collection lifecycle commands:** `list`, `rename`, `describe`, `archive`, `restore`, `edit-query`, `export-query`
+
+See [`rei collection`](/docs/commands/collection) and the [Collections Guide](/docs/guides/collections) for full documentation. Access the help topic with `rei help collections`.
+
+### New Feature: AI Collection Exploration
+
+Explore a collection's contents with AI thematic analysis:
+
+- `rei agent explore "Research Papers"` — Get AI analysis of patterns, connections, and gaps
+- `rei agent explore "Category Notes" --limit 5` — Limit notes for large collections
+
+### New Feature: Doc Add Command
+
+Copy external files into your workspace and attach them in one step:
+
+- `rei doc add ~/Downloads/paper.pdf -i intention_01abc...` — Copy file into `workspace/docs/` and attach
+- `rei doc attach ~/Downloads/report.pdf --copy` — Opt-in copy with the existing attach command
+
+### New Feature: Note Title Override
+
+Set stable titles on notes to prevent wikilink breakage when editing content:
+
+- `rei note set-title -n note_01abc... "Architecture Overview"` — Set an explicit title (overrides H1 extraction)
+- `rei note clear-title note_01abc...` — Revert to automatic H1 extraction
+
+### Feature Enhancements
+
+- **`rei note list --collection`** — Filter notes by collection membership (manual or virtual)
+
+---
+
 ## 2026-02-15
 
 ### New Feature: Daily Note Frontmatter

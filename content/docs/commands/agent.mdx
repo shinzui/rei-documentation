@@ -227,6 +227,38 @@ rei agent create-note -i "New project kickoff"
 3. Creates the note file in the workspace
 4. Attaches it to the specified anchor (intention/habit) if provided
 
+### explore
+
+Explore a collection's contents with AI analysis. Gathers all collection members (note content, link metadata, doc paths) and sends them to Claude for thematic analysis.
+
+```bash
+rei agent explore [COLLECTION] [options]
+```
+
+**Arguments:**
+- `[COLLECTION]` — Collection name or ID (optional if fzf is available)
+
+**Options:**
+- `-n, --limit N` — Maximum number of notes with content (default 20)
+- `--debug` — Show the prompt without calling the agent
+
+> **FZF Support:** If the collection is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing collections.
+
+**Examples:**
+
+```bash
+# Explore with AI
+rei agent explore "Research Papers"
+
+# Limit notes for large collections
+rei agent explore "Category Notes" --limit 5
+
+# Debug: see the prompt
+rei agent --debug explore "Category Notes"
+```
+
+See [`rei collection`](/docs/commands/collection) for full collection management commands.
+
 ## Modes Comparison
 
 | Mode | Behavior | Use Case |

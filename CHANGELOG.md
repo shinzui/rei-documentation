@@ -5,11 +5,49 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `9ed6666` (2026-02-15)
+**Last Source Commit Reviewed:** `51f77dc` (2026-02-17)
 
 ---
 
 ## Changelog
+
+### 2026-02-17
+
+**Reviewed commits:** `9ed6666` through `51f77dc`
+
+**Files created:**
+- `commands/collection.mdx` — **NEW** — Collection commands for grouping knowledge artifacts (manual and virtual collections)
+- `guides/collections.mdx` — **NEW** — Collections guide (from help topic `rei help collections`)
+
+**Files updated:**
+- `commands/doc.mdx` — Added `add` subcommand (copies file into workspace/docs and attaches); added `--copy` flag to `attach`; updated description
+- `commands/note.mdx` — Added `set-title` and `clear-title` subcommands; expanded title extraction section to mention overrides; added `--collection` filter to `list`
+- `commands/agent.mdx` — Added `explore` subcommand for AI analysis of collection contents
+- `commands/help.mdx` — Added `collections` to available help topics
+- `commands/index.mdx` — Added `collection` to Knowledge Commands table
+- `commands/meta.json` — Added `collection` to navigation
+- `guides/meta.json` — Added `collections` to navigation
+- `changelog.mdx` — Added 2026-02-17 entries
+
+**Help topics synced:**
+- `rei-cli/help/collections.md` — **NEW** — Collections help topic (manual/virtual collections, queries, AI exploration)
+
+**Features documented:**
+- Collection module (`rei collection create`, `list`, `show`, `exec`, `add`, `remove`, `rename`, `describe`, `archive`, `restore`, `edit-query`, `export-query`)
+- Manual collections (hand-picked members: notes, links, documents)
+- Virtual collections (YAML query-based, with category and property filters)
+- `rei agent explore` for AI thematic analysis of collection contents
+- `rei note list --collection` for filtering notes by collection membership
+- `rei doc add <file>` copies external files into `workspace/docs/` and attaches in one step
+- `rei doc attach --copy` opt-in flag to copy file into workspace before attaching
+- `rei note set-title` sets a stable user-defined title, preventing automatic H1 extraction
+- `rei note clear-title` reverts to automatic title extraction
+
+**No documentation needed:**
+- `58f43f8` Add Collection module design document (dev docs)
+- `0be80c2` Add state-machine-qualified notes for custom properties (internal feature, not yet user-facing in docs)
+
+---
 
 ### 2026-02-15
 
