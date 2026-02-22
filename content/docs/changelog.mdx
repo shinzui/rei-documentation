@@ -6,6 +6,43 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-18
+
+### First-Class Links with Canonical URL Deduplication
+
+Links are now first-class entities with their own lifecycle. URLs are automatically normalized — tracking parameters stripped, domain-specific rules applied (YouTube, Amazon, Twitter/X, etc.), and redirect chains resolved. The same URL attached to multiple entities shares a single canonical identity.
+
+**New subcommands:**
+- `rei link show [<link-id>]` — View link details with all attachments
+- `rei link detach [<link-id>]` — Detach a link from an anchor (link continues to exist)
+- `rei link title [<link-id>] [-t <title>] [--clear]` — Set or clear display title
+- `rei link edit [<link-id>] --url <url>` — Correct canonical URL (manual override)
+- `rei link remove [<link-id>]` — Soft-delete a link (can be restored)
+- `rei link restore [<link-id>]` — Restore a previously removed link
+
+**Updated commands:**
+- `rei link add` — Now uses canonical URL deduplication; auto-restores previously removed links
+- `rei link list --all` — Show all links across all entities
+- `rei link list --all --include-removed` — Include soft-deleted links
+
+### New Guide: Journal Entries
+
+Added **[Journal Entries Guide](/docs/guides/journal-entries)** covering daily metrics tracking with custom properties on journal entries:
+
+- Defining properties scoped to journal entries (`-e journal_entry`)
+- Setting and clearing properties with `rei day set-property` / `clear-property`
+- Viewing daily properties with `rei day show`
+- Daily note YAML frontmatter from journal entry properties
+- Constraints: global properties only, no init-entities, explicit entity type required
+
+Access the help topic with `rei help journal-entries`.
+
+### Guide Enhancements
+
+- **[Custom Properties Guide](/docs/guides/custom-properties)** — Added Journal Entry to Supported Entity Types with constraints note
+
+---
+
 ## 2026-02-17
 
 ### New Command: Collections

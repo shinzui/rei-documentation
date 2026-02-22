@@ -5,11 +5,51 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `641c5d0` (2026-02-17)
+**Last Source Commit Reviewed:** `29b5021` (2026-02-18)
 
 ---
 
 ## Changelog
+
+### 2026-02-18
+
+**Reviewed commits:** `641c5d0` through `29b5021`
+
+**Files created:**
+- `guides/journal-entries.mdx` — **NEW** — Journal entries guide for daily property tracking (from help topic `rei help journal-entries`)
+
+**Files updated:**
+- `commands/link.mdx` — Major overhaul: first-class links with canonical URL deduplication, new subcommands (show, detach, title, edit, remove, restore), updated add/list with deduplication and `--all`/`--include-removed` flags
+- `commands/help.mdx` — Added `journal-entries` to available help topics
+- `guides/custom-properties.mdx` — Added Journal Entry to Supported Entity Types table with constraints note; added link to journal entries guide
+- `guides/meta.json` — Added `journal-entries` to navigation
+- `changelog.mdx` — Added 2026-02-18 entries
+
+**Help topics synced:**
+- `rei-cli/help/journal-entries.md` — **NEW** — Daily tracking with journal entry properties
+- `rei-cli/help/custom-properties.md` — Added day set-property, day clear-property, day show to supported commands; added journal entry constraints note
+
+**Features documented:**
+- First-class links with canonical URL deduplication (`link-canonical` normalization)
+- One-to-many link attachments (same URL shared across entities)
+- Auto-restore of previously removed links
+- `rei link show` — View link details with all attachments
+- `rei link detach` — Detach a link from an anchor
+- `rei link title` — Set or clear display title
+- `rei link edit` — Correct canonical URL (manual override)
+- `rei link remove` — Soft-delete a link
+- `rei link restore` — Restore a removed link
+- `rei link add` — Now uses canonical URL normalization and deduplication
+- `rei link list --all` / `--include-removed` — New listing flags
+- Journal entries guide — daily metrics tracking, defining properties, frontmatter, constraints
+
+**No documentation needed:**
+- `d1d1a3a` Document journal entry custom property support in dev docs
+- `2c6d6a4` Add first-class links design document (dev docs)
+- Bug fixes: `e9695df`, `3b984ed`, `1fdca58`, `9e0503e`, `733a88b`
+- Internal: `95a61ef` link backfill, `b05b8d9`/`fdcb73b` note subcommand refactoring
+
+---
 
 ### 2026-02-17 (2)
 

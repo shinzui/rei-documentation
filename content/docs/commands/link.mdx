@@ -1,16 +1,18 @@
 ---
 title: rei link
-description: Add external links to entities
+description: Manage external links with canonical URL deduplication
 icon: ExternalLink
 ---
 
-Add external links to entities for reference and context.
+Manage external links with canonical URL deduplication. Links are first-class entities with their own lifecycle — the same URL attached to multiple entities shares a single canonical identity.
+
+URLs are automatically normalized using `link-canonical`: tracking parameters are stripped, domain-specific rules applied (YouTube, Amazon, Twitter/X, etc.), and redirect chains resolved. Two different URLs that point to the same resource are recognized as the same link.
 
 ## Subcommands
 
 ### add
 
-Add a link to an entity.
+Add a link to an entity. If the canonical URL already exists, the existing link is reused (deduplication). If the link was previously removed, it is auto-restored.
 
 ```bash
 rei link add <url> [options]
@@ -25,6 +27,7 @@ rei link add <url> [options]
 - `-o, --outcome <id>` — Attach to outcome
 - `-r, --reflection <id>` — Attach to reflection
 - `-t, --title <title>` — Link title (optional)
+- `--actor <actor>` — Actor that created this link (optional)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -42,11 +45,14 @@ rei link add https://github.com/user/repo -i intention_01h455vb4pex -t "Project 
 
 # Add to an action
 rei link add https://pr-url.com -i intention_01h455vb4pex -a action_01h455vb4pex
+
+# Same URL added to a different intention shares the canonical link
+rei link add https://github.com/user/repo -i intention_01h789abc
 ```
 
 ### list
 
-List links attached to entities.
+List links for an entity or across all entities.
 
 ```bash
 rei link list [options]
@@ -57,6 +63,10 @@ rei link list [options]
 - `-a, --action <id>` — Filter by action
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
+- `--all` — Show all links across all anchors
+- `--include-removed` — Include removed links (with `--all`)
+
+> **FZF Support:** If no anchor is specified and fzf is available, an interactive picker will let you select an entity.
 
 **Examples:**
 
@@ -64,9 +74,161 @@ rei link list [options]
 # List links for an intention
 rei link list -i intention_01h455vb4pex
 
-# List links for an action
-rei link list -a action_01h455vb4pex
+# List all links across all entities
+rei link list --all
+
+# Include removed links
+rei link list --all --include-removed
 ```
+
+### show
+
+Show link details including canonical URL, status, and all attachments.
+
+```bash
+rei link show [<link-id>]
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+> **FZF Support:** If no ID is provided and fzf is available, an interactive picker will let you select a link.
+
+**Example:**
+
+```bash
+rei link show link_01h789abc
+
+# Output:
+# Link: link_01h789abc...
+# URL: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# Title: Never Gonna Give You Up
+# Status: Active
+#
+# Attachments (2):
+#   INTENTION intention_01h455...  "Never Gonna Give You Up"  2026-02-18 10:30
+#   INTENTION intention_01h456...  "Rickroll reference"       2026-02-18 10:35
+```
+
+### detach
+
+Detach a link from an anchor. The link continues to exist; only the attachment is removed.
+
+```bash
+rei link detach [<link-id>] [--attachment <id>]
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+**Options:**
+- `--attachment <id>` — The attachment ID to detach (required if the link has multiple attachments)
+
+If the link has only one attachment, the `--attachment` flag is not needed.
+
+**Example:**
+
+```bash
+rei link detach link_01h789abc --attachment link_att_01h999
+```
+
+### title
+
+Set or clear the display title for a link.
+
+```bash
+rei link title [<link-id>] [-t <title>] [--clear]
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+**Options:**
+- `-t, --title <title>` — The new title
+- `--clear` — Clear the title
+
+**Examples:**
+
+```bash
+# Set a title
+rei link title link_01h789abc -t "Project Documentation"
+
+# Clear the title
+rei link title link_01h789abc --clear
+```
+
+### edit
+
+Correct a link's canonical URL. This is a manual override for when automatic normalization produced an incorrect result.
+
+```bash
+rei link edit [<link-id>] --url <new-url>
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+**Options:**
+- `--url <url>` — The new URL (required)
+
+**Example:**
+
+```bash
+rei link edit link_01h789abc --url https://correct-url.com/page
+```
+
+### remove
+
+Soft-delete a link. All attachments become inactive. The link can be restored later.
+
+```bash
+rei link remove [<link-id>]
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+**Example:**
+
+```bash
+rei link remove link_01h789abc
+```
+
+### restore
+
+Restore a previously removed link.
+
+```bash
+rei link restore [<link-id>]
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+
+**Example:**
+
+```bash
+rei link restore link_01h789abc
+```
+
+## Key Concepts
+
+### Canonical URL Deduplication
+
+When you add a URL, it is normalized to a canonical form:
+- Tracking parameters (UTM, fbclid, etc.) are stripped
+- Domain-specific rules are applied (YouTube, Amazon, Twitter/X, GitHub, etc.)
+- Redirect chains are resolved
+
+Two different URLs that resolve to the same resource are recognized as the same link. Adding a URL that already exists reuses the existing link entity.
+
+### One-to-Many Attachments
+
+A single canonical link can be attached to multiple entities. Each attachment can have its own context-specific title. Use `rei link show` to see all attachments for a link.
+
+### Auto-Restore
+
+Adding a URL that matches a previously removed link automatically restores it, preventing accidental duplicates.
 
 ## Use Cases
 
@@ -74,3 +236,4 @@ rei link list -a action_01h455vb4pex
 - Link documentation to intentions
 - Reference external resources from reflections
 - Connect outcomes to published work
+- Share the same reference link across multiple related intentions

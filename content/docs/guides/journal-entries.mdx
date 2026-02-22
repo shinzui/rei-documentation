@@ -1,0 +1,157 @@
+---
+title: Journal Entries
+description: Track daily metrics like mood, energy, and sleep with journal entry properties
+icon: CalendarDays
+---
+
+Journal entries represent individual calendar days. Each date has at most one journal entry, created automatically on first use. Use the `rei day` command to track daily metrics like mood, energy, sleep, and any other custom properties.
+
+## Quick Start
+
+1. Define a property scoped to journal entries:
+
+```bash
+rei custom-property create mood \
+  --type-enum --values "great,good,okay,low,bad" \
+  -e journal_entry --label Mood
+```
+
+2. Set a value for today:
+
+```bash
+rei day set-property mood good
+```
+
+3. View today's properties:
+
+```bash
+rei day show
+```
+
+## How Journal Entries Work
+
+Journal entries are one-per-day containers. They are created automatically the first time you set a property or anchor a daily note to a date. You never need to create one manually.
+
+Each journal entry lives in its own event stream and can hold:
+
+- Custom property values (mood, energy, sleep, etc.)
+- Anchored knowledge artifacts (notes, docs, links, tasks)
+
+## Setting Properties
+
+Set a property on today's journal entry:
+
+```bash
+rei day set-property mood great
+rei day set-property sleep-hours 7.5
+rei day set-property energy high
+```
+
+Set a property on a specific date:
+
+```bash
+rei day set-property mood okay --date 2026-02-15
+rei day set-property sleep-hours 6 -d 2026-02-15
+```
+
+Clear a property:
+
+```bash
+rei day clear-property mood
+rei day clear-property mood --date 2026-02-15
+```
+
+## Viewing Properties
+
+Show today's properties (default when running `rei day`):
+
+```bash
+rei day show
+```
+
+Show a specific date:
+
+```bash
+rei day show --date 2026-02-15
+```
+
+Example output:
+
+```
+Day: 2026-02-18
+  mood: great
+  energy: high
+  sleep-hours: 7.5
+```
+
+## Defining Properties for Journal Entries
+
+Properties must explicitly include `journal_entry` in their entity types. The default entity type set does **not** include journal entries.
+
+Always pass `-e journal_entry` when creating:
+
+```bash
+rei custom-property create mood \
+  --type-enum --values "great,good,okay,low,bad" \
+  -e journal_entry --label Mood
+
+rei custom-property create sleep-hours \
+  --type-float --min 0 --max 24 \
+  -e journal_entry --label "Sleep Hours"
+
+rei custom-property create energy \
+  --type-enum --values "high,medium,low" \
+  -e journal_entry --label "Energy Level"
+
+rei custom-property create daily-exercise \
+  --type-bool \
+  -e journal_entry --label "Exercise Today"
+```
+
+A property can span multiple entity types:
+
+```bash
+rei custom-property create focus-quality \
+  --type-enum --values "deep,shallow,scattered" \
+  -e journal_entry -e intention --label "Focus Quality"
+```
+
+## Daily Note Frontmatter
+
+Properties set on journal entries are rendered as YAML frontmatter when you open a daily note with `rei note today`. The event store remains authoritative; frontmatter is regenerated each time the note opens.
+
+Example frontmatter in a daily note:
+
+```markdown
+---
+mood: great
+energy: high
+sleep-hours: 7.5
+---
+```
+
+## Important Constraints
+
+**Global properties only:**
+Journal entries have no categories. Only global properties (not scoped to a category) can be assigned to journal entries.
+
+**No init-entities:**
+The `rei custom-property init-entities` command does not work for journal entries. State machine properties must be manually set to their initial state.
+
+**Explicit entity type:**
+The default property scope does not include `journal_entry`. You must always pass `-e journal_entry` when creating properties for daily use.
+
+## Day Commands
+
+| Command | Description |
+|---------|-------------|
+| `day set-property KEY VALUE [-d DATE]` | Set a property on a journal entry |
+| `day clear-property KEY [-d DATE]` | Clear a property from a journal entry |
+| `day show [-d DATE]` | Show all properties for a day |
+
+## Related
+
+- [Custom Properties Guide](/docs/guides/custom-properties) — Custom property system overview
+- [State Machine Properties](/docs/guides/state-machines) — State machine properties
+- [`rei custom-property`](/docs/commands/custom-property) — Property definition commands
+- [`rei day`](/docs/commands/day) — Day command reference

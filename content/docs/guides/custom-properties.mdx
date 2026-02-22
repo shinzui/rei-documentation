@@ -408,10 +408,14 @@ The same key CAN exist in different categories.
 | Habit | `habit set-property` | `habit clear-property` |
 | Disruption | `disruption set-property` | `disruption clear-property` |
 | Note | `note set-property` | `note clear-property` |
+| Journal Entry | `day set-property` | `day clear-property` |
+
+Journal entries only support global properties (not category-scoped) and require `-e journal_entry` when creating the property definition. Use `day show` to view all properties for a day. See the [Journal Entries Guide](/docs/guides/journal-entries) for details.
 
 ## Related
 
 - [State Machine Properties](/docs/guides/state-machines) — Detailed guide for state machines
+- [Journal Entries](/docs/guides/journal-entries) — Daily tracking with journal entry properties
 - [`rei custom-property`](/docs/commands/custom-property) — Full command reference
 - [Intention Filtering](/docs/guides/intention-filtering) — Filtering by property values
 - [Custom Properties Concept](/docs/concepts/custom-properties) — Conceptual overview
