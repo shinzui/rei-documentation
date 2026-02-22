@@ -118,6 +118,43 @@ rei collection archive "Old Papers"
 rei collection restore "Old Papers"
 ```
 
+## Categories
+
+Assign a category to a collection to organize by life area and enable category-scoped custom properties:
+
+```bash
+# Assign a category
+rei collection set-category "Reading List" learning
+
+# Clear category
+rei collection clear-category "Reading List"
+
+# Filter collections by category
+rei collection list --category learning
+```
+
+When a collection is assigned a category, any state machine properties scoped to that category are automatically initialized via the category property reactor.
+
+## Custom Properties
+
+Collections support custom properties (state machines, enums, text, etc.) scoped by category. Properties are defined with `rei custom-property create` using `--entity collection`.
+
+```bash
+# Set a property
+rei collection set-property "Reading List" review-status in-review
+
+# Clear a property
+rei collection clear-property "Reading List" review-status
+```
+
+Interactive selection (FZF) is used when the collection name is omitted.
+
+Retroactive initialization for existing collections:
+
+```bash
+rei custom-property init-entities review-status
+```
+
 ## AI Exploration
 
 Explore a collection's contents with AI analysis:
@@ -162,6 +199,10 @@ This works for both manual and virtual collections. For virtual collections, the
 | `collection restore` | Restore archived collection |
 | `collection edit-query` | Edit virtual collection query in `$EDITOR` |
 | `collection export-query` | Export virtual collection query as YAML |
+| `collection set-category` | Set collection category |
+| `collection clear-category` | Clear collection category |
+| `collection set-property` | Set a custom property on a collection |
+| `collection clear-property` | Clear a custom property from a collection |
 | `agent explore` | Explore collection contents with AI |
 
 See [`rei collection`](/docs/commands/collection) for full command reference.

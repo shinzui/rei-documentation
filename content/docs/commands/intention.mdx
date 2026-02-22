@@ -44,6 +44,7 @@ rei intention create <title> [options]
 - `-c, --context <context>` — Context label (e.g., `work`, `personal`)
 - `--future` — Create as Future (deferred) instead of Active
 - `--category <slug>` — Assign a category at creation (e.g., `Work`, `Personal/Health`)
+- `--started-at <time>` — When work actually started (e.g., `yesterday`, `2 hours ago`, `2024-01-15`)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Examples:**
@@ -81,6 +82,9 @@ rei intention create "Review Q1 goals" --category Work
 
 # Create with category and other options
 rei intention create "Plan health routine" --category "Personal/Health" --horizon 3m
+
+# Backdate when work actually started
+rei intention create "Migrate database" --started-at "3 days ago"
 ```
 
 **Notes:**
@@ -88,6 +92,7 @@ rei intention create "Plan health routine" --category "Personal/Health" --horizo
 - Child intentions inherit context from their root ancestor
 - Use `--future` to create intentions you want to plan now but activate later
 - `--category` requires a database connection; if the category slug is not found, a warning is shown and the intention is still created without a category
+- `--started-at` records when work began, separate from the system creation timestamp. This affects dormancy baseline calculations. Accepts natural language time expressions.
 
 ### list
 

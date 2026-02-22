@@ -5,11 +5,50 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `29b5021` (2026-02-18)
+**Last Source Commit Reviewed:** `3762096` (2026-02-22)
 
 ---
 
 ## Changelog
+
+### 2026-02-22
+
+**Reviewed commits:** `29b5021` through `3762096`
+
+**Files created:**
+- `guides/disruptions.mdx` — **NEW** — Disruptions guide for tracking recurring interruptions (from help topic `rei help disruptions`)
+
+**Files updated:**
+- `commands/collection.mdx` — Added `--category` filter to `list`; added `set-category`, `clear-category`, `set-property`, `clear-property` subcommands; updated Tips section with category and custom property tips
+- `commands/intention.mdx` — Added `--started-at` option to `create` command with example and notes
+- `commands/link.mdx` — Added FZF Ctrl-F toggle documentation to `list` command
+- `commands/help.mdx` — Added `disruptions` to available help topics
+- `guides/collections.mdx` — Added Categories section, Custom Properties section, updated Command Summary table
+- `guides/state-machines.mdx` — Added State Notes section with open/create/list commands; added `state notes` to overview table and command summary
+- `guides/meta.json` — Added `disruptions` to navigation
+- `changelog.mdx` — Added 2026-02-22 entries
+
+**Help topics synced:**
+- `rei-cli/help/disruptions.md` — **NEW** — Disruption tracking, sources, occurrences, lifecycle, categories, custom properties, task completion links
+- `rei-cli/help/collections.md` — Added Categories section (set-category, clear-category, list --category) and Custom Properties section (set-property, clear-property, init-entities)
+- `rei-cli/help/state-machines.md` — Added State Notes section (phase-specific documentation per state)
+
+**Features documented:**
+- Disruptions guide — recording, sources, lifecycle, addressing with intentions, categories, custom properties, task completion links
+- Collection categories (`set-category`, `clear-category`, `list --category`)
+- Collection custom properties (`set-property`, `clear-property`)
+- State machine state notes (`custom-property <key> note`, `custom-property <key> notes`)
+- `rei intention create --started-at` for backdating work start time
+- `rei link list` FZF Ctrl-F toggle for active/all intentions
+
+**No documentation needed:**
+- `78f4d88` Move collection categories design doc to implemented (dev docs)
+- `62def1c` Update collection and custom-property module docs (dev docs)
+- `bffd1ed` Add collection categories and custom properties design doc (dev docs)
+- `11e0a0b` Update docs for note-link extraction feature (dev docs)
+- `57ec190` Extract links from markdown AST for note-link extraction (internal implementation)
+
+---
 
 ### 2026-02-18
 

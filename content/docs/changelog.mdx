@@ -6,6 +6,50 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-22
+
+### New Guide: Disruptions
+
+Added **[Disruptions Guide](/docs/guides/disruptions)** covering recurring interruption tracking with pattern analysis:
+
+- Recording occurrences with `rei disruption record`
+- Disruption sources as slug-format natural keys
+- Lifecycle states: Active, Addressed, Resolved
+- Addressing disruptions by linking to an intention (`rei intention set-addresses`)
+- Categories and custom properties on disruptions
+- Task completion links for checklist-gated workflows on disruptions
+
+Access the help topic with `rei help disruptions`.
+
+### Collection Categories and Custom Properties
+
+Collections now support categories and custom properties for workflow tracking:
+
+- `rei collection set-category "Reading List" learning` — Assign a category
+- `rei collection clear-category "Reading List"` — Clear the category
+- `rei collection list --category learning` — Filter by category
+- `rei collection set-property "Reading List" review-status in-review` — Set a custom property
+- `rei collection clear-property "Reading List" review-status` — Clear a custom property
+
+Categories enable category-scoped custom properties with automatic initialization via the category property reactor.
+
+### State Machine State Notes
+
+State notes attach phase-specific documentation to each state of an intention's workflow:
+
+- `rei custom-property workflow note -i <id>` — Open or create a state note for the current state
+- `rei custom-property workflow note -i <id> --state in-progress` — Override the target state
+- `rei custom-property workflow notes -i <id>` — List all state notes for an intention
+
+Each (intention, property, state) combination can have at most one note, providing a structured place to capture context as an intention moves through workflow stages.
+
+### Feature Enhancements
+
+- **`rei intention create --started-at`** — Record when work actually started, separate from the creation timestamp. Affects dormancy baseline calculations.
+- **`rei link list`** — FZF picker now supports **Ctrl-F** to toggle between active intentions only and all intentions (including future)
+
+---
+
 ## 2026-02-18
 
 ### First-Class Links with Canonical URL Deduplication

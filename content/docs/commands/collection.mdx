@@ -86,6 +86,7 @@ rei collection list [options]
 
 **Options:**
 - `-a, --all` — Include archived collections
+- `--category <slug>` — Filter by category (e.g., `work`, `personal`)
 
 **Output:**
 ```
@@ -293,6 +294,84 @@ rei collection restore NAME_OR_ID
 rei collection restore "Old Papers"
 ```
 
+### set-category
+
+Assign a category to a collection. Categories enable category-scoped custom properties — when assigned, any state machine properties scoped to that category are automatically initialized.
+
+```bash
+rei collection set-category NAME_OR_ID CATEGORY
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID
+- `CATEGORY` — Category slug (e.g., `work`, `personal/health`)
+
+**Example:**
+
+```bash
+rei collection set-category "Research Papers" work
+```
+
+### clear-category
+
+Remove the category from a collection.
+
+```bash
+rei collection clear-category NAME_OR_ID
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID
+
+**Example:**
+
+```bash
+rei collection clear-category "Research Papers"
+```
+
+### set-property
+
+Set a custom property on a collection.
+
+```bash
+rei collection set-property [NAME_OR_ID] PROPERTY_KEY VALUE
+```
+
+**Arguments:**
+- `[NAME_OR_ID]` — Collection name or ID (optional if fzf is available)
+- `PROPERTY_KEY` — The property key to set
+- `VALUE` — The value to assign (validated against property definition)
+
+> **FZF Support:** If the collection name is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select a collection.
+
+**Examples:**
+
+```bash
+# Set an enum property
+rei collection set-property "Research Papers" review-status in-review
+
+# Advance a state machine property
+rei collection set-property "Iceland Photos" curation-status curating
+```
+
+### clear-property
+
+Clear a custom property from a collection.
+
+```bash
+rei collection clear-property [NAME_OR_ID] PROPERTY_KEY
+```
+
+**Arguments:**
+- `[NAME_OR_ID]` — Collection name or ID (optional if fzf is available)
+- `PROPERTY_KEY` — The property key to clear
+
+**Example:**
+
+```bash
+rei collection clear-property "Research Papers" review-status
+```
+
 ### edit-query
 
 Edit a virtual collection's query in `$EDITOR`.
@@ -405,5 +484,8 @@ limit: 50
 - **Use `--from-file`** to create virtual collections from saved YAML queries
 - **Use `export-query`** to back up or share virtual collection definitions
 - **Use `agent explore`** to get AI analysis of a collection's themes and connections
+- **Use categories** to organize collections by life area (work, personal, research) and enable category-scoped custom properties
+- **Use custom properties** for workflow tracking — e.g., a state machine property like `curation-status` with states `gathering → curating → complete`
+- **Retroactive initialization** with `rei custom-property init-entities <key>` initializes state machine properties on existing collections that match the category
 
 See the [Collections Guide](/docs/guides/collections) for a comprehensive overview and `rei help collections` for the help topic.

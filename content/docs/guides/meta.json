@@ -8,6 +8,7 @@
 		"dashboard",
 		"views",
 		"collections",
+		"disruptions",
 		"time-formats"
 	]
 }

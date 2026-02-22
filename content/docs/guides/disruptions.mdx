@@ -1,0 +1,238 @@
+---
+title: Disruptions
+description: Track recurring interruptions, record occurrences, and analyze patterns to address root causes
+icon: AlertTriangle
+---
+
+Disruptions track recurring sources of interruption that break your planned work. By recording each occurrence against a named source, Rei builds pattern data — instance counts, total time lost, first and last seen — that helps you decide whether to invest in fixing the root cause. Access this guide with `rei help disruptions`.
+
+## Quick Start
+
+```bash
+# 1. Record the first occurrence of a disruption
+rei disruption record slack-interrupts -d "Pulled into ad-hoc standup"
+
+# 2. Record subsequent occurrences (same source, new action each time)
+rei disruption record slack-interrupts
+rei disruption record slack-interrupts --duration 45m
+
+# 3. Link an intention to address the root cause
+rei intention set-addresses -i INTENTION_ID -d slack-interrupts
+
+# 4. When the root cause is gone, complete the intention (auto-resolves
+#    the disruption) or resolve manually
+rei disruption resolve slack-interrupts
+```
+
+## Disruption Sources
+
+A source is a slug-format identifier that acts as the natural key for a disruption. It is unique across your workspace.
+
+Good source names: `slack-interrupts`, `prod-alerts`, `redis-timeouts`, `on-call-pages`, `meeting-overruns`
+
+The `record` command is idempotent with respect to the source: if the source already exists, Rei records a new occurrence against it. If the source does not exist, Rei creates it first, then records the occurrence. You never need to create a source separately.
+
+## Recording Occurrences
+
+```bash
+# Record an occurrence now
+rei disruption record slack-interrupts
+
+# Record with a description
+rei disruption record redis-timeouts -d "Timeout during checkout"
+
+# Record with a duration
+rei disruption record prod-alerts --duration 1h30m
+
+# Record an occurrence that happened earlier (see "rei help time")
+rei disruption record on-call-pages --at "2 hours ago"
+rei disruption record on-call-pages --at "14:30"
+
+# Record with a context label
+rei disruption record slack-interrupts --context work
+```
+
+Each recorded occurrence is an action. Actions accumulate instance counts and total duration in the read model for pattern analysis.
+
+## Listing and Viewing
+
+```bash
+# List active disruptions (default)
+rei disruption list
+
+# List by status
+rei disruption list --status active
+rei disruption list --status addressed
+rei disruption list --status resolved
+
+# Show all including resolved
+rei disruption list --all
+
+# Filter by custom property
+rei disruption list --where severity=high
+
+# Show details for a disruption
+rei disruption show slack-interrupts
+```
+
+The detail view shows status, occurrence count, total duration, first/last seen, addressing intention (if any), and attached notes.
+
+## Lifecycle
+
+Disruptions move through three states:
+
+| State | Description |
+|-------|-------------|
+| **Active** | Ongoing or recurring, not yet being addressed |
+| **Addressed** | Linked to an intention, or manually marked addressed |
+| **Resolved** | No longer occurring |
+
+**State transitions:**
+
+```
+Active  ──>  Addressed  ──>  Resolved
+  ^              │                │
+  │    reopen    │    reopen      │
+  └──────────────┴────────────────┘
+```
+
+**Rules:**
+- Only Active disruptions can be addressed
+- Only Addressed disruptions can be resolved or reverted to Active
+- Only Resolved disruptions can be reopened to Active
+
+## Addressing a Disruption
+
+The preferred way is to link a disruption to an intention that addresses its root cause:
+
+```bash
+rei intention set-addresses -i INTENTION_ID -d redis-timeouts
+```
+
+Rei automatically moves the disruption to Addressed when linked, to Resolved when the intention is completed, and back to Active if the intention is abandoned.
+
+For issues you cannot own, mark addressed manually:
+
+```bash
+rei disruption mark-addressed prod-alerts
+rei disruption mark-addressed prod-alerts --note "AWS resolved the incident"
+```
+
+To manually resolve an addressed disruption:
+
+```bash
+rei disruption resolve slack-interrupts
+```
+
+To reopen (e.g., root cause returned):
+
+```bash
+rei disruption reopen redis-timeouts --reason "New wave of timeouts"
+```
+
+## Updating a Disruption
+
+```bash
+# Update the description
+rei disruption update slack-interrupts "Slack pull-ins and DMs"
+
+# Set or clear context
+rei disruption set-context slack-interrupts --context work
+```
+
+## Updating Actions
+
+Each recorded occurrence is an action with its own ID. Use the action subcommands to correct a previously recorded occurrence.
+
+```bash
+# Update the description of an occurrence
+rei disruption action update-description --source redis-timeouts "New desc"
+
+# Correct when an occurrence happened
+rei disruption action update-occurred-at --source redis-timeouts "14:30"
+
+# Set or correct the duration of an occurrence
+rei disruption action update-duration --source redis-timeouts 45m
+```
+
+## Notes
+
+Attach a note to a disruption for investigation context or runbooks. Notes open in your `$EDITOR`.
+
+```bash
+# Create a note
+rei disruption note new redis-timeouts
+
+# List attached notes
+rei disruption note list redis-timeouts
+```
+
+## Categories
+
+```bash
+# Assign a category to a disruption
+rei disruption set-category redis-timeouts --category infra
+```
+
+Categories enable category-scoped custom properties. When a disruption is assigned a category, any state machine properties scoped to that category are automatically initialized.
+
+## Custom Properties
+
+Disruptions support custom properties (enums, text, state machines, etc.) scoped by category. Define properties with `rei custom-property create` using `-e disruption`.
+
+```bash
+# Set a property
+rei disruption set-property redis-timeouts severity high
+
+# Clear a property
+rei disruption clear-property redis-timeouts severity
+
+# Filter by property when listing
+rei disruption list --where severity=critical
+```
+
+## Task Completion Links
+
+A boolean property on a disruption can be automatically set based on task completion in an attached note. When all tasks in the linked note are complete, the property is set to `true`.
+
+```bash
+# Link a note's tasks to a boolean property
+rei disruption link-tasks --source redis-timeouts \
+  --note NOTE_ID --property checklist-done
+
+# Remove the link
+rei disruption unlink-tasks --source redis-timeouts \
+  --note NOTE_ID --property checklist-done
+```
+
+See the [State Machine Properties Guide](/docs/guides/state-machines) for more on task completion links.
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `disruption record` | Record an occurrence (creates source if needed) |
+| `disruption list` | List disruptions by status |
+| `disruption show` | Show disruption details |
+| `disruption update` | Update disruption description |
+| `disruption set-category` | Set disruption category |
+| `disruption set-context` | Set or clear disruption context |
+| `disruption mark-addressed` | Mark as addressed without an intention |
+| `disruption resolve` | Resolve an addressed disruption |
+| `disruption reopen` | Reopen a resolved disruption |
+| `disruption note new` | Attach a note to a disruption |
+| `disruption note list` | List notes for a disruption |
+| `disruption action update-description` | Update an occurrence description |
+| `disruption action update-occurred-at` | Correct when an occurrence happened |
+| `disruption action update-duration` | Set or correct occurrence duration |
+| `disruption set-property` | Set a custom property |
+| `disruption clear-property` | Clear a custom property |
+| `disruption link-tasks` | Link note tasks to a boolean property |
+| `disruption unlink-tasks` | Unlink note tasks from a boolean property |
+
+## Related
+
+- [Time Formats](/docs/guides/time-formats) — Time expressions for `--at` and `--duration`
+- [Custom Properties](/docs/guides/custom-properties) — Custom property system overview
+- [State Machine Properties](/docs/guides/state-machines) — State machine properties and task completion links
+- [`rei disruption`](/docs/commands/disruption) — Full command reference

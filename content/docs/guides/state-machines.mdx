@@ -18,6 +18,7 @@ A state machine property defines:
 | **tags** | Semantic labels for filtering (queue, active, done, terminal) |
 | **WIP limits** | Advisory limits on how many items can be in a state |
 | **state rules** | Required property values to enter a state |
+| **state notes** | Phase-specific documentation attached to each state |
 
 ## Creating a State Machine
 
@@ -262,6 +263,56 @@ rei intention unlink-tasks -i <id> \
 
 The task completion reactor subscription must be running for automatic property updates.
 
+## State Notes
+
+State notes attach phase-specific documentation to each state of an intention's workflow. Each (intention, property, state) combination can have at most one note, providing a structured place to capture context as an intention moves through workflow stages.
+
+### Opening and Creating State Notes
+
+```bash
+# Open or create a state note for the current state
+rei custom-property workflow note -i <id>
+```
+
+The command determines the intention's current state automatically and opens the note in your editor. If no state note exists yet, one is created.
+
+```bash
+# Override the target state
+rei custom-property workflow note -i <id> --state in-progress
+
+# Print the note path without opening the editor
+rei custom-property workflow note -i <id> --print
+
+# Add tags when creating
+rei custom-property workflow note -i <id> --tag planning --tag scope
+```
+
+### Listing State Notes
+
+```bash
+# List all state notes for an intention
+rei custom-property workflow notes -i <id>
+```
+
+Output shows one line per state that has a note:
+
+```
+State Notes for workflow (intention_01abc...)
+
+  backlog: note_01xyz (created 2026-02-01 14:30)
+  in-progress: note_01def (created 2026-01-15 10:00)
+```
+
+```bash
+# Filter to a specific state
+rei custom-property workflow notes -i <id> --state in-progress
+
+# Disambiguate category-scoped properties
+rei custom-property workflow note -i <id> --category work
+```
+
+State notes are currently supported for intentions only.
+
 ## Category-Scoped State Machines
 
 The same state machine key can exist in different categories with different configurations:
@@ -351,6 +402,13 @@ rei custom-property init-entities workflow
 |---------|-------------|
 | `intention link-tasks` | Auto-set property when tasks complete |
 | `intention unlink-tasks` | Remove task completion link |
+
+### State Notes
+
+| Command | Description |
+|---------|-------------|
+| `custom-property <key> note` | Open or create a state note |
+| `custom-property <key> notes` | List state notes for an entity |
 
 ### Metrics
 
