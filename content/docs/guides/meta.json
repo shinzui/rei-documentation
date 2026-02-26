@@ -9,6 +9,7 @@
 		"views",
 		"collections",
 		"disruptions",
+		"templates",
 		"time-formats"
 	]
 }

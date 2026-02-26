@@ -5,11 +5,37 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `a659a27` (2026-02-25)
+**Last Source Commit Reviewed:** `211cba5` (2026-02-25)
 
 ---
 
 ## Changelog
+
+### 2026-02-25 (2)
+
+**Reviewed commits:** `a659a27` through `211cba5`
+
+**Files created:**
+- `commands/template.mdx` — **NEW** — Template management command (list, show, edit)
+- `guides/templates.mdx` — **NEW** — Templates guide (syntax, helpers, variables, customization)
+
+**Files updated:**
+- `commands/help.mdx` — Added `templates` topic to available topics
+- `commands/note.mdx` — Added `--template` flag to `new` and `today` subcommands
+- `commands/meta.json` — Added `template` page
+- `guides/meta.json` — Added `templates` page
+- `changelog.mdx` — Added 2026-02-25 (2) entries
+
+**Features documented:**
+- Template system (syntax, helpers, variables, customization)
+- `rei template` command (list, show, edit)
+- `rei help templates` topic
+- `--template` flag on `rei note new` and `rei note today`
+- Journal entry properties as template variables
+
+**No documentation needed:**
+- `211cba5` Design doc extension (lifecycle property auto-activation)
+- `0310480` Move design doc to implemented
 
 ### 2026-02-25
 

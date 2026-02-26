@@ -6,6 +6,35 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-25 (2)
+
+### New Command: Template
+
+New **[`rei template`](/docs/commands/template)** command for managing note and reflection templates:
+
+- `rei template list` — List all templates with their source (built-in, workspace, or override)
+- `rei template show notes daily` — Display a template's content
+- `rei template edit notes daily` — Customize a template (copies built-in to workspace for editing)
+
+### New Guide: Templates
+
+Added **[Templates Guide](/docs/guides/templates)** covering the template system:
+
+- Template syntax with `{{helper}}` blocks
+- Built-in helpers: `date.jp`, `date.iso`, `date.ymd`, `weekday.jp`, `weekday.en`, `time.hm`, `time.hms`, `var`
+- Template variables for notes and reflections
+- Journal entry properties as template variables (`{{var mood}}`, `{{var energy}}`)
+- Workspace template overrides for customization
+
+Access the help topic with `rei help templates`.
+
+### Feature Enhancements
+
+- **`rei note new --template <name>`** — Select which template to use for initial note content (default: `default`)
+- **`rei note today --template <name>`** — Override the template for daily notes (default: `daily`)
+
+---
+
 ## 2026-02-25
 
 ### Lifecycle Properties (Auto-Complete)

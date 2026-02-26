@@ -1,0 +1,206 @@
+---
+title: Templates
+description: Template syntax, helpers, variables, and customization for notes and reflections
+icon: FileCode
+---
+
+Templates control the initial content of notes and reflections. They use a simple `{{helper}}` syntax that is expanded at creation time.
+
+## Template Syntax
+
+Templates are plain Markdown with `{{helper}}` invocations:
+
+```markdown
+# Daily Reflection - {{date.iso}}
+
+## What went well today?
+```
+
+The renderer scans for `{{ ... }}` blocks, looks up the helper by name, and substitutes the result. Unknown helpers are left as literal text. Rendering never fails.
+
+Helpers can take arguments separated by spaces:
+
+```
+{{var note_id}}        Looks up "note_id" from preloaded variables
+{{date.iso}}           No arguments needed
+```
+
+## Built-in Helpers
+
+### Date Helpers
+
+Formatted in the context timezone:
+
+| Helper | Output | Example |
+|--------|--------|---------|
+| `{{date.jp}}` | Japanese format | 2026年2月25日 |
+| `{{date.iso}}` | ISO 8601 format | 2026-02-25 |
+| `{{date.ymd}}` | Slash format | 2026/02/25 |
+
+### Weekday Helpers
+
+Locale-independent day-of-week:
+
+| Helper | Output | Example |
+|--------|--------|---------|
+| `{{weekday.jp}}` | Japanese kanji | 月, 火, 水, 木, 金, 土, 日 |
+| `{{weekday.en}}` | English abbreviated | Mon, Tue, Wed, Thu, Fri, Sat, Sun |
+
+### Time Helpers
+
+Formatted in the context timezone:
+
+| Helper | Output | Example |
+|--------|--------|---------|
+| `{{time.hm}}` | Hours and minutes | 09:42 |
+| `{{time.hms}}` | With seconds | 09:42:11 |
+
+### Variable Lookup
+
+```
+{{var name}}    Looks up a preloaded variable by key.
+                Returns empty text if not found.
+```
+
+Variables are preloaded before rendering. Each template type has its own set of available variables (see [Template Variables](#template-variables) below).
+
+## Available Templates
+
+### Notes
+
+| Name | Description |
+|------|-------------|
+| `default` | Minimal header with note ID comment |
+| `daily` | Japanese date heading with planning sections |
+
+### Reflections
+
+| Name | Description |
+|------|-------------|
+| `daily` | Daily reflection with date heading |
+| `weekly` | Weekly reflection with period range |
+| `intention` | Intention-specific reflection |
+| `blocker` | Blocker-specific reflection |
+| `cycle` | Cycle review with pre-filled metrics |
+| `generic` | Fallback for unknown reflection kinds |
+| `custom` | Custom-labeled reflection |
+
+## Template Variables
+
+Variables available depend on the template type.
+
+### Notes
+
+| Variable | Description |
+|----------|-------------|
+| `note_id` | The note's TypeID |
+| `frontmatter` | YAML front matter (daily notes) |
+
+Daily notes (`rei note today`) also expose each journal entry property as an individual variable using the property key:
+
+```
+{{var mood}}           Value of the "mood" property
+{{var energy}}         Value of the "energy" property
+{{var sleep-hours}}    Value of the "sleep-hours" property
+```
+
+Any property set on the journal entry is available. Use `rei day show` to see which properties are defined.
+
+### Reflections (Common)
+
+| Variable | Description |
+|----------|-------------|
+| `prompt_section` | Custom prompt content (if provided) |
+
+### Reflections (Kind-Specific)
+
+| Variable | Available In | Description |
+|----------|-------------|-------------|
+| `period` | weekly, custom, cycle | Formatted date range |
+| `intention_id` | intention | Intention TypeID |
+| `blocker_id` | blocker | Blocker TypeID |
+| `reflection_id` | generic, custom | Reflection TypeID |
+| `kind` | generic | Reflection kind label |
+| `label` | custom | Custom label |
+| `cycle_name` | cycle | Cycle name |
+| `summary_table` | cycle | Pre-rendered metrics table |
+| `energy_section` | cycle | Pre-rendered energy balance |
+| `focus_distribution` | cycle | Pre-rendered focus breakdown |
+
+## Customizing Templates
+
+Templates are resolved in order:
+
+1. **Workspace override**: `<workspace>/templates/<category>/<name>.md`
+2. **Built-in default**: Embedded at compile time
+
+To customize a template, use the edit command which copies the built-in to your workspace and opens it in `$EDITOR`:
+
+```bash
+rei template edit notes daily
+rei template edit reflections cycle
+```
+
+The workspace copy takes precedence over the built-in from that point on.
+
+## Managing Templates
+
+```bash
+# List all templates with their source
+rei template list
+rei template list --category notes
+
+# Show a template's content
+rei template show notes daily
+rei template show reflections cycle
+
+# Edit a workspace template (creates from built-in if needed)
+rei template edit notes daily
+```
+
+## Using Templates with Notes
+
+```bash
+# Create a note with a specific template
+rei note new --template daily
+rei note new --template default
+
+# The today command uses the "daily" template automatically
+rei note today
+```
+
+## Example: Custom Daily Note
+
+Edit the daily note template:
+
+```bash
+rei template edit notes daily
+```
+
+Modify it to suit your workflow:
+
+```markdown
+{{var frontmatter}}<!-- Note: {{var note_id}} -->
+
+# {{date.iso}} - Daily Log
+
+Mood: {{var mood}} | Energy: {{var energy}}
+
+## Morning intentions
+-
+
+## Work completed
+-
+
+## Evening reflection
+-
+```
+
+Journal entry properties like `mood` and `energy` are automatically available as template variables. All future daily notes will use your customized version.
+
+## Related
+
+- [`rei template`](/docs/commands/template) — Full command reference
+- [`rei note new`](/docs/commands/note) — Create notes with `--template` flag
+- [`rei note today`](/docs/commands/note) — Daily notes use the `daily` template
+- [Journal Entries Guide](/docs/guides/journal-entries) — Setting properties on journal entries

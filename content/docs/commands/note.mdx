@@ -40,6 +40,7 @@ rei note new [options]
 - `-h, --habit <id>` — Attach to habit
 - `-t, --tag <tag>` — Add tag (repeatable)
 - `-c, --category <slug>` — Category to assign (e.g., 'work/meeting')
+- `--template <name>` — Template to use for initial content (default: `default`)
 - `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
 - `--stdin` — Read content from stdin instead of opening editor
 
@@ -67,6 +68,9 @@ rei note new --habit habit_01h455vb4pex
 
 # Create a note with a category
 rei note new -i intention_01h455vb4pex --category work/meeting
+
+# Create a note using the daily template
+rei note new -i intention_01h455vb4pex --template daily
 ```
 
 ### today
@@ -80,6 +84,7 @@ rei note today [options]
 **Options:**
 - `-d, --date <YYYY-MM-DD>` — Date for the note (defaults to today)
 - `-t, --tag <tag>` — Add tag (repeatable)
+- `--template <name>` — Template to use (default: `daily`)
 - `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
 
 Daily notes are anchored to a **JournalEntry** entity — each day gets its own unique ID. This allows notes to be properly linked to a specific day while reusing all the standard note infrastructure.

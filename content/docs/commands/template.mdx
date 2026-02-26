@@ -1,0 +1,125 @@
+---
+title: rei template
+description: Manage note and reflection templates
+icon: FileCode
+---
+
+Manage note and reflection templates. Templates control the initial content of notes and reflections using a `{{helper}}` syntax that is expanded at creation time.
+
+For full details on template syntax, helpers, variables, and customization, see the [Templates Guide](/docs/guides/templates).
+
+## Subcommands
+
+### list
+
+List all available templates with their source.
+
+```bash
+rei template list [options]
+```
+
+**Options:**
+- `--category <category>` — Filter by category (`notes` or `reflections`)
+
+**Output includes:**
+- Template name
+- Category (notes or reflections)
+- Source: `built-in`, `workspace`, or `workspace (override)` when a workspace copy overrides a built-in
+
+**Examples:**
+
+```bash
+# List all templates
+rei template list
+
+# List only note templates
+rei template list --category notes
+
+# List only reflection templates
+rei template list --category reflections
+```
+
+### show
+
+Display a template's content.
+
+```bash
+rei template show <category> <name>
+```
+
+**Arguments:**
+- `<category>` — Template category: `notes` or `reflections`
+- `<name>` — Template name (e.g., `daily`, `default`, `cycle`)
+
+**Examples:**
+
+```bash
+# Show the daily note template
+rei template show notes daily
+
+# Show the cycle reflection template
+rei template show reflections cycle
+```
+
+### edit
+
+Open a template in `$EDITOR` for customization. If no workspace copy exists, the built-in default is copied to the workspace first.
+
+```bash
+rei template edit <category> <name>
+```
+
+**Arguments:**
+- `<category>` — Template category: `notes` or `reflections`
+- `<name>` — Template name (e.g., `daily`, `default`, `cycle`)
+
+**Behavior:**
+1. Checks for existing workspace template at `<workspace>/templates/<category>/<name>.md`
+2. If not found, copies the built-in default to the workspace
+3. Opens the file in `$EDITOR`
+
+Once a workspace copy exists, it takes precedence over the built-in for all future note/reflection creation.
+
+**Examples:**
+
+```bash
+# Customize the daily note template
+rei template edit notes daily
+
+# Customize the cycle reflection template
+rei template edit reflections cycle
+```
+
+## Built-in Templates
+
+### Notes
+
+| Name | Description |
+|------|-------------|
+| `default` | Minimal header with note ID comment |
+| `daily` | Japanese date heading with planning sections |
+
+### Reflections
+
+| Name | Description |
+|------|-------------|
+| `daily` | Daily reflection with date heading |
+| `weekly` | Weekly reflection with period range |
+| `intention` | Intention-specific reflection |
+| `blocker` | Blocker-specific reflection |
+| `cycle` | Cycle review with pre-filled metrics |
+| `generic` | Fallback for unknown reflection kinds |
+| `custom` | Custom-labeled reflection |
+
+## Template Resolution
+
+Templates are resolved in order:
+
+1. **Workspace override**: `<workspace>/templates/<category>/<name>.md`
+2. **Built-in default**: Embedded at compile time
+
+## Related
+
+- [Templates Guide](/docs/guides/templates) — Full reference on syntax, helpers, and variables
+- [`rei note new --template <name>`](/docs/commands/note) — Create a note with a specific template
+- [`rei note today`](/docs/commands/note) — Uses the `daily` note template automatically
