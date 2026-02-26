@@ -266,22 +266,48 @@ rei note show
 
 ### open
 
-Open a note in your editor.
+Open a note in your editor, or update it from stdin.
 
 ```bash
-rei note open [note-id]
+rei note open [note-id] [--stdin]
 ```
 
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
 
-> **FZF Support:** If note ID is not provided, an interactive picker will let you select from existing notes.
+**Options:**
+- `--stdin` — Read updated content from stdin instead of opening editor
 
-**Behavior:**
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Behavior (default):**
 1. Opens the note file in your `$EDITOR`
 2. After editing, computes content hash and compares with stored hash
 3. If content changed, emits a `NoteContentUpdated` event
 4. Title and tasks are re-extracted automatically
+
+**Behavior (`--stdin`):**
+1. Reads content from stdin and writes it to the note file
+2. Computes content hash and emits a `NoteContentUpdated` event
+3. No editor is opened — fully non-interactive
+
+This is useful for programmatic note updates from scripts or agents (e.g., Claude Code) where launching `$EDITOR` is not possible.
+
+**Examples:**
+
+```bash
+# Open specific note in editor
+rei note open note_01h455vb4pex
+
+# Use fzf to select note interactively
+rei note open
+
+# Update note content from stdin (agent-friendly)
+echo "# Updated Title\n\nNew content" | rei note open note_01h455vb4pex --stdin
+
+# Pipe a file into an existing note
+rei note open note_01h455vb4pex --stdin < path/to/updated-content.md
+```
 
 ### add-tags
 
@@ -513,6 +539,48 @@ rei note broken-links note_01h455vb4pex
 - Finding orphaned references after renaming/deleting notes
 - Discovering notes that need to be created
 - Auditing note interconnections
+
+### move
+
+Move a note to a different entity (change its anchor).
+
+```bash
+rei note move [-n NOTE_ID] [anchor-options]
+```
+
+**Options:**
+- `-n, --note <id>` — Note ID to move (optional if fzf is available)
+- `-i, --intention <id>` — Move to intention
+- `-a, --action <id>` — Move to action
+- `-o, --outcome <id>` — Move to outcome
+- `-r, --reflection <id>` — Move to reflection
+- `-h, --habit <id>` — Move to habit
+- `--disruption <id>` — Move to disruption
+- `--disruption-action <id>` — Move to disruption action
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes. If no anchor flag is provided, a toggle picker lets you select the target entity.
+
+**Behavior:**
+- Emits a single atomic `NoteAnchorChanged` event recording both the old and new anchor
+- Idempotent: moving to the same anchor is a no-op
+- Deleted notes cannot be moved
+- Pre-existing tasks stay attributed to the original entity (historical accuracy); future tasks use the new anchor
+
+**Examples:**
+
+```bash
+# Move a note to a different intention
+rei note move -n note_01h455vb4pex -i intention_01h999abc
+
+# Use fzf to select both note and target
+rei note move
+
+# Move a note to a habit
+rei note move -n note_01h455vb4pex --habit habit_01h888xyz
+
+# Move a note to an action under an intention
+rei note move -n note_01h455vb4pex -i intention_01h999abc -a action_01h777def
+```
 
 ### set-category
 

@@ -6,6 +6,44 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-25
+
+### Lifecycle Properties (Auto-Complete)
+
+State machine properties can now be designated as **lifecycle properties**. When an intention's lifecycle property reaches a terminal state, the system schedules automatic completion after a configurable delay.
+
+- `rei custom-property set-lifecycle workflow --days 3` — Designate lifecycle property with auto-complete delay
+- `rei custom-property revoke-lifecycle workflow` — Remove lifecycle designation
+- CLI shows notification when entering a terminal state: "This intention will auto-complete in 3 day(s)"
+- If the intention moves back to a non-terminal state, the scheduled completion is cancelled
+
+### Cycle Select-Focus Relative Dates
+
+The `rei cycle select-focus --date` flag now supports relative date expressions in addition to `YYYY-MM-DD`:
+
+- `rei cycle select-focus --date yesterday` — Set focus for yesterday
+- `rei cycle select-focus -d "3 days ago"` — Set focus for 3 days ago
+
+### Note Move Command
+
+New **`rei note move`** command to reassign notes between entities:
+
+- `rei note move -n note_01abc -i intention_01xyz` — Move a note to a different intention
+- `rei note move` — Use FZF to select both note and target entity
+- Supports moving to intentions, actions, outcomes, reflections, habits, and disruptions
+
+### Note Open from Stdin
+
+**`rei note open --stdin`** reads content from stdin instead of opening an editor, enabling programmatic note updates from scripts and agents:
+
+- `echo "# Updated" | rei note open note_01abc --stdin`
+
+### Subscription Workers
+
+Added 15 missing subscription workers to the documentation, including `embed-propagation`, `link-extraction`, `category-read-model`, `disruption-read-model`, `custom-property-read-model`, `collection-read-model`, `terminal-state-completion`, and more.
+
+---
+
 ## 2026-02-22
 
 ### New Guide: Disruptions

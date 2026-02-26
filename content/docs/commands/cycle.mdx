@@ -79,7 +79,7 @@ rei cycle select-focus [focus-id] [options]
 - `[focus-id]` — Focus ID (optional, interactive selection if omitted)
 
 **Options:**
-- `-d, --date <date>` — Date to set focus for (defaults to today, format: YYYY-MM-DD)
+- `-d, --date <date>` — Date to set focus for (defaults to today). Accepts `YYYY-MM-DD`, relative expressions like `yesterday` or `3 days ago`, and other time expressions.
 
 **Examples:**
 
@@ -90,8 +90,14 @@ rei cycle select-focus
 # Direct selection for today
 rei cycle select-focus focus_01abc...
 
-# Set focus for a past date
+# Set focus for a past date (absolute)
 rei cycle select-focus focus_01abc... --date 2025-01-01
+
+# Set focus for yesterday
+rei cycle select-focus --date yesterday
+
+# Set focus for 3 days ago
+rei cycle select-focus -d "3 days ago"
 ```
 
 **Notes:**

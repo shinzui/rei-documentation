@@ -352,6 +352,52 @@ Metrics show:
 - Average time in each state
 - Recent transitions (last 7 days)
 
+## Lifecycle Properties (Auto-Complete)
+
+A state machine property can be designated as a "lifecycle property" for intentions. When an intention's lifecycle property reaches a terminal state (tagged with `TagTerminal`), the system schedules automatic completion of the intention after a configurable delay.
+
+### Designating a Lifecycle Property
+
+```bash
+# Set lifecycle with 3-day delay
+rei custom-property set-lifecycle workflow --days 3
+
+# Use --category for category-scoped properties
+rei custom-property set-lifecycle workflow --days 5 --category work
+```
+
+This means: when any intention's `workflow` property enters a terminal state, schedule auto-completion in 3 days.
+
+### Removing Lifecycle Designation
+
+```bash
+rei custom-property revoke-lifecycle workflow
+```
+
+### Requirements
+
+- The property must be a state machine type
+- At least one state must have the `TagTerminal` tag
+- Days must be >= 1
+- Only one lifecycle property is allowed per scope (global or per category)
+
+### Behavior
+
+- When an intention enters a terminal state, a reminder is created for auto-completion after the configured number of days
+- If the intention moves back to a non-terminal state, the reminder is cancelled automatically
+- If the intention is manually completed, the reminder is also resolved
+- The CLI shows a notification when setting a terminal state: "This intention will auto-complete in 3 day(s)"
+
+### Viewing Configuration
+
+```bash
+rei custom-property show workflow --with-counts
+```
+
+The output includes a Lifecycle section showing the auto-complete delay when configured.
+
+The `terminal-state-completion` subscription must be running for automatic completion scheduling.
+
 ## Auto-Initialization
 
 When an entity is assigned to a category, state machine properties scoped to that category are automatically initialized with their initial state.
@@ -409,6 +455,13 @@ rei custom-property init-entities workflow
 |---------|-------------|
 | `custom-property <key> note` | Open or create a state note |
 | `custom-property <key> notes` | List state notes for an entity |
+
+### Lifecycle
+
+| Command | Description |
+|---------|-------------|
+| `custom-property set-lifecycle` | Designate as lifecycle property |
+| `custom-property revoke-lifecycle` | Remove lifecycle designation |
 
 ### Metrics
 

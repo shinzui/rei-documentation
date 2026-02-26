@@ -37,6 +37,19 @@ rei subscription run <worker>
 - `health-reactor` — Awaken dormant intentions on note activity
 - `reminder-read-model` — Process reminder events
 - `git-commit` — Commit note files to git with meaningful messages
+- `embed-propagation` — Propagate note embeds to entities
+- `link-extraction` — Propagate note links to Link aggregates
+- `habit-action` — Update habit active days count from action events
+- `cycle-report` — Generate reports when cycles end
+- `category-read-model` — Process category events
+- `disruption-read-model` — Process disruption events
+- `disruption-intention-reactor` — Auto-resolve/revert disruptions on intention lifecycle
+- `custom-property-read-model` — Process custom property definition events
+- `entity-property-read-model` — Process property assignment events
+- `intention-view-read-model` — Process intention view events
+- `task-completion-reactor` — Auto-set boolean properties when all linked tasks complete
+- `collection-read-model` — Process collection events
+- `terminal-state-completion` — Auto-complete intentions when lifecycle properties reach terminal state
 
 **Examples:**
 

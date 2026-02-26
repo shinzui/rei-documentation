@@ -5,11 +5,37 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `3762096` (2026-02-22)
+**Last Source Commit Reviewed:** `a659a27` (2026-02-25)
 
 ---
 
 ## Changelog
+
+### 2026-02-25
+
+**Reviewed commits:** `3762096` through `a659a27`
+
+**Files updated:**
+- `commands/custom-property.mdx` — Added Lifecycle Property section (set-lifecycle, revoke-lifecycle)
+- `commands/cycle.mdx` — Updated select-focus --date flag to document relative date expressions
+- `commands/note.mdx` — Added `move` subcommand, updated `open` with `--stdin` flag
+- `commands/subscription.mdx` — Added 15 missing subscription workers
+- `guides/state-machines.mdx` — Added Lifecycle Properties (Auto-Complete) section and command summary
+- `changelog.mdx` — Added 2026-02-25 entries
+
+**Features documented:**
+- Lifecycle property auto-complete (set-lifecycle, revoke-lifecycle)
+- Cycle select-focus --date relative expressions (yesterday, 3 days ago)
+- Note move command (reassign notes between entities)
+- Note open --stdin (programmatic note updates)
+- Full subscription worker list (15 workers added)
+
+**No documentation needed:**
+- `877e554` Documentation-only (lifecycle property docs in source)
+- `cac0e9f` Move lifecycle property design doc to implemented
+- `417b7dd` Internal: lifecycle property infrastructure
+- `bc0fcc1` Agent and module doc updates
+- `1abc29b` Workspace feature docs (dev-only)
 
 ### 2026-02-22
 

@@ -647,6 +647,63 @@ rei custom-property metrics workflow --category work
 - Average time in each state
 - Recent transitions (last 7 days)
 
+## Lifecycle Property
+
+State machine properties can be designated as "lifecycle properties" — when their value enters a terminal state, the system schedules automatic completion of the intention after a configurable delay.
+
+### set-lifecycle
+
+Designate a state machine property as the lifecycle property for its scope.
+
+```bash
+rei custom-property set-lifecycle KEY --days N [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID (must be a state machine with terminal states)
+
+**Options:**
+- `--days <N>` — Days to wait before auto-completing (must be >= 1, required)
+- `-c, --category <slug>` — Category scope for disambiguation
+
+**Examples:**
+
+```bash
+# Set lifecycle with 3-day delay
+rei custom-property set-lifecycle workflow --days 3
+
+# Set lifecycle on a category-scoped property
+rei custom-property set-lifecycle task-status --days 5 --category work
+```
+
+**Notes:**
+- Only one lifecycle property is allowed per scope (global or per-category)
+- The property must have at least one state tagged as `terminal`
+- When an intention enters a terminal state, a reminder is scheduled N days out
+- If the intention is still in a terminal state when the reminder fires, it is auto-completed
+- If the state changes back before the reminder fires, the reminder is cancelled
+
+### revoke-lifecycle
+
+Remove lifecycle designation from a state machine property.
+
+```bash
+rei custom-property revoke-lifecycle KEY [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID
+
+**Options:**
+- `-c, --category <slug>` — Category scope for disambiguation
+
+**Examples:**
+
+```bash
+# Revoke lifecycle designation
+rei custom-property revoke-lifecycle workflow
+```
+
 ## Enum Evolution
 
 Enum properties can be evolved after creation using these commands.
