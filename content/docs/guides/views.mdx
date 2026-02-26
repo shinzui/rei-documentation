@@ -4,7 +4,7 @@ description: Configure reusable multi-section views for displaying intentions an
 icon: LayoutDashboard
 ---
 
-Intention views provide reusable, multi-section configurations for displaying intentions and related entities. Each view defines sections that query children, descendants, notes, tasks, or actions with optional filtering, grouping, and ordering.
+Intention views provide reusable, multi-section configurations for displaying intentions and related entities. Each view defines sections that query children, descendants, or all intentions globally, plus notes, tasks, or actions with optional filtering, grouping, and ordering.
 
 ## Overview
 
@@ -12,6 +12,7 @@ Views are first-class entities that define how to display intention data. Unlike
 
 **Key features:**
 - Multi-section layouts (e.g., children + notes + tasks in one view)
+- Global queries across all intentions (no scope required)
 - Grouping by custom properties (state machines, enums, etc.)
 - Recursive queries on descendants at any depth
 - Configurable metadata display per section
@@ -83,6 +84,7 @@ showDormant: false
 | `children` | Direct children only |
 | `descendants` | All descendants at any depth |
 | `descendants:N` | Descendants up to depth N |
+| `global` | All active + future intentions system-wide (ignores scope) |
 | `notes` | Notes on the scope intention |
 | `tasks` | Tasks under the scope |
 | `actions` | Actions recorded on the scope |
@@ -264,6 +266,24 @@ Restore archived view:
 
 ```bash
 rei view restore old-view
+```
+
+The `global` target queries all active and future intentions regardless of any `--scope` provided. Use it to create saved global queries with filters and grouping — equivalent to `rei intention list --all` with filter flags, but saved and reusable.
+
+## Example: Global Priority Board
+
+```yaml
+sections:
+  - label: "Priority Board"
+    target: global
+    filters:
+      - type: property
+        property: priority
+        operator: exists
+    groupBy: priority
+    showProperties: [priority]
+
+showDormant: true
 ```
 
 ## Example: Daily Planning View

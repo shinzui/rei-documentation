@@ -5,11 +5,29 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `211cba5` (2026-02-25)
+**Last Source Commit Reviewed:** `2f94ac4` (2026-02-26)
 
 ---
 
 ## Changelog
+
+### 2026-02-26
+
+**Reviewed commits:** `211cba5` through `2f94ac4`
+
+**Files updated:**
+- `commands/intention.mdx` — Added `--hide-id` flag to `list` subcommand
+- `commands/view.mdx` — Added `global` target type, name uniqueness note
+- `guides/views.mdx` — Added `global` target type, Global Priority Board example
+
+**Features documented:**
+- View global target for scope-independent queries across all intentions
+- `--hide-id` flag on `rei intention list`
+- View name uniqueness enforcement
+
+**No documentation needed:**
+- `9aa25cd` Design doc for view global target (proposed)
+- `7758f70` Move design doc to implemented
 
 ### 2026-02-25 (2)
 

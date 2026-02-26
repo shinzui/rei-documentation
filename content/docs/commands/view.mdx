@@ -4,7 +4,7 @@ description: Manage reusable multi-section views for displaying intentions
 icon: LayoutDashboard
 ---
 
-Views provide reusable, multi-section configurations for displaying intentions and their related entities. Each view defines sections that query children, descendants, notes, tasks, or actions with optional filtering, grouping, and ordering.
+Views provide reusable, multi-section configurations for displaying intentions and their related entities. Each view defines sections that query children, descendants, or all intentions globally, plus notes, tasks, or actions with optional filtering, grouping, and ordering.
 
 ## Overview
 
@@ -60,6 +60,10 @@ Created view: daily-planning
   ID: int_view_01abc123...
   Sections: 3
 ```
+
+**Notes:**
+- View names must be unique. If a view with the same name already exists, an error is returned:
+  `Error: a view named 'daily-planning' already exists`
 
 ### list
 
@@ -314,7 +318,7 @@ Each section has the following properties:
 | Property | Type | Description |
 |----------|------|-------------|
 | `label` | string | Display name for the section |
-| `target` | string | What to query: `self`, `children`, `descendants`, `descendants:N`, `notes`, `tasks`, `actions` |
+| `target` | string | What to query: `self`, `children`, `descendants`, `descendants:N`, `global`, `notes`, `tasks`, `actions` |
 | `filters` | array | Optional filters to apply |
 | `groupBy` | string | Optional property to group results by |
 | `orderBy` | string | Optional field to order by |

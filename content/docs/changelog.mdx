@@ -6,6 +6,26 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-26
+
+### View Global Target
+
+Views now support a **`global`** target type that queries all active and future intentions system-wide, ignoring any `--scope`. Use it to create saved global queries with filters and grouping — equivalent to `rei intention list --all` with filter flags, but saved and reusable.
+
+```yaml
+sections:
+  - label: "Priority Board"
+    target: global
+    groupBy: priority
+```
+
+### Feature Enhancements
+
+- **`rei intention list --hide-id`** — Hide intention IDs from output (works with both ungrouped and grouped output)
+- **`rei view create`** — View names are now enforced as unique; duplicate names return an error
+
+---
+
 ## 2026-02-25 (2)
 
 ### New Command: Template
