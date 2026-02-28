@@ -5,11 +5,46 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `2f94ac4` (2026-02-26)
+**Last Source Commit Reviewed:** `3e5dba4` (2026-02-28)
 
 ---
 
 ## Changelog
+
+### 2026-02-28
+
+**Reviewed commits:** `f023b07` through `3e5dba4`
+
+**Files updated:**
+- `commands/cycle.mdx` — Updated status/show output with per-day adherence column, added Focus Adherence section
+- `commands/intention.mdx` — Added `set-focus` and `clear-focus` subcommands
+- `commands/link.mdx` — Added `--json` flag to list command
+- `commands/today.mdx` — Added focus adherence line to Active Cycle & Focus section
+- `guides/cycles.mdx` — **New guide** from `rei-cli/help/cycles.md` help topic
+- `guides/meta.json` — Added cycles to guide pages
+
+**Features documented:**
+- Focus inheritance via `intention set-focus` / `clear-focus`
+- Daily focus adherence with per-day action count, percentage, and adherent indicator
+- Adherence in `cycle status`, `cycle show`, `today`, `yesterday`, `review day`
+- Cycle reports with adherence metrics
+- Cycle lifecycle (complete, abandon, extend)
+- Focus inheritance tree (parent → child propagation)
+- `--json` flag for `link list --all`
+
+### 2026-02-26 (2)
+
+**Reviewed commits:** `2f94ac4` through `f023b07`
+
+**Files updated:**
+- `commands/template.mdx` — Added category-qualified templates, fallback chain resolution, auto-selection from category
+- `guides/templates.mdx` — Added category-qualified templates section (fallback chain, filesystem layout, auto-selection)
+
+**Features documented:**
+- Hierarchical template names with `/` separator (e.g., `task/meeting`)
+- Fallback chain resolution: `task/meeting` → `task` → `default`
+- Auto-selection of template from `--category` flag on `rei note new`
+- Workspace example for category-specific templates
 
 ### 2026-02-26
 

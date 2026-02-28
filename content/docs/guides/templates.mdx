@@ -143,6 +143,57 @@ rei template edit reflections cycle
 
 The workspace copy takes precedence over the built-in from that point on.
 
+## Category-Qualified Templates
+
+Template names can be hierarchical using `/` as a separator. This lets you create category-specific templates that are automatically selected when creating notes with a matching category.
+
+### Fallback Chain Resolution
+
+| Name | Fallback Chain |
+|------|---------------|
+| `task/meeting` | `task/meeting` → `task` → `default` |
+| `task` | `task` → `default` |
+| `default` | `default` |
+
+At each step, the loader checks workspace then built-in. The first match wins. If no match is found, the built-in default is used.
+
+### Filesystem Layout
+
+| Template Name | Workspace Path |
+|---------------|----------------|
+| `default` | `templates/notes/default.md` |
+| `task` | `templates/notes/task.md` |
+| `task/meeting` | `templates/notes/task/meeting.md` |
+
+### Creating Category-Qualified Templates
+
+```bash
+rei template edit notes task
+# → creates <workspace>/templates/notes/task.md
+
+rei template edit notes task/meeting
+# → creates <workspace>/templates/notes/task/meeting.md
+#   (intermediate directories created automatically)
+```
+
+### Auto-Selection from Category
+
+When creating a note with `--category` but no `--template`, the category slug is used as the template name automatically:
+
+```bash
+rei note new --category task
+# → uses "task" as template name
+# → fallback chain: task → default
+
+rei note new --category task --template daily
+# → explicit --template wins → uses "daily"
+
+rei note new
+# → no category, no template → uses "default" (unchanged)
+```
+
+Today notes are unaffected — they preserve the `daily` default.
+
 ## Managing Templates
 
 ```bash
@@ -156,6 +207,7 @@ rei template show reflections cycle
 
 # Edit a workspace template (creates from built-in if needed)
 rei template edit notes daily
+rei template edit notes task/meeting
 ```
 
 ## Using Templates with Notes
@@ -164,6 +216,9 @@ rei template edit notes daily
 # Create a note with a specific template
 rei note new --template daily
 rei note new --template default
+
+# Auto-select template from category
+rei note new --category task
 
 # The today command uses the "daily" template automatically
 rei note today

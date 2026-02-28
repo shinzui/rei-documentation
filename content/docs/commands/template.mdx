@@ -71,11 +71,11 @@ rei template edit <category> <name>
 
 **Arguments:**
 - `<category>` — Template category: `notes` or `reflections`
-- `<name>` — Template name (e.g., `daily`, `default`, `cycle`)
+- `<name>` — Template name (e.g., `daily`, `default`, `cycle`). Supports hierarchical names with `/` (e.g., `task/meeting`)
 
 **Behavior:**
 1. Checks for existing workspace template at `<workspace>/templates/<category>/<name>.md`
-2. If not found, copies the built-in default to the workspace
+2. If not found, copies the built-in default to the workspace (creating intermediate directories as needed)
 3. Opens the file in `$EDITOR`
 
 Once a workspace copy exists, it takes precedence over the built-in for all future note/reflection creation.
@@ -88,6 +88,12 @@ rei template edit notes daily
 
 # Customize the cycle reflection template
 rei template edit reflections cycle
+
+# Create a category-specific note template
+rei template edit notes task
+
+# Create a nested category template
+rei template edit notes task/meeting
 ```
 
 ## Built-in Templates
@@ -113,13 +119,53 @@ rei template edit reflections cycle
 
 ## Template Resolution
 
-Templates are resolved in order:
+Templates support hierarchical names with `/` as a separator. The loader resolves names through a **fallback chain** that progressively strips path segments:
 
-1. **Workspace override**: `<workspace>/templates/<category>/<name>.md`
+| Name | Fallback Chain |
+|------|---------------|
+| `task/meeting` | `task/meeting` → `task` → `default` |
+| `task` | `task` → `default` |
+| `default` | `default` |
+
+At each step, the loader checks:
+
+1. **Workspace file**: `<workspace>/templates/<category>/<name>.md`
 2. **Built-in default**: Embedded at compile time
+
+The first match wins. If nothing matches, the built-in default template is used.
+
+### Auto-Selection from Category
+
+When creating a note with `--category` but no `--template`, the category slug is automatically used as the template name:
+
+```bash
+# Uses "task" as template name → fallback: task → default
+rei note new --category task
+
+# Explicit --template overrides category-based selection
+rei note new --category task --template daily
+```
+
+Today notes are unaffected — they preserve the `daily` default.
+
+### Workspace Example
+
+```bash
+# 1. Create a category (if needed)
+rei category create task --focus Do
+
+# 2. Create a template for task notes
+rei template edit notes task
+# → Editor opens with default template — customize for tasks
+
+# 3. Create notes with auto-selected template
+rei note new --category task
+# → Automatically uses templates/notes/task.md
+```
 
 ## Related
 
 - [Templates Guide](/docs/guides/templates) — Full reference on syntax, helpers, and variables
 - [`rei note new --template <name>`](/docs/commands/note) — Create a note with a specific template
+- [`rei note new --category <slug>`](/docs/commands/note) — Auto-selects template matching category
 - [`rei note today`](/docs/commands/note) — Uses the `daily` note template automatically

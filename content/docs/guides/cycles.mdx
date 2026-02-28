@@ -1,0 +1,199 @@
+---
+title: Cycles
+description: Focus cycles, daily adherence tracking, and cycle lifecycle
+icon: RefreshCw
+---
+
+Cycles are bounded time periods for tracking daily focus selections. Each day you pick a focus area, then Rei measures whether your actions aligned with that choice. This creates a rhythm of intentional daily focus without rigid scheduling.
+
+## Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Focus Areas** | Categories of activity (e.g., Connect, Read, Study, Play, Create). Created once, reused across cycles. |
+| **Cycle** | A time-boxed period (e.g., 7 or 10 days). Only one cycle can be active at a time. |
+| **Daily Focus** | Each day within a cycle, you select one focus area — the focus you intend to prioritize that day. |
+| **Adherence** | A measure of whether your actions matched your daily focus. Computed automatically from intention focus assignments and recorded actions. |
+
+## Getting Started
+
+### 1. Import or create focus areas (one-time setup)
+
+```bash
+rei focus import anatomy-of-equanimity
+rei focus list
+```
+
+### 2. Assign focus areas to your root intentions
+
+```bash
+rei intention set-focus
+```
+
+Focus propagates down the intention hierarchy — children inherit their parent's focus unless they override it.
+
+### 3. Start a cycle
+
+```bash
+rei cycle start --length 10 --name "March Sprint"
+```
+
+### 4. Each day, select your focus
+
+```bash
+rei cycle select-focus
+```
+
+### 5. Record actions as usual
+
+Adherence is computed automatically.
+
+### 6. Check progress
+
+```bash
+rei cycle status
+```
+
+### 7. At the end, complete or abandon the cycle
+
+```bash
+rei cycle complete
+```
+
+## Daily Workflow
+
+Each morning:
+
+```bash
+rei cycle select-focus          # Pick today's focus
+rei today                       # See the dashboard with focus info
+```
+
+Throughout the day, record actions normally:
+
+```bash
+rei action record -i <id> "Did some work"
+```
+
+At end of day, review adherence:
+
+```bash
+rei today                       # Shows adherence for today
+rei cycle status                # Shows per-day adherence for the cycle
+```
+
+## Focus Adherence
+
+Adherence measures how well your actions aligned with the daily focus.
+
+### How it works
+
+1. Each action is linked to an intention
+2. Each intention has an effective focus (its own, or inherited from an ancestor via `rei intention set-focus`)
+3. Rei counts how many of today's actions match the daily focus
+
+### The formula
+
+```
+adherence = matching actions / total eligible actions
+```
+
+### Rules
+
+- Eligible actions exclude disruption-linked actions (unplanned reactive work should not penalize you)
+- A day is "adherent" when adherence ≥ 60%
+- Days with zero eligible actions show "—" (no signal, not failure)
+- If no daily focus is selected, adherence is not computed
+
+### Example output
+
+From `rei cycle status`:
+
+```
+Daily Focus Selections:
+  2026-02-22: Study     5 actions  80% ✓
+  2026-02-23: Create    3 actions  67% ✓
+  2026-02-24: Study     0 actions   —
+  2026-02-25: Connect   4 actions  50% ✗
+  2026-02-26: Study     7 actions  71% ✓
+
+  Overall: 67% avg (3/4 adherent days)
+```
+
+The overall summary averages adherence across days that had at least one action, and counts how many of those days were adherent.
+
+## Focus Inheritance
+
+Focus propagates down the intention hierarchy:
+
+```
+Root: "Learn Haskell"          focus = Study
+  └── "Read LYAH"             focus = Study (inherited)
+  └── "Build CLI tool"        focus = Create (overridden)
+      └── "Add tests"         focus = Create (inherited)
+```
+
+Set focus on root intentions and it flows to children:
+
+```bash
+rei intention set-focus -i <root-id> --focus <focus-id>
+```
+
+Override on a child when it belongs to a different focus:
+
+```bash
+rei intention set-focus -i <child-id> --focus <other-focus-id>
+```
+
+Clear a focus override to resume inheriting from parent:
+
+```bash
+rei intention clear-focus <child-id>
+```
+
+## Where Adherence is Shown
+
+| Command | What it shows |
+|---------|---------------|
+| `rei today` | Daily adherence line under the cycle section |
+| `rei yesterday` | Same, for yesterday |
+| `rei review day` | Adherence for the reviewed day |
+| `rei cycle status` | Per-day column for the active cycle |
+| `rei cycle show <id>` | Per-day column for any cycle |
+| `rei cycle report show` | Overall adherence metrics in completed reports |
+
+## Cycle Lifecycle
+
+```
+Active  ──>  Completed     (rei cycle complete)
+Active  ──>  Abandoned     (rei cycle abandon)
+```
+
+Only one cycle can be active at a time. Completed and abandoned cycles are terminal — they cannot be modified.
+
+Extending a cycle adds more days:
+
+```bash
+rei cycle extend 3              # Add 3 days to the active cycle
+```
+
+## Cycle Reports
+
+When a cycle is completed or abandoned, a report is generated with aggregate metrics including adherence data.
+
+```bash
+rei cycle report show           # View the report
+rei cycle report list           # List all reports
+rei cycle report export -o r.json   # Export as JSON
+```
+
+Reports include: action counts, outcome counts, habit fulfillments, focus distribution, adherence rates, and disruption metrics.
+
+## Tips
+
+- Start with short cycles (7 days) to build the habit
+- Don't stress about 100% adherence — 60% is the threshold
+- Disruption actions are excluded from adherence, so responding to interruptions won't penalize you
+- Use `rei cycle extend` if you need more time
+- Review completed cycle reports to spot patterns over time
+- Set focus on root intentions first, then override on children only when they genuinely belong to a different focus area

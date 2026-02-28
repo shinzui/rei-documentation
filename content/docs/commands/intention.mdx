@@ -570,6 +570,62 @@ rei intention clear-category intention_01h455vb4pex
 rei intention clear-category
 ```
 
+### set-focus
+
+Assign a focus area to an intention. Focus areas are used to compute daily adherence — whether your actions match the focus you chose for the day. Focus propagates down the intention hierarchy: children inherit their parent's focus unless they have their own.
+
+```bash
+rei intention set-focus [-i ID] [--focus FOCUS_ID]
+```
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--focus <id>` — Focus ID to assign (optional if fzf is available)
+
+> **FZF Support:** If values are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select from active intentions and focus areas.
+
+**Examples:**
+
+```bash
+# Set focus with explicit IDs
+rei intention set-focus -i intention_01abc... --focus focus_01xyz...
+
+# Let fzf pick both
+rei intention set-focus
+```
+
+**Notes:**
+- Focus inherits down the tree: set it on a root intention, and all descendants without their own focus inherit it
+- A child's explicit focus overrides its parent's
+- Only Active and Future intentions can have focus set
+- Setting the same focus again is a no-op (idempotent)
+
+### clear-focus
+
+Remove the focus area from an intention.
+
+```bash
+rei intention clear-focus [id]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Clear focus with explicit ID
+rei intention clear-focus intention_01abc...
+
+# Let fzf pick the intention
+rei intention clear-focus
+```
+
+**Notes:**
+- Clearing a parent's focus means children that were inheriting it will also lose their effective focus (unless they have their own)
+
 ### remind
 
 Create a reminder for an intention. This is a shortcut for `rei reminder create --intention`.

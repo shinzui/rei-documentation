@@ -6,6 +6,44 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-02-28
+
+### New Guide: Cycles
+
+New **[Cycles](/docs/guides/cycles)** guide covering focus cycles, daily adherence tracking, focus inheritance, and cycle lifecycle. Includes getting started steps, daily workflow, and tips.
+
+### Focus Inheritance & Adherence Tracking
+
+- **`rei intention set-focus`** — Assign a focus area to an intention. Focus propagates down the intention hierarchy: children inherit their parent's focus unless they override it.
+- **`rei intention clear-focus`** — Remove the focus area from an intention, resuming inheritance from parent.
+- **`rei cycle status`** and **`rei cycle show`** — Now display per-day adherence (action count, percentage, adherent indicator ✓/✗) for each daily focus selection, plus an overall adherence summary.
+- **`rei today`** — Shows focus adherence for today when a daily focus is selected and intentions have focus areas assigned.
+
+### Feature Enhancements
+
+- **`rei link list --all --json`** — JSON output for link listings
+
+---
+
+## 2026-02-26 (2)
+
+### Category-Qualified Templates
+
+Templates now support **hierarchical names** with `/` as a separator, enabling category-specific templates with automatic fallback resolution.
+
+- `rei template edit notes task` — Create a template for task-category notes
+- `rei template edit notes task/meeting` — Create a nested sub-category template
+- Fallback chain: `task/meeting` → `task` → `default`
+
+When creating a note with `--category` but no `--template`, the category slug is automatically used as the template name:
+
+```bash
+rei note new --category task
+# → automatically uses "task" template with fallback to "default"
+```
+
+---
+
 ## 2026-02-26
 
 ### View Global Target

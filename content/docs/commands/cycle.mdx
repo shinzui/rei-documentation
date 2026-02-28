@@ -4,7 +4,7 @@ description: Manage focus cycles for tracking daily focus selections
 icon: RefreshCw
 ---
 
-Manage focus cycles. A cycle is a bounded time period for tracking daily focus selections.
+Manage daily focus cycles. A cycle is a bounded time period for tracking daily focus selections.
 
 ## Subcommands
 
@@ -62,10 +62,20 @@ Active Cycle:
   Progress: 3/10 days with focus selected
 
 Daily Focus Selections:
-  2025-01-01: focus_01abc... (Connect)
-  2025-01-02: focus_01def... (Study)
-  2025-01-03: focus_01ghi... (Create)
+  2025-01-01: Connect   5 actions  80% ✓
+  2025-01-02: Study     3 actions  67% ✓
+  2025-01-03: Create    0 actions   —
+
+  Overall: 74% avg (2/2 adherent days)
 ```
+
+Each daily focus row shows:
+- **Action count** — eligible actions recorded that day (excluding disruption-linked)
+- **Adherence %** — percentage of actions whose intention (or inherited) focus matches the daily focus
+- **Indicator** — ✓ if adherent (≥60%), ✗ if not
+- Days with zero actions show `—` (no signal, not failure)
+
+The overall summary shows average adherence and count of adherent days (only counting days with at least one action).
 
 ### select-focus
 
@@ -213,14 +223,17 @@ Cycle: cycle_01abc...
   End: 2025-01-07
   Length: 7 days
   Days with focus: 7/7
-  Created: 2025-01-01 08:00:00 UTC
-  Completed: 2025-01-07 22:00:00 UTC
+  Created: 2025-01-01 08:00
 
 Daily Focus Selections:
-  2025-01-01: focus_01abc... (Connect)
-  2025-01-02: focus_01def... (Study)
+  2025-01-01: Connect   5 actions  80% ✓
+  2025-01-02: Study     3 actions  67% ✓
   ...
+
+  Overall: 74% avg (5/7 adherent days)
 ```
+
+The detail view includes per-day adherence data (same format as `cycle status`).
 
 ## Typical Workflow
 
@@ -253,3 +266,26 @@ Cycles work with focus areas to track daily time allocation:
 - Daily selections record *which* focus you chose each day
 
 This creates a rhythm of intentional daily focus without rigid scheduling.
+
+## Focus Adherence
+
+When intentions have a focus area assigned (via `rei intention set-focus`), Rei computes **adherence** — whether your actions matched the daily focus.
+
+- **Eligible actions**: All actions recorded that day, excluding disruption-linked actions
+- **Matching**: An action matches if its intention's effective focus (own or inherited from ancestors) equals the daily focus
+- **Adherent day**: A day with ≥60% matching actions
+- **No-action days**: Days with zero eligible actions show `—` (not penalized)
+
+Adherence is shown in:
+- `rei cycle status` and `rei cycle show` — per-day column
+- `rei today` and `rei yesterday` — daily adherence line
+- `rei review day` — adherence for the reviewed day
+- `rei cycle report show` — overall adherence summary
+
+To set up focus adherence:
+1. Create focus areas: `rei focus create` or `rei focus import`
+2. Assign focuses to root intentions: `rei intention set-focus`
+3. Start a cycle and select daily focus: `rei cycle select-focus`
+4. Record actions as usual — adherence is computed automatically
+
+For a comprehensive guide, see [Cycles](/docs/guides/cycles).
