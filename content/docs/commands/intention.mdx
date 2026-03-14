@@ -115,6 +115,7 @@ rei intention list [options]
 - `--has-deadline` — Show only intentions with deadlines
 - `--roots` — Show only root intentions (no parent)
 - `--dormant` — Show only dormant intentions
+- `-s, --search <keyword>` — Filter by title (case-insensitive keyword search)
 
 **Examples:**
 
@@ -142,6 +143,9 @@ rei intention list --format=json
 
 # Filter by custom property (exact match)
 rei intention list --where priority=high
+
+# Search by title keyword
+rei intention list --search deploy
 
 # Filter by numeric property (comparison operators)
 rei intention list --where "effort>=5"
@@ -265,6 +269,7 @@ rei intention show [id] [options]
 - Attached links and documents
 - Tasks
 - Linked habits
+- Focus area (own or inherited, with symbol and inheritance indicator)
 - Reminders (active and past, with status icons and scheduled times)
 - Custom properties (any properties assigned to this intention)
 - Child intentions (both Active and Future; excludes Completed/Abandoned)
@@ -380,7 +385,20 @@ The TUI works with all tree variants (active, future, completed, all) and respec
 Mark an intention as completed.
 
 ```bash
-rei intention complete [id]
+rei intention complete [id] [options]
+```
+
+**Options:**
+- `-t, --at <time>` — When the intention was completed (e.g., `yesterday`, `2 hours ago`, `2024-01-15T14:30:00Z`)
+
+**Examples:**
+
+```bash
+# Complete an intention
+rei intention complete intention_01h455vb4pex
+
+# Backdate completion to yesterday
+rei intention complete intention_01h455vb4pex --at yesterday
 ```
 
 ### abandon
@@ -419,7 +437,20 @@ rei intention defer [id]
 Move a Future intention back to Active.
 
 ```bash
-rei intention activate [id]
+rei intention activate [id] [options]
+```
+
+**Options:**
+- `-t, --at <time>` — When the intention became active (e.g., `yesterday`, `2 days ago`, `2024-01-15`)
+
+**Examples:**
+
+```bash
+# Activate an intention
+rei intention activate intention_01h455vb4pex
+
+# Backdate activation
+rei intention activate intention_01h455vb4pex --at "2 days ago"
 ```
 
 **Notes:**
@@ -970,7 +1001,7 @@ rei intention view int_01abc123
 Set a custom property on an intention.
 
 ```bash
-rei intention set-property [-i ID] PROPERTY_KEY VALUE
+rei intention set-property [-i ID] PROPERTY_KEY VALUE [--force]
 ```
 
 **Arguments:**
@@ -979,6 +1010,7 @@ rei intention set-property [-i ID] PROPERTY_KEY VALUE
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -993,6 +1025,9 @@ rei intention set-property priority high
 
 # Set a numeric property
 rei intention set-property -i intention_01h455vb4pex effort 5
+
+# Skip intermediate states on a state machine property
+rei intention set-property -i intention_01h455vb4pex workflow done --force
 ```
 
 **Notes:**
@@ -1000,6 +1035,7 @@ rei intention set-property -i intention_01h455vb4pex effort 5
 - The property must be configured to apply to intentions
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `intention show` output
+- `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
 
 ### clear-property
 

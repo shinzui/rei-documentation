@@ -64,6 +64,7 @@ rei link list [options]
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
 - `--all` — Show all links across all anchors
+- `-d, --domain <domain>` — Filter by registrable domain (e.g., `x.com`, `github.com`; with `--all`)
 - `--include-removed` — Include removed links (with `--all`)
 - `--json` — Output as JSON (with `--all`)
 
@@ -80,6 +81,9 @@ rei link list --all
 
 # Include removed links
 rei link list --all --include-removed
+
+# Filter by domain
+rei link list --all --domain github.com
 ```
 
 ### show
@@ -210,6 +214,49 @@ rei link restore [<link-id>]
 
 ```bash
 rei link restore link_01h789abc
+```
+
+### set-property
+
+Set a custom property on a link. The property must be defined with `rei custom-property create` and must allow the `link` entity type.
+
+```bash
+rei link set-property [<link-id>] <property-key> <value>
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+- `<property-key>` — The property key (required)
+- `<value>` — The value to set (required)
+
+> **FZF Support:** If no ID is provided and fzf is available, an interactive picker will let you select a link.
+
+**Examples:**
+
+```bash
+# Set a read status on a link
+rei link set-property link_01h789abc read-status reading
+
+# Transition a state machine property
+rei link set-property link_01h789abc read-status read
+```
+
+### clear-property
+
+Clear a custom property from a link.
+
+```bash
+rei link clear-property [<link-id>] <property-key>
+```
+
+**Arguments:**
+- `<link-id>` — The link ID (optional if fzf is available)
+- `<property-key>` — The property key to clear (required)
+
+**Example:**
+
+```bash
+rei link clear-property link_01h789abc read-status
 ```
 
 ## Key Concepts

@@ -1,0 +1,121 @@
+---
+title: Configuration
+description: Config file resolution, environment variables, aliases, and dashboard panels
+icon: Settings
+---
+
+Rei uses two configuration sources: a YAML config file for user preferences and environment variables for infrastructure settings.
+
+## Config File Resolution Order
+
+Rei searches for a config file in this order (first found wins):
+
+| Priority | Location | Description |
+|----------|----------|-------------|
+| 1 | `$REI_CONFIG` | Custom path via environment variable |
+| 2 | `./rei.yaml` | Local config in current directory |
+| 3 | `~/.config/rei/config.yaml` | XDG standard location |
+| 4 | `~/.rei/config.yaml` | Legacy fallback |
+
+If no config file is found, sensible defaults are used.
+
+The local config (`./rei.yaml`) is useful for project-specific overrides. Paths with `~` are expanded to your home directory.
+
+## Environment Variables
+
+### Database (required)
+
+| Variable | Description |
+|----------|-------------|
+| `REI_PG_CONNECTION_STRING` | Rei-specific connection string (recommended) |
+| `PG_CONNECTION_STRING` | Generic fallback |
+
+Rei checks `REI_PG_CONNECTION_STRING` first, then falls back to `PG_CONNECTION_STRING`. The Rei-specific variable avoids conflicts when installed globally alongside other applications.
+
+### AI Agent (optional)
+
+| Variable | Description |
+|----------|-------------|
+| `REI_LLM_BACKEND` | `claude-cli` (default) or `anthropic-api` |
+| `REI_ANTHROPIC_API_KEY` | API key (required for `anthropic-api`) |
+| `REI_LLM_MODEL` | Model override |
+
+### Connection Pool (optional)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PG_POOL_SIZE` | Pool size | 10 |
+| `PG_POOL_TIMEOUT` | Acquisition timeout in seconds | 10 |
+| `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time in seconds | 600 |
+| `PG_POOL_MAX_CONNECTION_LIFETIME` | Max lifetime in seconds | 1800 |
+
+## Config File Sections
+
+```yaml
+workspace:
+  path: ~/rei-workspace          # Where markdown files are stored
+
+editor: nvim                     # Falls back to $EDITOR env var
+
+display:
+  color: auto                    # auto | always | never
+  date_format: "%Y-%m-%d"       # Date format (strftime)
+  time_format: "%H:%M"          # Time format (strftime)
+
+intentions:
+  dormancy_threshold_days: 10    # Days before marking dormant
+  dormancy_reminder_days: 21     # Days before dormancy reminder
+
+git:
+  enabled: true                  # Master switch for git integration
+  commit_notes: true             # Auto-commit note changes
+  commit_reflections: false      # Auto-commit reflections
+  commit_docs: false             # Auto-commit attached documents
+  commit_guidance: false         # Auto-commit guidance changes
+  commit_templates: true         # Auto-commit template changes
+  include_tags_in_message: true  # Include note tags in commit body
+  include_actor_in_message: true # Include actor in commit body
+  cache_expiry_hours: 24         # Hours to cache git repo detection
+```
+
+## Aliases
+
+Define short command aliases in your config file:
+
+```yaml
+aliases:
+  tw: today -c work --no-intentions
+  i: intention
+  sh: intention show --full
+```
+
+With the above config, `rei tw` expands to `rei today -c work --no-intentions`.
+
+**Rules:**
+- Built-in commands cannot be shadowed by aliases
+- Aliases are expanded once (no recursive expansion)
+- Additional arguments are appended to the expanded command
+
+Run `rei alias list` to see configured aliases.
+
+## Dashboard Panels
+
+Configure custom intention query panels for the `today` command:
+
+```yaml
+dashboard:
+  panels:
+    - label: "Kanban Board"
+      where: "workflow:exists"
+      group_by: "workflow"
+    - label: "In Development"
+      where: "version-phase=development"
+      context: "work"
+```
+
+See the [Dashboard Panels Guide](/docs/guides/dashboard) for full panel configuration details.
+
+## Related
+
+- [Configuration Command Reference](/docs/configuration) — Full configuration reference
+- [Dashboard Panels Guide](/docs/guides/dashboard) — Dashboard panel configuration

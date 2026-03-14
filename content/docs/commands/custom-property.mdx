@@ -179,7 +179,7 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 **Options:**
 - `-l, --label <label>` — Human-readable label (defaults to key)
 - `-d, --description <desc>` — Property description
-- `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note, journal_entry
+- `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note, journal_entry, collection, link
 - `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
@@ -821,6 +821,20 @@ rei day set-property mood great
 # Set a property on a specific date
 rei day set-property --date 2026-02-12 mood good
 ```
+
+### Forcing State Machine Transitions
+
+State machine properties normally require following defined transitions (e.g., `backlog` → `in-progress` → `review` → `done`). If you need to skip intermediate states, use `--force`:
+
+```bash
+# Skip from backlog directly to done (bypasses transition rules)
+rei intention set-property intention_01abc... workflow done --force
+
+# Also works on habits
+rei habit set-property habit_01abc... workflow done --force
+```
+
+The `--force` flag bypasses transition rule validation but still enforces terminal state restrictions — you cannot leave a terminal state even with `--force`. The `--force` flag has no effect on non-state-machine properties.
 
 ## Filtering by Properties
 

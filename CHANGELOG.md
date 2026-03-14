@@ -5,11 +5,62 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `3e5dba4` (2026-02-28)
+**Last Source Commit Reviewed:** `9b73011` (2026-03-12)
 
 ---
 
 ## Changelog
+
+### 2026-03-12
+
+**Reviewed commits:** `2b30a59` through `9b73011`
+
+**Files updated:**
+- `guides/config.mdx` — New guide from `rei help config` help topic
+- `guides/views.mdx` — Added `any`/`all` operators for LabelSet property filtering
+- `configuration.mdx` — Added `REI_PG_CONNECTION_STRING` env var with fallback behavior
+- `commands/custom-property.mdx` — Added `collection` and `link` entity types, `--force` flag for state machine transitions
+- `commands/habit.mdx` — Added `--force` flag to `set-property`
+- `commands/intention.mdx` — Added `--force` flag to `set-property`
+- `commands/link.mdx` — Added `set-property` and `clear-property` subcommands
+- `guides/meta.json` — Added `config` guide to navigation
+
+**Features documented:**
+- New `rei help config` topic with config file resolution, env vars, aliases, dashboard panels
+- `--force` flag for bypassing state machine transition rules on intentions and habits
+- `any`/`all` operators for LabelSet property filtering in views
+- `REI_PG_CONNECTION_STRING` env var (avoids conflicts with global installs)
+- Link custom property support (`set-property`, `clear-property`)
+- `collection` and `link` as valid entity types for custom property definitions
+
+### 2026-03-06
+
+**Reviewed commits:** `b110826` through `2b30a59`
+
+**Files updated:**
+- `commands/cycle.mdx` — Added `reschedule` subcommand for adjusting cycle start date and length
+- `commands/intention.mdx` — Added focus area display to `show --full` output
+
+**Features documented:**
+- Cycle reschedule with start date and optional length adjustment
+- Focus area (own or inherited) shown in intention full view
+
+### 2026-03-05
+
+**Reviewed commits:** `3e5dba4` through `b110826`
+
+**Files updated:**
+- `commands/category.mdx` — Added `reparent` subcommand for moving categories between parents
+- `commands/intention.mdx` — Added `--search` option to list, `--at` option to complete and activate
+- `commands/link.mdx` — Added `--domain` filter option to list
+- `guides/views.mdx` — Updated property display format (inline annotations), added Status Icons section, updated output examples
+
+**Features documented:**
+- Category reparenting with slug cascade, guidance file migration, and cycle detection
+- Title keyword search for intention list
+- Backdating for intention complete and activate commands
+- Domain filtering for link list
+- View status icons (intentions, tasks, notes, actions) and inline `[value]` property annotations
 
 ### 2026-02-28
 

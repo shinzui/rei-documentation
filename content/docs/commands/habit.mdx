@@ -783,13 +783,16 @@ See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
 Set a custom property on a habit.
 
 ```bash
-rei habit set-property [habit-id] PROPERTY_KEY VALUE
+rei habit set-property [habit-id] PROPERTY_KEY VALUE [--force]
 ```
 
 **Arguments:**
 - `[habit-id]` — Habit ID (optional if fzf is available)
 - `PROPERTY_KEY` — The key of the custom property to set
 - `VALUE` — The value to assign (validated against property definition)
+
+**Options:**
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
 
 > **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
 
@@ -804,6 +807,9 @@ rei habit set-property priority high
 
 # Set a numeric property
 rei habit set-property habit_01abc... effort 5
+
+# Skip intermediate states on a state machine property
+rei habit set-property habit_01abc... workflow done --force
 ```
 
 **Notes:**
@@ -811,6 +817,7 @@ rei habit set-property habit_01abc... effort 5
 - The property must be configured to apply to habits
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `habit show` output
+- `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
 
 ### clear-property
 

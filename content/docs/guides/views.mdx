@@ -95,7 +95,7 @@ When `groupBy` is set, results are organized under sub-headers by property value
 
 ## Property Display
 
-Sections can display custom properties inline under each entity using `showProperties`.
+Sections can display custom properties as inline annotations after each entity title using `showProperties`. When a section uses `groupBy`, the grouped-by property is automatically excluded from inline annotations to avoid redundancy.
 
 **Values:**
 
@@ -135,16 +135,12 @@ sections:
     excludeProperties: [internal_id, debug_flag]
 ```
 
-Properties are displayed inline under each entity:
+Properties are displayed as inline annotations after each title:
 
 ```
-## Active Work (2)
-
-  [*] Implement auth (intentio...)
-      priority: high
-      status: in-progress
-  [*] Review docs (intentio...)
-      priority: medium
+━━━ Active Work (2) ━━━
+  ● Implement auth [high] [in-progress]
+  ● Review docs [medium]
 ```
 
 ## Filters
@@ -184,7 +180,7 @@ Filter by custom property value:
 ```yaml
 - type: property
   property: priority
-  operator: eq     # exists, not_exists, eq, neq, contains
+  operator: eq     # exists, not_exists, eq, neq, contains, any, all
   value: high
 ```
 
@@ -197,6 +193,8 @@ Filter by custom property value:
 | `eq` | Equals value |
 | `neq` | Not equals value |
 | `contains` | Contains text |
+| `any` | Has any of the specified labels (for `label_set` properties) |
+| `all` | Has all of the specified labels (for `label_set` properties) |
 
 ## Executing Views
 
@@ -354,33 +352,55 @@ sections:
 showDormant: false
 ```
 
+## Status Icons
+
+View output uses colored status icons consistent with the dashboard:
+
+**Intentions:**
+
+| Icon | Status | Color |
+|------|--------|-------|
+| `●` | Active | Green |
+| `◌` | Future | Cyan |
+| `✓` | Completed | Green |
+| `×` | Abandoned | Dimmed |
+
+**Tasks:**
+
+| Icon | Status | Color |
+|------|--------|-------|
+| `○` | Pending | Default |
+| `✓` | Complete | Green |
+| `×` | Abandoned | Dimmed |
+
+**Notes:**
+
+| Icon | Status | Color |
+|------|--------|-------|
+| `●` | All notes | Blue |
+
+Actions are prefixed with a dimmed date instead of an icon.
+
 ## Output
 
-View output shows sections with optional grouping and properties:
+View output uses ANSI-colored formatting with bold section headers, magenta group headers, status icons, and inline property annotations.
 
 ```
-View: project-overview
-  Project planning dashboard
+project-overview                          (magenta view name)
+  Project planning dashboard              (dimmed description)
 
-## Active Children (5)
+━━━ Active Children (5) ━━━               (bold section header)
+  ● Implement user auth [high] [in-progress]
+  ● Review documentation [medium]
+  ● Fix database migration
 
-  [*] Implement user auth (int_01ab...)
-      priority: high
-      status: in-progress
-  [*] Review documentation (int_01cd...)
-      priority: medium
-  [*] Fix database migration (int_01ef...)
+━━━ Blocked (3) ━━━
+  ▸ blocked (1)                           (magenta group header)
+    ● Deploy to staging [high]
 
-## Blocked (grouped by workflow)
-
-  ### blocked (1)
-    [*] Deploy to staging (int_01gh...)
-        priority: high
-        blocked-by: infra team
-
-## Recent Notes
-
-  (notes listed here)
+━━━ Recent Notes (2) ━━━
+  ● Architecture decisions
+  ● Sprint retrospective
 ```
 
 ## View Names

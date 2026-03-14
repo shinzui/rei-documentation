@@ -6,6 +6,55 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-03-12
+
+### New Guide: Configuration
+
+- **`rei help config`** — New guide covering config file resolution order, environment variables, config file sections, aliases, and dashboard panel configuration.
+
+### New Subcommands: Link Custom Properties
+
+- **`rei link set-property`** — Set a custom property on a link (property must allow the `link` entity type)
+- **`rei link clear-property`** — Clear a custom property from a link
+
+### Feature Enhancements
+
+- **`rei intention set-property --force`** — Bypass state machine transition rules, allowing jumps to any non-terminal state without following the defined transition path
+- **`rei habit set-property --force`** — Same `--force` flag for habit state machine properties
+- **`rei custom-property create -e`** — Now supports `collection` and `link` as valid entity types
+- **`REI_PG_CONNECTION_STRING`** — New Rei-specific database connection env var that takes precedence over `PG_CONNECTION_STRING`, avoiding conflicts in global installs
+- **View property filters** — `any` and `all` operators for matching against `label_set` property values in views
+
+---
+
+## 2026-03-06
+
+### New Subcommand: Cycle Reschedule
+
+- **`rei cycle reschedule`** — Adjust the start date and optionally the length of the active cycle. Useful for correcting cycles started on the wrong day. Validates that existing daily focus entries remain within the new date range.
+
+### Feature Enhancements
+
+- **`rei intention show --full`** — Now displays the focus area (own or inherited) with symbol and inheritance indicator
+
+---
+
+## 2026-03-05
+
+### New Subcommand: Category Reparenting
+
+- **`rei category reparent`** — Move a category under a different parent or promote it to a root category. Automatically updates slugs for the category and all descendants, moves note guidance files, and rejects cycles or slug conflicts.
+
+### Feature Enhancements
+
+- **`rei intention list --search`** — Filter intentions by title with case-insensitive keyword search
+- **`rei intention complete --at`** — Backdate when an intention was completed (e.g., `--at yesterday`)
+- **`rei intention activate --at`** — Backdate when a future intention became active
+- **`rei link list --domain`** — Filter links by registrable domain (e.g., `--domain github.com`; with `--all`)
+- **Views guide** — Updated with status icons reference (intentions, tasks, notes, actions) and new inline property annotation format using `[value]` brackets
+
+---
+
 ## 2026-02-28
 
 ### New Guide: Cycles

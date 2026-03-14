@@ -137,9 +137,16 @@ Rei requires MessageDB for event storage.
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `PG_CONNECTION_STRING` | Database connection string | Yes |
+| `REI_PG_CONNECTION_STRING` | Rei-specific database connection string | Recommended |
+| `PG_CONNECTION_STRING` | Database connection string (fallback) | Yes (if `REI_PG_CONNECTION_STRING` not set) |
+
+Rei checks `REI_PG_CONNECTION_STRING` first, then falls back to `PG_CONNECTION_STRING`. Using the Rei-specific variable avoids conflicts when Rei is installed globally alongside other applications.
 
 ```bash
+# Recommended: Rei-specific variable (won't conflict with other apps)
+export REI_PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
+
+# Also works: generic variable (used as fallback)
 export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
 ```
 
@@ -183,7 +190,7 @@ export REI_ANTHROPIC_API_KEY=sk-ant-...
 
 ```bash title=".envrc"
 # Database (required)
-export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
+export REI_PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
 
 # AI (optional - uses claude-cli by default)
 export REI_LLM_BACKEND=anthropic-api

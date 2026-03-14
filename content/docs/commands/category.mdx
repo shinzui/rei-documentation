@@ -409,6 +409,40 @@ rei category improve-note-guidance learning/japanese
 rei category improve-note-guidance learning/japanese "add more detail" --debug
 ```
 
+### reparent
+
+Move a category under a different parent or promote it to a root category.
+
+```bash
+rei category reparent SLUG --parent PARENT_SLUG
+rei category reparent SLUG --root
+```
+
+**Arguments:**
+- `SLUG` — Current category slug
+
+**Options:**
+- `--parent <slug>` — New parent category slug
+- `--root` — Promote to root category (remove parent)
+
+Exactly one of `--parent` or `--root` must be specified.
+
+**Behavior:**
+- Automatically updates the slug for the category and all its descendants
+- Moves note guidance files to match the new slug paths
+- Rejects cycles (cannot move a category under its own descendant)
+- Rejects if the new slug conflicts with an existing category
+
+**Examples:**
+
+```bash
+# Move category under a new parent
+rei category reparent dev --parent personal/projects
+
+# Promote a nested category to root
+rei category reparent personal/projects/dev --root
+```
+
 ## Category Assignment
 
 Categories can be assigned to actions, notes, and intentions.

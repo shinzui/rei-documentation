@@ -1,6 +1,7 @@
 {
 	"title": "Guides",
 	"pages": [
+		"config",
 		"intention-filtering",
 		"custom-properties",
 		"state-machines",

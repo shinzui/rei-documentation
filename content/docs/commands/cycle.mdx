@@ -179,6 +179,33 @@ rei cycle extend 7
 - Cannot extend completed or abandoned cycles
 - The extension is added to the current cycle length
 
+### reschedule
+
+Adjust the start date and optionally the length of the active cycle. Useful when a cycle was created with the wrong start date.
+
+```bash
+rei cycle reschedule --start <date> [--length <days>]
+```
+
+**Options:**
+- `-s, --start <date>` — New start date (required, format: YYYY-MM-DD)
+- `-l, --length <days>` — New cycle length in days (optional, keeps existing length if omitted)
+
+**Examples:**
+
+```bash
+# Move the start date back by one day
+rei cycle reschedule --start 2025-01-01
+
+# Change both start date and length
+rei cycle reschedule --start 2025-01-01 --length 14
+```
+
+**Notes:**
+- Only active cycles can be rescheduled
+- If the cycle already has daily focus entries, the new date range must still contain all existing focus dates (otherwise the command is rejected)
+- This is a correction tool — use it to fix cycles started on the wrong day, not for routine date changes
+
 ### list
 
 List all cycles.
