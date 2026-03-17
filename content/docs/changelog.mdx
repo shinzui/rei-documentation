@@ -6,6 +6,34 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-03-16
+
+### New Commands: Multi-Agent System
+
+- **`rei agent memory`** — Manage agent memories (list, show, archive). Memories are persistent observations recorded across agent sessions providing continuity.
+- **`rei agent schedule`** — Manage agent schedules for autonomous background work. Schedules fire on cron-like recurring triggers or in response to domain events.
+- **`rei checkpoint`** — Manage review checkpoints for structured feedback on agent or human work artifacts, with approval/rejection/change-request workflows.
+
+### New Guides: Agent Infrastructure
+
+- **Agent Memory** — Memory types (fact, pattern, preference, constraint), confidence levels, anchors, lifecycle with supersession chains
+- **Agent Memory Filesystem** — Browse agent memories as markdown files in your workspace, with git integration and two read models
+- **Agent Sessions** — Track AI-assisted work sessions with timing, token usage, focus modes, interactive and debug modes
+- **Agent Schedules** — Automate recurring or event-triggered agent work with scope, trigger, delegation, and autonomy configuration
+- **Delegation** — Assign intentions to agents with explicit scope (research/draft/execute) and autonomy (autonomous/supervised) boundaries
+- **Multi-Agent Orchestration** — Higher-level overview of setting up automated agent schedules with coordination context
+- **Review Checkpoints** — Structured feedback workflows with pending/approved/rejected/changes-requested states
+
+### Feature Enhancements
+
+- **`rei agent`** — Added `schedule` subcommand for managing autonomous background agent work
+- **`rei today`** — Replaced `--no-intentions` with composable section filters: `--actions`, `--reminders`, `--intentions`, `--habits`, `--panels`
+- **`rei subscription`** — Added `agent-memory-filesystem`, `agent-schedule-read-model`, and `agent-schedule-event-reactor` workers
+- **Config aliases** — Updated example alias from `--no-intentions` to `--actions --habits`
+- **Dashboard panels** — Added `--panels` flag to show only dashboard panels in `rei today`
+
+---
+
 ## 2026-03-12
 
 ### New Guide: Configuration

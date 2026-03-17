@@ -1,0 +1,150 @@
+---
+title: Delegation
+description: Assign intentions to agents with explicit scope and autonomy boundaries
+icon: UserCheck
+---
+
+Delegation assigns an intention to an agent with explicit scope and autonomy boundaries. It defines what an agent is allowed to do and how much oversight is required. Access this guide with `rei help delegation`.
+
+## Delegation Model
+
+Each delegation has three key dimensions:
+
+| Dimension | Description |
+|-----------|-------------|
+| **Agent** | Who is doing the work (default: `claude-code`) |
+| **Scope** | What the agent is allowed to do |
+| **Autonomy** | How much oversight is required |
+
+## Delegation Scope
+
+| Scope | Description |
+|-------|-------------|
+| **research** | Read-only exploration. The agent can gather information, analyze context, and produce findings, but cannot create or modify artifacts |
+| **draft** | Create artifacts. The agent can write notes, propose actions, and produce drafts, but cannot execute changes to the intention itself |
+| **execute** | Full agency. The agent can take actions on the intention including completing actions and updating state |
+
+## Autonomy Levels
+
+| Level | Description |
+|-------|-------------|
+| **autonomous** | The agent works independently and applies its results directly. Best for routine or low-risk work |
+| **supervised** | The agent proposes work for human approval. When a supervised session completes, a review checkpoint is automatically created. The agent's summary becomes the artifact for review |
+
+## Delegation Lifecycle
+
+```
+                     Complete (with summary)
+                +----------------------------> Completed
+                |
+  Delegate      |
+  ----------> Active
+                |
+                |   Revoke (with reason)
+                +----------------------------> Revoked
+```
+
+| State | Description |
+|-------|-------------|
+| **Active** | Intention assigned to an agent (one active per intention) |
+| **Completed** | Agent finishes work (with summary) |
+| **Revoked** | Human cancels the delegation |
+
+## Delegating an Intention
+
+```bash
+# Basic delegation
+rei intention delegate <INTENTION> --scope research
+
+# With all options
+rei intention delegate <INTENTION> \
+  --to claude-code \
+  --scope draft \
+  --autonomy supervised \
+  --instructions "Focus on API error handling patterns"
+```
+
+If `INTENTION` is omitted, an FZF picker shows active intentions.
+
+**Defaults:**
+
+| Option | Default |
+|--------|---------|
+| `--to` | `claude-code` |
+| `--autonomy` | `autonomous` |
+
+## Revoking a Delegation
+
+```bash
+rei intention undelegate <INTENTION>
+rei intention undelegate <INTENTION> --reason "changing approach"
+```
+
+## Listing Delegations
+
+```bash
+# Active delegations (default)
+rei intention delegations
+
+# By status
+rei intention delegations --completed
+rei intention delegations --revoked
+rei intention delegations --all
+
+# Filter by intention
+rei intention delegations --intention <INTENTION_ID>
+```
+
+## Agent Context Integration
+
+When an agent works on a delegated intention, the delegation context is included in the agent's prompt:
+
+- Scope boundaries (what the agent can/cannot do)
+- Custom instructions from the delegation
+- Active review feedback (if changes were requested)
+
+This ensures the agent respects the human-defined boundaries.
+
+## Supervised Workflow
+
+The supervised autonomy level creates a review loop:
+
+1. Delegate with `--autonomy supervised`
+2. Agent runs and produces work
+3. Review checkpoint is auto-created (status: pending)
+4. Human reviews via `rei checkpoint approve/request-changes/reject`
+5. If changes requested, agent sees feedback on next run
+
+See [Review Checkpoints](/docs/guides/review-checkpoints) for the full review lifecycle.
+
+## Today Dashboard
+
+The `rei today` output shows a "Delegated to Agents" section with:
+
+- Scope icon (research, draft, or execute)
+- Intention title
+- Agent name
+- Autonomy level
+- Custom instructions (if any)
+
+## Business Rules
+
+- Only one active delegation per intention at a time
+- Delegations can only be created on active intentions
+- Completing or revoking a delegation is independent of reviews
+- Agent sessions record the delegation they're working under
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `intention delegate` | Assign an intention to an agent |
+| `intention undelegate` | Revoke an active delegation |
+| `intention delegations` | List delegations by status |
+
+## Related
+
+- [Review Checkpoints](/docs/guides/review-checkpoints) — Structured feedback on agent work
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands
+- [Agent Schedules](/docs/guides/agent-schedules) — Automate recurring agent work
+- [Multi-Agent Orchestration](/docs/guides/multi-agent-orchestration) — Orchestration overview

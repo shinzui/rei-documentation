@@ -1,0 +1,272 @@
+---
+title: Agent Schedules
+description: Automate recurring or event-triggered agent work
+icon: Clock
+---
+
+Agent schedules automate recurring or event-triggered agent work. Instead of manually running agent commands, schedules fire on a cron or in response to domain events like blockers being declared or intentions going stale. Access this guide with `rei help agent-schedules`.
+
+## Schedule Model
+
+Each schedule combines four dimensions:
+
+| Dimension | Description |
+|-----------|-------------|
+| **Scope** | What intentions the agent works on |
+| **Trigger** | When the agent runs |
+| **Delegation Scope** | What the agent is allowed to do (research/draft/execute) |
+| **Autonomy Level** | How much oversight is required (autonomous/supervised) |
+| **Guidance** | Free-form instructions for the agent |
+
+## Scope
+
+| Scope | Description |
+|-------|-------------|
+| `workspace` | All intentions in the workspace |
+| `intention:<id>` | A specific intention. The agent focuses on that single intention and its sub-entities |
+| `children-of:<id>` | All children of a parent intention. The agent iterates over each child within scope |
+
+## Triggers
+
+### Recurring Triggers
+
+Recurring triggers fire on a cron-like schedule. The system checks every 5 minutes which schedules are due.
+
+| Trigger | Description |
+|---------|-------------|
+| `daily-at HH:MM` | Every day at the specified time |
+| `weekdays-at HH:MM` | Monday through Friday only |
+| `weekly-on DAY HH:MM` | A specific day (e.g., `monday 09:00`) |
+| `every-N-hours` | Every N hours (e.g., `every-4-hours`) |
+
+### Time-Bound Triggers
+
+Recurring triggers with a deadline. The schedule auto-completes after the deadline passes:
+
+```bash
+--trigger "daily-at 09:00" --until 2026-04-01
+```
+
+### Event Triggers
+
+Event triggers fire immediately when a matching domain event occurs:
+
+| Trigger | Description |
+|---------|-------------|
+| `on-blocker-declared` | A blocker is added to an in-scope intention |
+| `on-delegation-completed` | A delegation finishes on an in-scope intention |
+| `on-review-requested` | A review checkpoint is created for an in-scope intention |
+| `on-stalled N` | An in-scope intention has no activity for N days |
+
+The event reactor matches events to active schedules by checking scope overlap and enqueues agent tasks immediately.
+
+## Trigger Source
+
+When a schedule fires, the source is recorded:
+
+| Source | Description |
+|--------|-------------|
+| **cron** | Fired by the periodic schedule checker (pg_cron) |
+| **event** | Fired by the event reactor matching a domain event |
+| **manual** | Fired by `rei agent schedule fire` for testing |
+
+## Delegation Scope and Autonomy
+
+Each schedule specifies what the agent can do when it fires:
+
+| Delegation Scope | Description |
+|------------------|-------------|
+| **research** | Read-only. Gather information and report findings |
+| **draft** | Create artifacts. Write notes, propose actions |
+| **execute** | Full agency. Take actions on intentions |
+
+And how much oversight is required:
+
+| Autonomy | Description |
+|----------|-------------|
+| **autonomous** | Agent acts directly. Results appear in session history |
+| **supervised** | Agent proposes for review. A review checkpoint is auto-created after each session |
+
+See [Delegation](/docs/guides/delegation) and [Review Checkpoints](/docs/guides/review-checkpoints) for details.
+
+## Schedule Lifecycle
+
+```
+                     Resume
+               +<--------------+
+               |               |
+  Create       v    Pause      |
+  ----------> Active -------> Paused
+               |               |
+               | Complete      | Complete
+               v               v
+             Completed       Completed
+```
+
+| State | Description |
+|-------|-------------|
+| **Active** | Schedule fires on its trigger. Only active schedules can be fired or paused |
+| **Paused** | Temporarily suspended. Triggers are ignored. Can be resumed to return to active. Guidance can still be updated while paused |
+| **Completed** | Permanently stopped (terminal). Cannot be resumed. Can be reached from either active or paused |
+
+## Creating a Schedule
+
+All fields are required except `--until`:
+
+```bash
+rei agent schedule create \
+  --scope "intention:<id>" \
+  --trigger "daily-at 07:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Check for new blockers and summarize progress"
+```
+
+Event-triggered schedule:
+
+```bash
+rei agent schedule create \
+  --scope "children-of:<id>" \
+  --trigger on-blocker-declared \
+  --delegation-scope draft \
+  --autonomy supervised \
+  --guidance "Propose solutions for the declared blocker"
+```
+
+Time-bound schedule (stops after deadline):
+
+```bash
+rei agent schedule create \
+  --scope workspace \
+  --trigger "weekdays-at 09:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Review stalled intentions and suggest next steps" \
+  --until 2026-04-01
+```
+
+## Listing Schedules
+
+```bash
+# Active schedules (default)
+rei agent schedule list
+
+# By status
+rei agent schedule list --status active
+rei agent schedule list --status paused
+rei agent schedule list --status completed
+rei agent schedule list --status all
+
+# By scope type
+rei agent schedule list --scope intention
+rei agent schedule list --scope children_of
+rei agent schedule list --scope workspace
+```
+
+## Showing Schedule Details
+
+```bash
+rei agent schedule show [SCHEDULE_ID]
+```
+
+Displays trigger, scope, delegation scope, autonomy, guidance, status, last fired time, and total fire count.
+
+## Pausing and Resuming
+
+```bash
+# Pause an active schedule
+rei agent schedule pause [SCHEDULE_ID]
+rei agent schedule pause [SCHEDULE_ID] --reason "on vacation"
+
+# Resume a paused schedule
+rei agent schedule resume [SCHEDULE_ID]
+```
+
+If `SCHEDULE_ID` is omitted, an FZF picker shows matching schedules.
+
+## Completing a Schedule
+
+Permanently stop a schedule:
+
+```bash
+rei agent schedule complete [SCHEDULE_ID]
+```
+
+This is terminal — completed schedules cannot be resumed. Use pause if you plan to restart later.
+
+## Updating Guidance
+
+Change the instructions for a schedule (works on active or paused):
+
+```bash
+rei agent schedule update-guidance [SCHEDULE_ID] \
+  --guidance "New instructions for the agent"
+```
+
+## Manual Fire
+
+Test a schedule by firing it immediately:
+
+```bash
+rei agent schedule fire [SCHEDULE_ID]
+```
+
+This enqueues a task as if the trigger had matched, bypassing the cron window or event wait. Useful for verifying that a new schedule produces the expected agent behavior.
+
+## Queue Processing
+
+Schedules use a two-phase processing model via PGMQ:
+
+1. **Schedule Check** — A pg_cron job runs every 5 minutes. For each active schedule with a recurring trigger, it evaluates whether the schedule is due based on its CronSchedule and lastFiredAt time. Due schedules produce AgentTask work items.
+
+2. **Task Execution** — The background worker picks up AgentTask items and runs the agent with the schedule's scope, delegation scope, autonomy level, and guidance.
+
+For event triggers, the event reactor subscription processes domain events from intention streams and matches them against active schedules' event trigger configurations.
+
+## Coordination Context
+
+When multiple schedules target related intentions, agents receive coordination context to avoid duplicate effort:
+
+- Summaries of recent sibling agent sessions
+- Active agent memories for the intention
+- Active delegations on the intention
+- Recent session history
+
+## Today Dashboard
+
+The `rei today` output shows an "Agent Schedules" section:
+
+- Active/paused status indicator
+- Trigger description (e.g., "Daily at 7:00")
+- Scope (intention title or "workspace")
+- Last fired time and total fire count
+
+## Business Rules
+
+- Only active schedules can be fired
+- Only active schedules can be paused
+- Only paused schedules can be resumed
+- Completed is terminal (from either active or paused)
+- Guidance can be updated on active or paused schedules
+- Create is idempotent (same ID produces no duplicate)
+- Fire records are cumulative (lastFiredAt and fireCount tracked)
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `agent schedule create` | Create a new schedule |
+| `agent schedule list` | List schedules by status/scope |
+| `agent schedule show [ID]` | Show schedule details |
+| `agent schedule pause [ID]` | Pause an active schedule |
+| `agent schedule resume [ID]` | Resume a paused schedule |
+| `agent schedule complete [ID]` | Permanently stop a schedule |
+| `agent schedule fire [ID]` | Manually fire for testing |
+| `agent schedule update-guidance` | Update guidance text |
+
+## Related
+
+- [Delegation](/docs/guides/delegation) — Assign intentions to agents with scope and autonomy
+- [Review Checkpoints](/docs/guides/review-checkpoints) — Structured feedback on agent work
+- [Multi-Agent Orchestration](/docs/guides/multi-agent-orchestration) — Higher-level orchestration overview
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands

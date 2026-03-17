@@ -1,0 +1,167 @@
+---
+title: Review Checkpoints
+description: Structured feedback on agent or human work with approval workflows
+icon: ClipboardCheck
+---
+
+Review checkpoints provide structured feedback on agent (or human) work. Instead of ad-hoc "looks good" responses, reviews are tracked as events in the intention's history with status, criteria, and feedback. Access this guide with `rei help review-checkpoints`.
+
+## Review Lifecycle
+
+```
+                      Approve
+                 +------------------> Approved (terminal)
+                 |
+  Request        |   Request Changes
+  ----------> Pending -------------> Changes Requested
+                 |                        |
+                 |   Reject               | Resubmit
+                 +------------------->    |
+                     Rejected (terminal)  v
+                                      Pending (new round)
+```
+
+| State | Description |
+|-------|-------------|
+| **Pending** | Artifact submitted for review |
+| **Approved** | Accepted (terminal) |
+| **Rejected** | Rejected (terminal) |
+| **Changes Requested** | Reviewer asked for changes with required feedback |
+
+## Requesting a Review
+
+### Artifact Types
+
+```bash
+# Submit a note for review
+rei checkpoint request <INTENTION> --artifact-note <NOTE_ID>
+
+# Submit an action for review
+rei checkpoint request <INTENTION> --artifact-action <ACTION_ID>
+
+# Submit a free-form description
+rei checkpoint request <INTENTION> --artifact-desc "description of work"
+```
+
+### With Evaluation Criteria
+
+```bash
+rei checkpoint request <INTENTION> --artifact-desc "analysis" \
+  --criteria "accuracy" --criteria "completeness"
+```
+
+### Linked to a Delegation
+
+```bash
+rei checkpoint request <INTENTION> --artifact-note <NOTE_ID> \
+  --delegation <DELEGATION_ID>
+```
+
+If `INTENTION` is omitted, an FZF picker shows active intentions.
+
+## Deciding on a Review
+
+### Approve
+
+```bash
+rei checkpoint approve <REVIEW_ID>
+rei checkpoint approve <REVIEW_ID> --feedback "thorough analysis"
+```
+
+### Request Changes
+
+Feedback is required:
+
+```bash
+rei checkpoint request-changes <REVIEW_ID> --feedback "missing X"
+```
+
+### Reject
+
+```bash
+rei checkpoint reject <REVIEW_ID>
+rei checkpoint reject <REVIEW_ID> --feedback "doesn't meet requirements"
+```
+
+If `REVIEW_ID` is omitted, an FZF picker shows reviews matching the expected status (pending for approve/reject, changes_requested for resubmit).
+
+## Resubmitting After Changes
+
+When a reviewer requests changes, resubmit with an updated artifact:
+
+```bash
+rei checkpoint resubmit <REVIEW_ID> --artifact-note <NOTE_ID>
+rei checkpoint resubmit <REVIEW_ID> --artifact-desc "updated analysis"
+```
+
+This resets the review to pending for a new round. The full review history (each transition) is preserved as events.
+
+## Listing Reviews
+
+```bash
+# Pending reviews (default)
+rei checkpoint list
+
+# By status
+rei checkpoint list --approved
+rei checkpoint list --changes-requested
+rei checkpoint list --rejected
+rei checkpoint list --all
+
+# Filter by intention
+rei checkpoint list --intention <INTENTION_ID>
+```
+
+## Agent Integration
+
+Supervised delegations automatically request a review when an agent session completes. The agent's session summary becomes the artifact.
+
+When an agent works on an intention with changes-requested reviews, the reviewer's feedback is included in the agent's context so it knows what to fix.
+
+### Setting Up a Supervised Delegation
+
+```bash
+rei intention delegate <INTENTION> --to claude-code \
+  --scope research --autonomy supervised
+```
+
+After the agent runs, a pending review appears in:
+- `rei checkpoint list`
+- `rei today` (Pending Reviews section)
+
+## Today Dashboard
+
+The "Pending Reviews" section in `rei today` shows reviews that need attention (pending or changes_requested). It displays:
+
+- Status icon: pending or changes_requested
+- Artifact type icon: note, action, or description
+- Intention title
+- Requester (human or agent name)
+- Time requested
+- Reviewer feedback (for changes_requested reviews)
+
+## Business Rules
+
+- Reviews can only be requested on active intentions
+- Multiple reviews can be pending simultaneously on one intention
+- Approve/reject/request-changes only work on pending reviews
+- Resubmit only works on changes-requested reviews
+- Request-changes requires non-empty feedback
+- Reviews are independent from delegations (completing a review does not complete the delegation)
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `checkpoint request` | Submit artifact for review |
+| `checkpoint approve` | Approve a pending review |
+| `checkpoint request-changes` | Request changes (feedback required) |
+| `checkpoint reject` | Reject a pending review |
+| `checkpoint resubmit` | Resubmit after changes requested |
+| `checkpoint list` | List reviews by status |
+
+## Related
+
+- [Delegation](/docs/guides/delegation) — Assign intentions to agents with scope and autonomy
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands
+- [Agent Schedules](/docs/guides/agent-schedules) — Automate recurring agent work

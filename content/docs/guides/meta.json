@@ -12,6 +12,13 @@
 		"collections",
 		"disruptions",
 		"templates",
+		"agent-memory",
+		"agent-memory-filesystem",
+		"agent-sessions",
+		"agent-schedules",
+		"delegation",
+		"multi-agent-orchestration",
+		"review-checkpoints",
 		"time-formats"
 	]
 }

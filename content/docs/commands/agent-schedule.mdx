@@ -1,0 +1,225 @@
+---
+title: rei agent schedule
+description: Manage agent schedules for autonomous background work
+icon: Clock
+---
+
+Manage agent schedules for autonomous background work. Schedules define when and how agents run tasks — either on a recurring cron-like schedule or triggered by domain events.
+
+## Overview
+
+Agent schedules enable the agent to work autonomously in the background via the PGMQ worker process. Each schedule defines:
+- **Scope:** What the agent works on (workspace-wide, a specific intention, or children of an intention)
+- **Trigger:** When the agent runs (recurring cron schedule, time-bound, or on specific events)
+- **Delegation scope:** How much authority the agent has (research, draft, execute)
+- **Autonomy level:** Whether the agent acts independently or requires supervision
+- **Guidance:** Instructions that direct the agent's work
+
+## Subcommands
+
+### create
+
+Create a new agent schedule.
+
+```bash
+rei agent schedule create --scope SCOPE --trigger TRIGGER --delegation-scope SCOPE --autonomy LEVEL --guidance TEXT [--until DATE]
+```
+
+**Options:**
+- `--scope SCOPE` — Schedule scope: `workspace`, `intention:<id>`, `children-of:<id>`
+- `--trigger TRIGGER` — Trigger definition (see Trigger Syntax below)
+- `--delegation-scope SCOPE` — Delegation scope: `research`, `draft`, `execute`
+- `--autonomy LEVEL` — Autonomy level: `autonomous`, `supervised`
+- `--guidance TEXT` — Instructions for the agent
+- `--until DATE` — Deadline for time-bound triggers (`YYYY-MM-DD`)
+
+**Examples:**
+
+```bash
+# Daily morning review of workspace
+rei agent schedule create \
+  --scope workspace \
+  --trigger "daily-at 08:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Review today's intentions and suggest priorities"
+
+# React to blockers on a specific intention
+rei agent schedule create \
+  --scope "intention:intention_01h455vb4pex" \
+  --trigger on-blocker-declared \
+  --delegation-scope draft \
+  --autonomy supervised \
+  --guidance "Research the blocker and suggest resolution approaches"
+
+# Weekly review of child intentions
+rei agent schedule create \
+  --scope "children-of:intention_01h455vb4pex" \
+  --trigger "weekly-on monday 09:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Summarize progress across all child intentions"
+```
+
+### list
+
+List agent schedules.
+
+```bash
+rei agent schedule list [--status STATUS] [--scope TYPE]
+```
+
+**Options:**
+- `--status STATUS` — Filter by status: `active`, `paused`, `completed`, `all` (default: `active`)
+- `--scope TYPE` — Filter by scope type: `intention`, `children_of`, `workspace`
+
+**Examples:**
+
+```bash
+# List active schedules
+rei agent schedule list
+
+# List all schedules including completed
+rei agent schedule list --status all
+
+# List only intention-scoped schedules
+rei agent schedule list --scope intention
+```
+
+### show
+
+Show details of a specific schedule.
+
+```bash
+rei agent schedule show [SCHEDULE_ID]
+```
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from schedules.
+
+### pause
+
+Pause an active schedule.
+
+```bash
+rei agent schedule pause [SCHEDULE_ID] [--reason TEXT]
+```
+
+**Options:**
+- `--reason TEXT` — Reason for pausing
+
+> **FZF Support:** Uses interactive picker if ID not provided.
+
+### resume
+
+Resume a paused schedule.
+
+```bash
+rei agent schedule resume [SCHEDULE_ID]
+```
+
+> **FZF Support:** Uses interactive picker if ID not provided.
+
+### complete
+
+Permanently stop a schedule.
+
+```bash
+rei agent schedule complete [SCHEDULE_ID]
+```
+
+> **FZF Support:** Uses interactive picker if ID not provided.
+
+### fire
+
+Manually fire a schedule for testing.
+
+```bash
+rei agent schedule fire [SCHEDULE_ID]
+```
+
+> **FZF Support:** Uses interactive picker if ID not provided.
+
+### update-guidance
+
+Update the guidance text for a schedule.
+
+```bash
+rei agent schedule update-guidance [SCHEDULE_ID] --guidance TEXT
+```
+
+**Options:**
+- `--guidance TEXT` — New guidance text
+
+> **FZF Support:** Uses interactive picker if ID not provided.
+
+## Trigger Syntax
+
+### Recurring triggers
+
+| Trigger | Description |
+|---------|-------------|
+| `daily-at HH:MM` | Run daily at the specified time |
+| `weekdays-at HH:MM` | Run Monday through Friday at the specified time |
+| `weekly-on DAY HH:MM` | Run weekly on a specific day (e.g., `monday`, `friday`) |
+| `every-N-hours` | Run every N hours |
+
+### Event triggers
+
+| Trigger | Description |
+|---------|-------------|
+| `on-blocker-declared` | Fire when a blocker is declared on a matching intention |
+| `on-delegation-completed` | Fire when a delegation completes |
+| `on-review-requested` | Fire when a review is requested |
+| `on-stalled N` | Fire when an intention has no activity for N days |
+
+### Time-bound triggers
+
+Add `--until YYYY-MM-DD` to any trigger to make it expire on a specific date.
+
+## Scope Types
+
+| Scope | Description |
+|-------|-------------|
+| `workspace` | Agent works across the entire workspace |
+| `intention:<id>` | Agent works on a specific intention |
+| `children-of:<id>` | Agent works on all children of an intention |
+
+## Delegation Scopes
+
+| Scope | Description |
+|-------|-------------|
+| `research` | Agent can read and analyze, but not modify |
+| `draft` | Agent can prepare drafts for review |
+| `execute` | Agent can take actions directly |
+
+## Autonomy Levels
+
+| Level | Description |
+|-------|-------------|
+| `autonomous` | Agent acts independently |
+| `supervised` | Agent reports findings and waits for approval |
+
+## Infrastructure
+
+Schedules are processed by the background worker system:
+
+1. **Periodic check** (`rei periodic-check enqueue agent-schedule`) evaluates which schedules are due
+2. Due schedules are enqueued as work items in the PGMQ `agent_work` queue
+3. **Worker** (`rei worker all`) picks up work items and executes agent tasks
+4. **Event reactor** subscription watches for domain events that match event-triggered schedules
+
+### Required subscriptions
+
+```bash
+rei subscription run agent-schedule-read-model
+rei subscription run agent-schedule-event-reactor
+```
+
+Or include them in `rei subscription run all`.
+
+## See Also
+
+- [`rei agent`](/docs/commands/agent) — AI-assisted coaching and review
+- [`rei worker`](/docs/commands/worker) — Background job workers
+- [`rei periodic-check`](/docs/commands/periodic-check) — Periodic check scheduling
+- [`rei subscription`](/docs/commands/subscription) — Subscription workers

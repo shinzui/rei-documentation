@@ -1,0 +1,155 @@
+---
+title: Agent Memory
+description: Persistent observations that agents accumulate across sessions
+icon: Brain
+---
+
+Agent memories are persistent observations that agents accumulate across sessions. They capture facts, patterns, preferences, and constraints discovered while working on intentions, habits, or the workspace. Access this guide with `rei help agent-memory`.
+
+## Memory Types
+
+| Type | Description | Example |
+|------|-------------|---------|
+| **fact** | Concrete information discovered about the domain | "This API returns paginated results of 50 items" |
+| **pattern** | Recurring behavior or trend observed over time | "Blockers on this intention tend to be dependency-related" |
+| **preference** | User preference inferred from interactions | "User prefers concise action items over detailed plans" |
+| **constraint** | Hard boundary or requirement that must be respected | "This intention must not modify the public API" |
+
+## Confidence Levels
+
+| Level | Description |
+|-------|-------------|
+| **high** | Agent is confident in the observation |
+| **medium** | Reasonable confidence, may need validation |
+| **low** | Tentative — deprioritized in agent context |
+
+## Anchors
+
+Each memory is anchored to a scope:
+
+| Anchor | Description |
+|--------|-------------|
+| **intention** | Tied to a specific intention (and its sub-entities) |
+| **habit** | Tied to a specific habit |
+| **workspace** | Global — applies across all intentions and habits |
+
+## Memory Lifecycle
+
+Memories move through three states:
+
+| State | Description |
+|-------|-------------|
+| **Active** | Live memory, included in agent context |
+| **Superseded** | Replaced by a newer, more accurate memory (terminal) |
+| **Archived** | Dismissed by the user (terminal) |
+
+```
+                     Supersede (linked to new memory)
+                +----------------------------> Superseded
+                |
+  Record        |
+  ----------> Active
+                |
+                |   Archive
+                +----------------------------> Archived
+```
+
+Memories are never deleted. Supersession creates an explicit chain preserving the full evolution of understanding.
+
+## Supersession Chains
+
+When an agent refines a memory, it records a new one that supersedes the old. This creates a chain showing how understanding evolved:
+
+```
+Memory A (superseded) → Memory B (superseded) → Memory C (active)
+```
+
+View the chain:
+
+```bash
+rei agent memory show <MEMORY_ID> --chain
+```
+
+## How Agents Record Memories
+
+During a session, agents embed memory observations in their response using a structured block format. Rei parses these blocks and records them as events. The agent specifies type, content, confidence, tags, and optionally which existing memory to supersede.
+
+## Listing Memories
+
+```bash
+# All active memories
+rei agent memory list
+
+# Filter by type
+rei agent memory list --type fact
+rei agent memory list --type pattern
+
+# Filter by anchor
+rei agent memory list --anchor intention
+rei agent memory list --anchor workspace
+
+# Filter by intention
+rei agent memory list --intention <INTENTION_ID>
+
+# Filter by originating session
+rei agent memory list --session <SESSION_ID>
+```
+
+## Viewing a Memory
+
+```bash
+# Show memory details
+rei agent memory show [MEMORY_ID]
+
+# Show the supersession chain
+rei agent memory show <MEMORY_ID> --chain
+```
+
+If `MEMORY_ID` is omitted, an FZF picker shows active memories.
+
+## Archiving a Memory
+
+Archive a memory you no longer want included in agent context:
+
+```bash
+rei agent memory archive [MEMORY_ID]
+```
+
+Archived memories are terminal — they cannot be reactivated.
+
+## Tags
+
+Memories can carry tags for organization. Tags are mutable on active memories and help group related observations.
+
+## Agent Context Integration
+
+When an agent runs on an intention, its context includes:
+
+- Active memories anchored to that intention
+- Active workspace-global memories
+- Memory counts by type (for the agent's awareness)
+
+This gives agents continuity across sessions without re-discovering the same facts each time.
+
+## Business Rules
+
+- Every memory requires a session ID (provenance tracking)
+- Anchors are immutable after creation
+- Content is immutable — refinements go through supersession
+- Tags and confidence are mutable on active memories only
+- No modifications allowed on superseded or archived memories
+- Supersession is one-to-one (one new memory replaces one old)
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `agent memory list` | List active memories |
+| `agent memory show [ID]` | Show memory details |
+| `agent memory show ID --chain` | Show supersession chain |
+| `agent memory archive [ID]` | Archive a memory |
+
+## Related
+
+- [Agent Memory Filesystem](/docs/guides/agent-memory-filesystem) — Browse memories as markdown files
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands

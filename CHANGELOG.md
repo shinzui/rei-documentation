@@ -5,11 +5,47 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `9b73011` (2026-03-12)
+**Last Source Commit Reviewed:** `86e916f` (2026-03-16)
 
 ---
 
 ## Changelog
+
+### 2026-03-16
+
+**Reviewed commits:** `9b73011` through `86e916f`
+
+**New command pages:**
+- `commands/agent-memory.mdx` — New command page for `rei agent memory` (list, show, archive)
+- `commands/agent-schedule.mdx` — New command page for `rei agent schedule` (create, list, show, pause, resume, complete, fire, update-guidance)
+- `commands/checkpoint.mdx` — New command page for `rei checkpoint` (request, approve, request-changes, reject, resubmit, list)
+
+**New guide pages (from help topics):**
+- `guides/agent-memory.mdx` — From `rei help agent-memory`
+- `guides/agent-memory-filesystem.mdx` — From `rei help agent-memory-filesystem`
+- `guides/agent-sessions.mdx` — From `rei help agent-sessions`
+- `guides/agent-schedules.mdx` — From `rei help agent-schedules`
+- `guides/delegation.mdx` — From `rei help delegation`
+- `guides/multi-agent-orchestration.mdx` — From `rei help multi-agent-orchestration`
+- `guides/review-checkpoints.mdx` — From `rei help review-checkpoints`
+
+**Updated files:**
+- `commands/agent.mdx` — Added `schedule` subcommand section
+- `commands/subscription.mdx` — Added `agent-memory-filesystem`, `agent-schedule-read-model`, `agent-schedule-event-reactor` workers
+- `commands/today.mdx` — Replaced `--no-intentions` with section filters (`--actions`, `--reminders`, `--intentions`, `--habits`, `--panels`)
+- `guides/config.mdx` — Updated alias example from `--no-intentions` to `--actions --habits`
+- `guides/dashboard.mdx` — Added `--panels` flag mention
+- `configuration.mdx` — Updated alias example from `--no-intentions` to `--actions --habits`
+- `commands/meta.json` — Added `agent-memory`, `agent-schedule`, `checkpoint`
+- `guides/meta.json` — Added 7 new guide pages
+- `changelog.mdx` — Added 2026-03-16 entries
+
+**Features documented:**
+- Multi-agent orchestration system (schedules, delegation, review checkpoints)
+- Agent memory system (types, anchors, lifecycle, filesystem projection)
+- Agent sessions (focus modes, interactive mode, debug mode)
+- Section filter flags for `rei today` (replacing `--no-intentions`)
+- Three new subscription workers for agent infrastructure
 
 ### 2026-03-12
 

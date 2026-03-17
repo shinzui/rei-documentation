@@ -77,14 +77,14 @@ Define short command aliases in your config file, similar to git aliases. Each a
 
 ```yaml title="rei.yaml"
 aliases:
-  tw: today -c work --no-intentions
+  tw: today -c work --actions --habits
   i: intention
   sh: intention show --full
   ls: intention list --active
   h: habit
 ```
 
-With the above config, `rei tw` expands to `rei today -c work --no-intentions`. Additional arguments are appended, so `rei tw --verbose` becomes `rei today -c work --no-intentions --verbose`.
+With the above config, `rei tw` expands to `rei today -c work --actions --habits`. Additional arguments are appended, so `rei tw --verbose` becomes `rei today -c work --no-intentions --verbose`.
 
 **Rules:**
 - Built-in commands take precedence — an alias cannot shadow a built-in command name (e.g., `today`, `intention`)

@@ -1,0 +1,110 @@
+---
+title: rei agent memory
+description: Manage agent memories — durable observations recorded across sessions
+icon: Brain
+---
+
+Manage agent memories — durable observations that agents record across sessions. Memories provide continuity so agents don't re-discover known information.
+
+Agent memories are automatically recorded during coaching sessions when agents discover important facts, patterns, preferences, or constraints. You can also list, inspect, and archive them.
+
+## Subcommands
+
+### list
+
+List active agent memories, grouped by type.
+
+```bash
+rei agent memory list [options]
+```
+
+**Options:**
+- `--type TYPE` — Filter by memory type: `fact`, `pattern`, `preference`, `constraint`
+- `--anchor TYPE` — Filter by anchor type: `intention`, `habit`, `workspace`
+- `--intention ID` — Filter by intention ID
+- `--session ID` — Filter by session ID
+
+**Examples:**
+
+```bash
+rei agent memory list
+rei agent memory list --type fact
+rei agent memory list --anchor workspace
+rei agent memory list --intention intention_01h455vb4pex
+rei agent memory list --session agent_session_01jd4abc
+```
+
+### show
+
+Show details of a specific memory.
+
+```bash
+rei agent memory show [memory-id] [options]
+```
+
+**Arguments:**
+- `[memory-id]` — Memory ID (optional if fzf is available)
+
+**Options:**
+- `--chain` — Show the full supersession chain
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active memories.
+
+### archive
+
+Archive a memory (dismiss it so it no longer appears in agent context).
+
+```bash
+rei agent memory archive [memory-id]
+```
+
+**Arguments:**
+- `[memory-id]` — Memory ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active memories.
+
+Archived memories are in a terminal state and cannot be un-archived.
+
+## How Memories Are Created
+
+Memories are recorded automatically during agent sessions. When an agent discovers important information, it includes a structured memory block in its response:
+
+```
+<!-- rei:memories
+- type: fact
+  content: "The project uses PostgreSQL 15 with MessageDB extension"
+  confidence: high
+  tags: [infrastructure, database]
+-->
+```
+
+The CLI parses this block, records each observation, and strips the block from the displayed response.
+
+## Workspace Files
+
+Active memories are written as markdown files to your workspace's `memories/` directory, organized by anchor:
+
+```
+memories/
+├── workspace/                        # Cross-cutting observations
+│   └── agent_memory_01jd8abc.md
+├── intentions/                       # Intention-anchored memories
+│   └── intention_01h455vb/
+│       └── agent_memory_01jd5abc.md
+└── habits/                           # Habit-anchored memories
+    └── habit_01h999abc/
+        └── agent_memory_01jdaabc.md
+```
+
+Each file has YAML frontmatter (`id`, `type`, `confidence`, `anchor`, `session`, `tags`, `recorded`) followed by the memory content. Files are auto-committed to git.
+
+When a memory is archived or superseded, its file is automatically deleted.
+
+## Important Notes
+
+- **Automatic recording:** Memories are created by agents during sessions, not manually by users
+- **Archiving is permanent:** Archived memories cannot be restored
+- **Supersession:** When an agent records a memory that replaces an older one, the old memory is automatically superseded
+- **Context injection:** Active memories are automatically included in relevant agent prompts based on anchor and focus mode
+- **Workspace files:** Active memories are written as markdown files to `memories/` — when superseded or archived, the file is deleted
+- **Dashboard:** `rei today` shows a summary of active memory counts and the most recently recorded memory

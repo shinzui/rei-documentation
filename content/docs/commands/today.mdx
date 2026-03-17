@@ -13,8 +13,14 @@ rei today [options]
 **Options:**
 - `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
 - `--include-dormant` — Include dormant intentions (excluded by default)
-- `--no-intentions` — Hide the active intentions and completed today sections
 - `--tui` — Launch interactive TUI dashboard
+
+**Section filters** (combinable — when any is provided, only selected sections are shown):
+- `--actions` — Show only today's actions
+- `--reminders` — Show only triggered reminders
+- `--intentions` — Show only intentions, completed today, tasks, blockers, and related sections
+- `--habits` — Show only habits (scheduled, flexible, and cue-based)
+- `--panels` — Show only dashboard panels
 
 ## Dashboard Sections
 
@@ -103,6 +109,18 @@ rei today
 
 # Filter to work context only
 rei today --context work
+
+# Show only today's actions
+rei today --actions
+
+# Show only habits
+rei today --habits
+
+# Show actions and reminders together
+rei today --actions --reminders
+
+# Combine with context filter
+rei today --context work --intentions
 
 # Include dormant intentions
 rei today --include-dormant

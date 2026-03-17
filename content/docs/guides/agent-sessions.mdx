@@ -1,0 +1,175 @@
+---
+title: Agent Sessions
+description: Track AI-assisted work sessions with timing, tokens, and summaries
+icon: MessageSquare
+---
+
+Agent sessions track AI-assisted work in Rei. Every time an agent runs (coaching, reviewing, reflecting, or working on a delegation), a session is recorded as an event-sourced entity with timing, token usage, and a summary of what was done. Access this guide with `rei help agent-sessions`.
+
+## Session Lifecycle
+
+| State | Description |
+|-------|-------------|
+| **Started** | Agent begins work (records focus mode, model, intention) |
+| **Completed** | Agent finishes successfully (records summary, tokens used) |
+| **Failed** | Agent encounters an error |
+
+## Focus Modes
+
+Each session has a focus mode indicating what the agent was doing:
+
+| Focus Mode | Description |
+|------------|-------------|
+| **coach** | General coaching based on current state |
+| **today** | Today-focused coaching |
+| **nudge** | Quick suggestion for what to do next |
+| **intention_review** | Deep review of a specific intention |
+| **reflect_today** | Help with daily reflection |
+| **reflect_week** | Help with weekly reflection |
+| **create_note** | Create a structured note using category guidance |
+| **explore** | Explore a collection with AI analysis |
+| **assist** | Interactive assistant for setup and management |
+
+## Starting an Agent Session
+
+### Coaching
+
+```bash
+rei agent coach               # General coaching
+rei agent coach --today       # Focus on today's work
+```
+
+### Reviewing
+
+```bash
+rei agent review [INTENTION]  # Review a specific intention
+```
+
+### Quick Nudge
+
+```bash
+rei agent nudge
+```
+
+### Reflection
+
+```bash
+rei agent reflect today       # Daily reflection help
+rei agent reflect week        # Weekly reflection help
+```
+
+### Note Creation
+
+```bash
+rei agent create-note [CATEGORY] -i "text" [--intention ID]
+```
+
+### Collection Exploration
+
+```bash
+rei agent explore [COLLECTION] [-n LIMIT]
+```
+
+### Interactive Assistant
+
+```bash
+rei agent assist
+```
+
+## Interactive Mode
+
+Add `-i` (or `--interactive`) to any agent command to start an interactive Claude Code session with full Rei context:
+
+```bash
+rei agent coach -i
+rei agent review <INTENTION> -i
+rei agent explore <COLLECTION> -i
+```
+
+In interactive mode, Claude Code receives the agent's prompt as context and you can have a back-and-forth conversation.
+
+## Debug Mode
+
+Add `--debug` to output the prompt without invoking the LLM:
+
+```bash
+rei agent coach --debug
+rei agent review <INTENTION> --debug
+```
+
+Useful for inspecting what context the agent receives.
+
+## Listing Sessions
+
+```bash
+# Recent sessions (default 20)
+rei agent sessions
+
+# With filters
+rei agent sessions --limit 10
+rei agent sessions --focus today
+rei agent sessions --intention <INTENTION_ID>
+```
+
+## Viewing a Session
+
+```bash
+# Show session details
+rei agent session <SESSION_ID>
+
+# Show the full session chain (parent/child sessions)
+rei agent session <SESSION_ID> --chain
+```
+
+## Agent Memory
+
+Agents build up memories across sessions — facts, patterns, preferences, and constraints anchored to intentions, habits, or the workspace.
+
+```bash
+# List memories
+rei agent memory list
+rei agent memory list --type fact
+rei agent memory list --anchor intention
+rei agent memory list --intention <ID>
+rei agent memory list --session <SESSION_ID>
+
+# Show a memory
+rei agent memory show [MEMORY_ID]
+rei agent memory show <MEMORY_ID> --chain    # Show supersession chain
+
+# Archive a memory
+rei agent memory archive [MEMORY_ID]
+```
+
+Memory types: `fact`, `pattern`, `preference`, `constraint`
+
+Anchor types: `intention`, `habit`, `workspace`
+
+## Today Dashboard
+
+The `rei today` output shows recent agent activity. Sessions that completed today appear with their focus mode and summary.
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `agent coach [-t\|--today]` | Get AI coaching |
+| `agent review [INTENTION]` | Review an intention |
+| `agent nudge` | Quick suggestion |
+| `agent reflect today\|week` | Reflection help |
+| `agent create-note [CAT] -i TEXT` | Create a structured note |
+| `agent explore [COLLECTION]` | Explore a collection |
+| `agent assist` | Interactive assistant |
+| `agent create-skill` | Create a workspace skill |
+| `agent sessions` | List recent sessions |
+| `agent session <ID>` | Show session details |
+| `agent memory list` | List agent memories |
+| `agent memory show [ID]` | Show memory details |
+| `agent memory archive [ID]` | Archive a memory |
+
+## Related
+
+- [Agent Memory](/docs/guides/agent-memory) — Memory types, lifecycle, and commands
+- [Agent Memory Filesystem](/docs/guides/agent-memory-filesystem) — Browse memories as markdown files
+- [Delegation](/docs/guides/delegation) — Assign intentions to agents
+- [Review Checkpoints](/docs/guides/review-checkpoints) — Structured feedback on agent work

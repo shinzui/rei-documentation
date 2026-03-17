@@ -1,0 +1,194 @@
+---
+title: Multi-Agent Orchestration
+description: Set up recurring or event-triggered agent schedules for automated work
+icon: Network
+---
+
+Agent schedules let you set up recurring or event-triggered agent work. Instead of manually running `rei agent` commands, schedules fire automatically on a cron or in response to domain events. Access this guide with `rei help multi-agent-orchestration`.
+
+## Schedule Model
+
+Each schedule combines four dimensions:
+
+| Dimension | Description |
+|-----------|-------------|
+| **Scope** | What intentions the agent works on |
+| **Trigger** | When the agent runs |
+| **Delegation** | What the agent is allowed to do |
+| **Guidance** | Instructions for the agent |
+
+## Scope
+
+| Scope | Description |
+|-------|-------------|
+| `workspace` | All intentions in the workspace |
+| `intention:<id>` | A specific intention |
+| `children-of:<id>` | All children of a parent intention |
+
+## Triggers
+
+### Recurring (Cron-Based)
+
+| Trigger | Description |
+|---------|-------------|
+| `daily-at HH:MM` | Every day at a specific time |
+| `weekdays-at HH:MM` | Monday through Friday |
+| `weekly-on DAY HH:MM` | Specific day of the week (e.g., `monday 09:00`) |
+| `every-N-hours` | Every N hours (e.g., `every-4-hours`) |
+
+### Time-Bound (Recurring with Deadline)
+
+Use any recurring trigger with `--until DATE` to stop after a date.
+
+### Event-Triggered
+
+| Trigger | Description |
+|---------|-------------|
+| `on-blocker-declared` | When a blocker is added to an intention |
+| `on-delegation-completed` | When a delegation finishes |
+| `on-review-requested` | When a review checkpoint is created |
+| `on-stalled N` | When an intention has no activity for N days |
+
+## Schedule Lifecycle
+
+```
+                     Resume
+               +<--------------+
+               |               |
+  Create       v    Pause      |
+  ----------> Active -------> Paused
+               |               |
+               | Complete      | Complete
+               v               v
+             Completed       Completed
+```
+
+## Creating a Schedule
+
+Daily research on an intention:
+
+```bash
+rei agent schedule create \
+  --scope "intention:<id>" \
+  --trigger "daily-at 07:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Check for new blockers and summarize progress"
+```
+
+Respond to blockers across children:
+
+```bash
+rei agent schedule create \
+  --scope "children-of:<id>" \
+  --trigger on-blocker-declared \
+  --delegation-scope draft \
+  --autonomy supervised \
+  --guidance "Propose solutions for the declared blocker"
+```
+
+Weekday review with deadline:
+
+```bash
+rei agent schedule create \
+  --scope workspace \
+  --trigger "weekdays-at 09:00" \
+  --delegation-scope research \
+  --autonomy autonomous \
+  --guidance "Review stalled intentions and suggest next steps" \
+  --until 2026-04-01
+```
+
+## Managing Schedules
+
+```bash
+# List active schedules
+rei agent schedule list
+rei agent schedule list --status paused
+rei agent schedule list --status all
+rei agent schedule list --scope intention
+
+# Show schedule details
+rei agent schedule show [SCHEDULE_ID]
+
+# Pause a schedule
+rei agent schedule pause [SCHEDULE_ID]
+rei agent schedule pause [SCHEDULE_ID] --reason "on vacation"
+
+# Resume a paused schedule
+rei agent schedule resume [SCHEDULE_ID]
+
+# Complete (permanently stop)
+rei agent schedule complete [SCHEDULE_ID]
+
+# Update guidance
+rei agent schedule update-guidance [SCHEDULE_ID] \
+  --guidance "New instructions for the agent"
+```
+
+If `SCHEDULE_ID` is omitted, an FZF picker shows matching schedules.
+
+## Manual Fire
+
+Test a schedule by firing it immediately:
+
+```bash
+rei agent schedule fire [SCHEDULE_ID]
+```
+
+This enqueues a task as if the trigger had fired, useful for testing before waiting for the next cron window or event.
+
+## Queue System
+
+Schedules use a two-phase processing model:
+
+1. **Schedule Check** — A pg_cron job runs every 5 minutes, checking which schedules are due. Due schedules produce AgentTask work items.
+
+2. **Task Execution** — The background queue picks up AgentTask items and runs the agent with the schedule's scope, delegation, and guidance.
+
+For event triggers, a cross-stream event reactor matches domain events (blocker declared, delegation completed, etc.) to active schedules and enqueues tasks immediately.
+
+## Coordination Context
+
+When multiple schedules operate on related intentions, agents receive coordination context to prevent duplicate work:
+
+- Sibling work summaries (what other agents recently did)
+- Related agent memories
+- Active delegations on the intention
+- Recent session history
+
+## Autonomy and Reviews
+
+| Level | Description |
+|-------|-------------|
+| **autonomous** | Agent acts directly — results appear in session history |
+| **supervised** | Agent submits for review — a checkpoint is auto-created after each session, appearing in `rei checkpoint list` and `rei today` |
+
+## Today Dashboard
+
+The `rei today` output shows an "Agent Schedules" section with:
+
+- Active/paused status
+- Trigger description
+- Scope (intention title or workspace)
+- Last fired time and total fire count
+
+## Command Summary
+
+| Command | Description |
+|---------|-------------|
+| `agent schedule create` | Create a new schedule |
+| `agent schedule list` | List schedules |
+| `agent schedule show [ID]` | Show schedule details |
+| `agent schedule pause [ID]` | Pause a schedule |
+| `agent schedule resume [ID]` | Resume a paused schedule |
+| `agent schedule complete [ID]` | Permanently stop a schedule |
+| `agent schedule fire [ID]` | Manually fire for testing |
+| `agent schedule update-guidance` | Update guidance text |
+
+## Related
+
+- [Agent Schedules](/docs/guides/agent-schedules) — Detailed schedule reference
+- [Delegation](/docs/guides/delegation) — Assign intentions to agents with scope and autonomy
+- [Review Checkpoints](/docs/guides/review-checkpoints) — Structured feedback on agent work
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands

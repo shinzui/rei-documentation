@@ -1,0 +1,117 @@
+---
+title: rei checkpoint
+description: Manage review checkpoints for structured feedback on work artifacts
+icon: ClipboardCheck
+---
+
+Manage review checkpoints for structured feedback on agent (or human) work artifacts.
+
+## Subcommands
+
+### request
+
+Submit an artifact for review on an active intention.
+
+```bash
+rei checkpoint request <INTENTION> [options]
+```
+
+**Arguments:**
+- `INTENTION` — Intention ID (or use FZF picker if omitted)
+
+**Options:**
+- `--artifact-note <NOTE_ID>` — Review a note artifact
+- `--artifact-action <ACTION_ID>` — Review an action artifact
+- `--artifact-desc <TEXT>` — Review a free-form description
+- `--criteria <TEXT>` — Evaluation criteria (repeatable)
+- `--delegation <DELEGATION_ID>` — Link to a delegation
+
+### approve
+
+Approve a pending review.
+
+```bash
+rei checkpoint approve <REVIEW_ID> [--feedback <TEXT>]
+```
+
+### request-changes
+
+Request changes on a pending review (feedback required).
+
+```bash
+rei checkpoint request-changes <REVIEW_ID> --feedback <TEXT>
+```
+
+### reject
+
+Reject a pending review.
+
+```bash
+rei checkpoint reject <REVIEW_ID> [--feedback <TEXT>]
+```
+
+### resubmit
+
+Resubmit a review after changes were requested.
+
+```bash
+rei checkpoint resubmit <REVIEW_ID> [options]
+```
+
+**Options:**
+- `--artifact-note <NOTE_ID>` — Updated note artifact
+- `--artifact-action <ACTION_ID>` — Updated action artifact
+- `--artifact-desc <TEXT>` — Updated description
+
+### list
+
+List reviews filtered by status.
+
+```bash
+rei checkpoint list [options]
+```
+
+**Options:**
+- `--pending` — Show pending reviews (default)
+- `--approved` — Show approved reviews
+- `--changes-requested` — Show reviews with changes requested
+- `--rejected` — Show rejected reviews
+- `--all` — Show all reviews
+- `--intention <ID>` — Filter by intention
+
+## Review Lifecycle
+
+```
+Request → Pending → Approved (terminal)
+                  → Changes Requested → Resubmit → Pending (new round)
+                  → Rejected (terminal)
+```
+
+## Agent Integration
+
+- Supervised delegations automatically request a review when an agent session completes
+- Agent context includes pending/changes-requested reviews so agents can act on reviewer feedback
+- `rei today` shows a "Pending Reviews" section for actionable reviews
+
+## Examples
+
+```bash
+# Request review of a note
+rei checkpoint request intention_01abc \
+  --artifact-note note_01xyz \
+  --criteria "accuracy" \
+  --criteria "completeness"
+
+# List pending reviews
+rei checkpoint list
+
+# Approve with feedback
+rei checkpoint approve review_01abc --feedback "thorough analysis"
+
+# Request changes
+rei checkpoint request-changes review_01def \
+  --feedback "missing error handling section"
+
+# Resubmit after changes
+rei checkpoint resubmit review_01def --artifact-note note_01updated
+```

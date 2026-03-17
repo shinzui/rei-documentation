@@ -1,0 +1,110 @@
+---
+title: Agent Memory Filesystem
+description: Browse agent memories as markdown files in your workspace
+icon: FolderOpen
+---
+
+Agent memories are projected to markdown files in the workspace so you can browse, search, and reference them alongside your other files. Access this guide with `rei help agent-memory-filesystem`.
+
+## Directory Structure
+
+The filesystem read model organizes memories by anchor:
+
+```
+workspace/
+└── memories/
+    ├── workspace/
+    │   └── agent_memory_<id>.md        Global memories
+    ├── intentions/
+    │   └── <intention-id>/
+    │       └── agent_memory_<id>.md    Intention-scoped memories
+    └── habits/
+        └── <habit-id>/
+            └── agent_memory_<id>.md    Habit-scoped memories
+```
+
+## File Format
+
+Each memory is a markdown file with YAML frontmatter:
+
+```markdown
+---
+id: agent_memory_01jq...
+type: fact
+confidence: high
+anchor: intention
+session: agent_session_01jq...
+tags: [api, performance]
+recorded: 2026-03-15 14:30
+---
+
+The API returns paginated results with a maximum of 50 items per page.
+Pagination uses cursor-based tokens in the `next` query parameter.
+```
+
+## Lifecycle on Disk
+
+| Event | Disk Effect |
+|-------|-------------|
+| **Recorded** | A new `.md` file is created in the appropriate anchor directory |
+| **Superseded** | The old file is deleted. The new memory that replaced it gets its own file |
+| **Archived** | The file is deleted |
+| **Tags or confidence updated** | The file is rewritten with updated frontmatter, preserving the content body |
+
+## Git Integration
+
+The filesystem read model auto-commits changes via git. Each memory event (record, supersede, archive, update) produces a commit in the workspace repository, giving you a full git history of memory evolution.
+
+## Browsing Memories
+
+Since memories are plain markdown files, you can use standard tools:
+
+```bash
+# Browse all workspace memories
+ls workspace/memories/workspace/
+
+# Browse memories for an intention
+ls workspace/memories/intentions/<intention-id>/
+
+# Search across all memories
+grep -r "API" workspace/memories/
+
+# Open in your editor
+$EDITOR workspace/memories/workspace/agent_memory_01jq...md
+```
+
+## Two Read Models
+
+Agent memories have two independent read models running as separate subscriptions:
+
+| Read Model | Purpose |
+|------------|---------|
+| **SQL Read Model** | Primary store for queries, agent context, CLI commands, and dashboard. Fast structured queries. |
+| **Filesystem Read Model** | Human-readable markdown projection. Enables browsing, editor integration, and git history. |
+
+Both process the same event stream (`$ce-agent_memory`) independently. The filesystem projection can be toggled without affecting the SQL read model.
+
+## Workspace Configuration
+
+The memories directory defaults to `workspace/memories`. This is configured in the workspace config alongside other workspace paths.
+
+The workspace ensures anchor subdirectories (`workspace/`, `intentions/`, `habits/`) exist when needed.
+
+## Relationship to Other Workspace Files
+
+Agent memory files live alongside other workspace projections:
+
+```
+workspace/
+├── memories/          Agent memory markdown files
+├── notes/             Note markdown files
+├── reflections/       Reflection templates
+└── ...
+```
+
+This makes it natural to cross-reference memories with notes and other artifacts using your editor or file browser.
+
+## Related
+
+- [Agent Memory](/docs/guides/agent-memory) — Memory types, lifecycle, and commands
+- [Agent Sessions](/docs/guides/agent-sessions) — Session tracking and agent commands
