@@ -1,70 +1,103 @@
 ---
-title: AI Coaching
-description: Get perspective and guidance from AI agents
+title: AI Agents
+description: Coaching, assistance, delegation, and autonomous agent work
 icon: Bot
 ---
 
-Rei includes AI coaching features that help you gain perspective on your work without taking control away from you.
+Rei integrates AI agents across a spectrum of autonomy — from passive coaching to autonomous task execution — always within explicit boundaries you control.
 
 ## Philosophy
 
-AI agents in rei:
+AI agents in rei operate on a principle of **bounded agency**:
 
-- **Read your data** — They see your intentions, actions, reflections
-- **Offer perspective** — They ask questions and suggest approaches
-- **Never mutate state** — Only you can change your data
-- **Nudge, don't nag** — Helpful prompts, not guilt trips
+- **Read your data** — They see your intentions, actions, reflections, and knowledge
+- **Offer perspective** — They ask questions, suggest approaches, and surface patterns
+- **Act within boundaries** — Agents can take actions, but only within scope and autonomy levels you define
+- **Build persistent understanding** — Agents accumulate memory across sessions to provide increasingly relevant assistance
 
-## Agent Commands
+## Spectrum of Autonomy
 
-### Coaching
+Rei's agent system spans four levels of engagement:
 
-Get general coaching based on your current state:
+### Coaching (Read-Only Perspective)
 
-```bash
-rei agent coach
-```
-
-Focus on today's context:
+Agents observe your state and offer guidance without changing anything:
 
 ```bash
-rei agent coach --today
-```
-
-### Nudges
-
-Get a quick suggestion for what to do next:
-
-```bash
-rei agent nudge
-```
-
-### Review
-
-Deep dive on a specific intention:
-
-```bash
-rei agent review <intention-id>
-```
-
-### Reflection Help
-
-AI-assisted reflection prompts:
-
-```bash
-rei agent reflect today
+rei agent coach              # Full system review
+rei agent coach --today      # Today-focused coaching
+rei agent nudge              # Quick suggestion for what to do next
+rei agent review <id>        # Deep dive on a specific intention
+rei agent reflect today      # AI-assisted reflection prompts
 rei agent reflect week
 ```
 
+### Interactive Assistance
+
+Full interactive sessions for system setup, management, and exploration:
+
+```bash
+rei agent assist             # Interactive assistant session
+rei agent explore <id>       # Thematic analysis of a collection
+```
+
+### Delegation (Bounded Work)
+
+Assign intentions to agents with explicit scope and autonomy controls:
+
+```bash
+rei intention delegate <id> --scope research      # Read-only research
+rei intention delegate <id> --scope draft          # Create artifacts
+rei intention delegate <id> --scope execute        # Full agency within scope
+```
+
+Autonomy levels control oversight:
+- **supervised** — Agent work creates review checkpoints for your approval
+- **autonomous** — Agent executes directly within the defined scope
+
+### Scheduled Automation
+
+Recurring or event-triggered agent work that runs without manual invocation:
+
+```bash
+rei agent-schedule add --trigger daily-at:09:00 --scope workspace
+rei agent-schedule add --trigger on-blocker-declared --intention <id>
+rei agent-schedule add --trigger on-stalled:7d --scope children-of:<id>
+```
+
+## Agent Memory
+
+Agents build persistent understanding across sessions:
+
+- **Facts** — Concrete observations about your work
+- **Patterns** — Recurring behaviors or tendencies
+- **Preferences** — How you like to work
+- **Constraints** — Boundaries and limitations
+
+Memories evolve through supersession chains, so the agent's understanding improves over time.
+
+```bash
+rei agent-memory list
+rei agent-memory show <id>
+```
+
+## Review Checkpoints
+
+Supervised delegations create structured review points:
+
+- Agents submit work for your review
+- You can approve, reject, or request changes
+- Agents see your feedback and iterate
+
 ## Intention-Level Guidance
 
-You can attach custom guidance to specific intentions:
+Attach custom guidance to shape how agents approach specific intentions:
 
 ```bash
 rei intention guidance <id> "Remind me to focus on quality over quantity"
 ```
 
-This guidance is included when the agent reviews that intention.
+This guidance is included whenever the agent works on that intention.
 
 ## Configuration
 
@@ -93,17 +126,13 @@ Override the default model:
 export REI_LLM_MODEL=claude-3-opus-20240229
 ```
 
-## When to Use AI Coaching
+## When to Use Each Mode
 
-Good times:
-- Feeling stuck on an intention
-- End of day/week reflection
-- Making a decision about priorities
-- Need fresh perspective
+| Mode | When to Use |
+|------|-------------|
+| **Coaching** | Feeling stuck, need perspective, end-of-day/week reflection, priority decisions |
+| **Assist** | Setting up your workspace, managing categories, bulk operations |
+| **Delegation** | Research tasks, drafting notes, executing work within clear boundaries |
+| **Schedules** | Recurring check-ins, automated responses to events (blockers, stalls) |
 
-Not a replacement for:
-- Doing the work
-- Making your own decisions
-- Your own judgment and values
-
-The agent is a thinking partner, not an oracle.
+The agent is a thinking partner at the coaching level, a capable assistant for setup and management, and a bounded executor for delegated work — but in all modes, you define the boundaries.
