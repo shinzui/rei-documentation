@@ -5,11 +5,30 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `86e916f` (2026-03-16)
+**Last Source Commit Reviewed:** `8b99be6` (2026-03-18)
 
 ---
 
 ## Changelog
+
+### 2026-03-18
+
+**Reviewed commits:** `86e916f` through `8b99be6`
+
+**Updated command pages:**
+- `commands/custom-property.mdx` — Added Conditional Properties section (add-condition, remove-condition, condition semantics, viewing conditions)
+- `commands/intention.mdx` — Added `update-title` subcommand, updated `get-help` to reflect delegation to `rei agent -i review`
+- `commands/link.mdx` — Added `--query` option to `list`, updated `set-property`/`clear-property` to use `-l/--link` flag with FZF support
+
+**Updated guides:**
+- `guides/custom-properties.mdx` — Added Conditional Properties section with operators and semantics, added Condition Management to command summary
+
+**Features documented:**
+- Conditional properties with 9 comparison operators and auto-clear behavior
+- `rei intention update-title` for inline title editing in $EDITOR
+- `rei intention get-help` now delegates to `rei agent -i review`
+- `rei link list --query` for title/URL search
+- `rei link set-property`/`clear-property` FZF support via `-l` flag
 
 ### 2026-03-16
 

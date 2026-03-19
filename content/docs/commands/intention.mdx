@@ -486,20 +486,30 @@ Timeline: Learn Haskell
 2024-12-10  Outcome: Built first CLI tool
 ```
 
+### update-title
+
+Edit an intention's title interactively in your `$EDITOR`. Opens the current title for inline modification, validates non-empty input, and skips the update if unchanged.
+
+```bash
+rei intention update-title [id]
+```
+
+**Example:**
+
+```bash
+rei intention update-title intention_01h455vb4pex
+# Opens editor with current title, saves on exit
+```
+
 ### get-help
 
-Get AI-assisted help for an intention.
+Delegates to `rei agent -i review` to get AI-assisted help with an intention. This launches an interactive agent session with full context about the intention, including actions, blockers, dependencies, and knowledge.
 
 ```bash
 rei intention get-help [id]
 ```
 
-Launches an interactive Claude Code session with full context about the intention.
-
-**What it does:**
-1. Gathers comprehensive context about the intention
-2. Launches Claude Code interactively with research tools
-3. Helps you make progress by analyzing blockers and suggesting next steps
+**Note:** Requires the `claude` CLI to be installed and available in your PATH.
 
 ### set-context / clear-context
 

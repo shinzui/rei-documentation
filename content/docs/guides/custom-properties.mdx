@@ -339,6 +339,41 @@ rei intention list --state-tag queue
 rei intention list --state-tag active
 ```
 
+## Conditional Properties
+
+Conditions add value-dependent relevance: a property can only be set when another property has a specific value.
+
+### Adding Conditions
+
+```bash
+# reading-status can only be set when content-type = article
+rei custom-property add-condition reading-status \
+  --when content-type=article
+
+# Remove a condition
+rei custom-property remove-condition reading-status --when content-type
+```
+
+### Condition Operators
+
+| Operator | Syntax | Example |
+|----------|--------|---------|
+| Equals | `key=value` | `content-type=article` |
+| Not equals | `key!=value` | `status!=archived` |
+| Greater than | `key>value` | `effort>3` |
+| Greater than or equal | `key>=value` | `priority>=high` |
+| Less than | `key<value` | `complexity<5` |
+| Less than or equal | `key<=value` | `due-date<=2026-04-01` |
+| One of | `key~v1,v2` | `lifecycle~completed,failed` |
+| Is set | `key?` | `assigned-to?` |
+| Is not set | `key!` | `review-notes!` |
+
+### Semantics
+
+- Multiple conditions are AND-combined
+- `--force` on `set-property` bypasses condition validation
+- When a conditioning property changes and a dependent property's condition is no longer met, the dependent property is automatically cleared
+
 ## Important Limitations
 
 **Property keys are immutable:**
@@ -388,6 +423,13 @@ The same key CAN exist in different categories.
 |---------|-------------|
 | `custom-property add-label` | Add a label |
 | `custom-property remove-label` | Remove an unused label |
+
+### Condition Management
+
+| Command | Description |
+|---------|-------------|
+| `custom-property add-condition` | Add a value condition |
+| `custom-property remove-condition` | Remove a value condition |
 
 ### State Machine Evolution
 

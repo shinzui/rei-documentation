@@ -1032,6 +1032,96 @@ rei custom-property notes workflow -i intention_01abc --state in-progress
 rei custom-property notes workflow
 ```
 
+## Conditional Properties
+
+Conditional properties add value-dependent relevance: a property can only be set when another property has a specific value. This is useful when certain metadata only makes sense in a particular context (e.g., `reading-status` only applies when `content-type = article`).
+
+### add-condition
+
+Add a value condition to a property definition.
+
+```bash
+rei custom-property add-condition PROPERTY_KEY --when CONDITION
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The property to add a condition to
+
+**Options:**
+- `-w, --when CONDITION` — Condition expression (see syntax below)
+
+**Condition syntax:**
+
+| Syntax | Operator | Example |
+|--------|----------|---------|
+| `key=value` | Equals | `--when content-type=article` |
+| `key!=value` | Not equals | `--when status!=archived` |
+| `key>value` | Greater than | `--when effort>3` |
+| `key>=value` | Greater than or equal | `--when priority>=high` |
+| `key<value` | Less than | `--when complexity<5` |
+| `key<=value` | Less than or equal | `--when due-date<=2026-04-01` |
+| `key~v1,v2` | One of | `--when lifecycle~completed,failed` |
+| `key?` | Is set (any value) | `--when assigned-to?` |
+| `key!` | Is not set | `--when review-notes!` |
+
+**Examples:**
+
+```bash
+# reading-status can only be set when content-type = article
+rei custom-property add-condition reading-status --when content-type=article
+
+# post-mortem link only relevant when lifecycle is completed or failed
+rei custom-property add-condition post-mortem --when lifecycle~completed,failed
+
+# follow-up-date requires assigned-to to be set
+rei custom-property add-condition follow-up-date --when assigned-to?
+```
+
+### remove-condition
+
+Remove a value condition from a property definition.
+
+```bash
+rei custom-property remove-condition PROPERTY_KEY --when CONDITION_KEY
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The property to remove the condition from
+
+**Options:**
+- `-w, --when CONDITION_KEY` — Property key of the condition to remove
+
+**Example:**
+
+```bash
+rei custom-property remove-condition reading-status --when content-type
+```
+
+### Condition Semantics
+
+- **Empty list** = unconditional (default, backward compatible)
+- **Non-empty list** = ALL conditions must be satisfied (AND logic)
+- **Force flag** = `--force` on `set-property` bypasses condition validation
+- **Auto-clear** = When a conditioning property's value changes such that a dependent property's condition is no longer met, the dependent property is automatically cleared via a `PropertyClearedByConditionChange` event
+
+### Viewing Conditions
+
+Conditions appear in `property show` output:
+
+```
+$ rei custom-property show reading-status
+Property: reading-status
+  Label: Reading Status
+  Type: enum (unread, reading, read, abandoned)
+
+Scope:
+  Entity Types: intention
+  Category: content
+
+Conditions:
+  content-type = article
+```
+
 ## State Rules
 
 State rules require specific property values before an entity can transition into a state. See the [State Machine Properties Guide](/docs/guides/state-machines) for full documentation.

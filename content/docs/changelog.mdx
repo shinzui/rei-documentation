@@ -6,6 +6,26 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-03-18
+
+### New Feature: Conditional Properties
+
+Custom properties can now declare conditions based on other property values. A property can only be set when its conditions are satisfied, enabling context-dependent metadata.
+
+- `rei custom-property add-condition <key> --when <condition>` — Add a value condition
+- `rei custom-property remove-condition <key> --when <key>` — Remove a value condition
+- Nine comparison operators: `=`, `!=`, `>`, `>=`, `<`, `<=`, `~` (one of), `?` (is set), `!` (is not set)
+- Conditions auto-clear dependent properties when no longer met
+
+### Feature Enhancements
+
+- **`rei intention update-title`** — New command to edit an intention's title interactively in `$EDITOR`
+- **`rei intention get-help`** — Now delegates to `rei agent -i review` for richer AI-assisted sessions
+- **`rei link list --query`** — Search links by title or URL with case-insensitive substring matching
+- **`rei link set-property` / `clear-property`** — Now use `-l/--link` flag with FZF support instead of positional argument
+
+---
+
 ## 2026-03-16
 
 ### New Commands: Multi-Agent System
