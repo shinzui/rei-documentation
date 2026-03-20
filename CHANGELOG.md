@@ -5,11 +5,23 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `8b99be6` (2026-03-18)
+**Last Source Commit Reviewed:** `8487246` (2026-03-20)
 
 ---
 
 ## Changelog
+
+### 2026-03-20
+
+**Reviewed commits:** `8b99be6` through `8487246`
+
+**Updated command pages:**
+- `commands/agent.mdx` — Added `intention-assist` subcommand (intention-scoped interactive assistant with subtree context and scoped skills) and `create-skill` subcommand (workspace skill creation with optional intention scoping)
+
+**Features documented:**
+- `rei agent intention-assist` for intention-scoped AI assistance with subtree hierarchy, memories, guidance, and scoped skills
+- `rei agent create-skill` for creating workspace skills with optional `--intention` scoping
+- Intention-scoped skills at `<workspace>/agents/intentions/<id>/.claude/skills/<name>/SKILL.md`
 
 ### 2026-03-18
 

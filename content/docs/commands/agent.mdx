@@ -1,6 +1,6 @@
 ---
 title: rei agent
-description: AI coaching and assistance
+description: AI coaching, assistance, and skill management
 icon: Bot
 ---
 
@@ -188,6 +188,57 @@ rei agent assist
 
 # Debug: see the prompt that would be sent
 rei agent --debug assist
+```
+
+### intention-assist
+
+Start an interactive AI assistant scoped to a specific intention and its subtree (up to 3 levels deep).
+
+```bash
+rei agent intention-assist [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+Unlike `assist`, `intention-assist` loads only the selected intention's hierarchy, its actions, blockers, memories, and guidance. Skills placed in the intention's agent directory are discovered automatically — global workspace skills are not available.
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Start scoped assistant (FZF picker)
+rei agent intention-assist
+
+# Start scoped assistant for a specific intention
+rei agent intention-assist intention_01jq8...
+
+# Debug: see the prompt that would be sent
+rei agent --debug intention-assist intention_01jq8...
+```
+
+**Intention-scoped skills** live at `<workspace>/agents/intentions/<id>/.claude/skills/<name>/SKILL.md` and are only available in `intention-assist` sessions for that intention.
+
+### create-skill
+
+Create a workspace skill for Claude Code with AI guidance.
+
+```bash
+rei agent create-skill [options]
+```
+
+**Options:**
+- `-i, --intention <id>` — Scope skill to an intention (creates global skill if not provided)
+
+**Examples:**
+
+```bash
+# Create a global workspace skill
+rei agent create-skill
+
+# Create a skill scoped to an intention
+rei agent create-skill --intention intention_01jq8...
 ```
 
 ### create-note
