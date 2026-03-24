@@ -5,11 +5,24 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `8487246` (2026-03-20)
+**Last Source Commit Reviewed:** `efba3c1` (2026-03-24)
 
 ---
 
 ## Changelog
+
+### 2026-03-24
+
+**Reviewed commits:** `8487246` through `efba3c1`
+
+**Updated command pages:**
+- `commands/collection.mdx` — Added `--verbose` flag to `show` subcommand for displaying note file paths
+- `commands/link.mdx` — Added `--tree` flag to `list` subcommand for recursive descendant link gathering
+
+**Features documented:**
+- `rei collection show -v` shows file paths for note members
+- `rei link list --tree -i <id>` recursively gathers links from an intention's entire descendant subtree
+- `rei habit` subcommands now grouped into labeled help sections
 
 ### 2026-03-20
 

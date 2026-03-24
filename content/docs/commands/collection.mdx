@@ -103,11 +103,14 @@ Virtual collections show `--` for member count since membership is dynamic.
 Show collection details including members.
 
 ```bash
-rei collection show [NAME_OR_ID]
+rei collection show [NAME_OR_ID] [options]
 ```
 
 **Arguments:**
 - `[NAME_OR_ID]` — Collection name or ID (optional if fzf is available)
+
+**Options:**
+- `-v, --verbose` — Show file paths for note members
 
 > **FZF Support:** If the name is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing collections.
 

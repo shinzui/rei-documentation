@@ -66,6 +66,7 @@ rei link list [options]
 - `--all` — Show all links across all anchors
 - `-q, --query <text>` — Search links by title or URL (case-insensitive substring match; with `--all`)
 - `-d, --domain <domain>` — Filter by registrable domain (e.g., `x.com`, `github.com`; with `--all`)
+- `--tree` — Recursively include links from descendant intentions and their notes (with `-i`)
 - `--include-removed` — Include removed links (with `--all`)
 - `--json` — Output as JSON (with `--all`)
 
@@ -88,6 +89,9 @@ rei link list --all --domain github.com
 
 # Search by title or URL
 rei link list --all --query "haskell"
+
+# Recursively gather links from an intention and all its descendants
+rei link list --tree -i intention_01h455vb4pex
 ```
 
 ### show
