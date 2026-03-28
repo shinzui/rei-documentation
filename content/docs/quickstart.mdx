@@ -210,17 +210,25 @@ rei intention guidance <design-id>
 This opens a markdown file where you describe what matters for this intention. For example:
 
 ```markdown
-## Context
-This is a Haskell project targeting GHC 9.12. The team has strong opinions
-about simplicity over abstraction. We prefer boring technology.
+## Dependency Lookup
+Always use `mori` to find preferred libraries and patterns before suggesting
+alternatives or guessing at APIs.
+
+- `mori registry search <name>` to find registered packages
+- `mori registry show <project> --full` for source paths and metadata
+- `mori registry docs <project>` for guides, cookbooks, and references
+- `mori deps locate <dep>` to resolve a dependency to its local path
+
+Read the source code and docs on disk to understand APIs and behavior.
+
+## Project Context
+This is a Haskell project using GHC 9.12 with Effectful for effects,
+MessageDB for event sourcing, and optparse-applicative for CLI.
+Use `mori registry show rei --full` to see the full dependency graph.
 
 ## When coaching
-Focus on architectural trade-offs, not implementation details. Push back
-if I'm over-engineering.
-
-## When researching
-Prioritize Haskell ecosystem support and PostgreSQL compatibility.
-Ignore solutions that require JVM or Node.js infrastructure.
+Focus on whether the architecture supports the long-term vision, not just
+immediate needs. Challenge scope decisions, not implementation details.
 ```
 
 This guidance is loaded into every agent session that touches this intention. Unlike delegation instructions (which are task-specific), guidance persists and informs all future agent interactions.

@@ -148,14 +148,20 @@ rei intention guidance <id>
 You might write something like:
 
 ```markdown
-## Context
-This is a customer-facing API. Reliability matters more than feature velocity.
+## Dependency Lookup
+Always use `mori` before suggesting libraries or guessing at APIs.
+- `mori registry search <name>` to find registered packages
+- `mori registry show <project> --full` for source paths and metadata
+- `mori registry docs <project>` for guides, cookbooks, and references
+Read the dependency's source code and docs on disk to understand behavior.
+
+## Project Context
+This is a customer-facing API built with Effectful and MessageDB.
+Use `mori registry show my-api --full` to see the full dependency graph.
 
 ## When coaching
-Ask whether I'm taking on too much scope. Push back on complexity.
-
-## When researching
-Prefer battle-tested libraries over cutting-edge ones.
+Challenge whether the architecture supports the long-term vision.
+Don't second-guess library choices that are already registered in mori.
 ```
 
 This guidance is included whenever any agent works on that intention, whether coaching, delegation, or scheduled work. It's how you communicate your values and preferences for specific areas of your life.
