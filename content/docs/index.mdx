@@ -1,53 +1,68 @@
 ---
-title: Introduction
-description: A CLI for intentional time management built around clarity, not productivity
+title: rei (怜)
+description: Agent-augmented intentional living, where human clarity meets AI capability
 icon: BookOpen
 ---
 
 # rei (怜)
 
-Personal time-management, prioritization, and agent-assisted system built around *intentional action over time*.
+You have intentions that matter. Commitments to who you want to become, what you want to build, and how you want to spend your time. But between the intention and the outcome, there's a gap: life is noisy, context is lost, and your best thinking slips away.
 
-The name comes from Japanese kanji (怜) meaning "perceptive, wise, emotionally aware" — emphasizing clear perception of reality rather than brute control.
+**Rei bridges that gap.** It's a system for intentional living where AI agents work alongside you: coaching when you're stuck, researching what you need, executing work you delegate, and running autonomously on schedules you define. The agents don't replace your judgment; they *augment* it.
 
-**Rei is not about doing more; it's about seeing better and acting with clarity.**
+The name comes from Japanese kanji (怜) meaning "perceptive, wise, emotionally aware," emphasizing clear perception of reality rather than brute control.
 
-## Philosophy
+## A New Kind of Partnership
 
-Rei replaces ad-hoc productivity tools by combining:
-
-- A **CLI-first interface** for fast capture and review
-- An **append-only event log** as the source of truth
-- **Read models** for fast queries and analysis
-- A **filesystem-backed knowledge system** (notes, docs, links)
-- **AI agents** that coach, assist, and work within explicit boundaries
-
-## Core Principles
-
-1. **Event-sourced truth** — state is derived, never mutated directly
-2. **Intention-centered** — organize work by meaning, not checklists
-3. **Evidence-based review** — outcomes + reflections beat memory
-4. **Local-first & transparent** — files are yours; nothing is hidden
-5. **Agent assistance with boundaries** — agents coach, assist, and execute within explicit scope and autonomy controls
-
-## Nine Primitives
-
-Everything in rei is built from nine composable primitives:
-
-| Primitive | Description |
-|-----------|-------------|
-| **Intention** | A commitment to a change in the world (not just a task) |
-| **Action** | The concrete work you do |
-| **Outcome** | Observable evidence that something changed |
-| **Blocker** | What prevents the next meaningful action |
-| **Dependency** | Another intention that constrains this one |
-| **Habit** | A recurring activity with lifecycle management |
-| **Reflection** | Deliberate interpretation of past work over time |
-| **Focus** | A category of activity for daily time allocation |
-| **Cycle** | A bounded time period for tracking daily focus selections |
+Most productivity tools treat you as a task-completion machine. Rei starts from a different premise: **you are a person with intentions**, and the right system helps you see clearly, act deliberately, and get meaningful support when you need it.
 
 <Cards>
-  <Card title="Quick Start" href="/docs/quickstart" description="Get up and running in 5 minutes" />
-  <Card title="Installation" href="/docs/installation" description="Install rei on your system" />
-  <Card title="Core Concepts" href="/docs/concepts" description="Understand rei's philosophy" />
+  <Card title="You set intentions" description="Not tasks, not todos, but commitments to meaningful change in the world. 'Become a better writer' has identity. 'Write 500 words' does not." />
+  <Card title="Agents understand your world" description="They see your intentions, actions, reflections, and blockers. They build persistent memory across sessions. They know your context." />
+  <Card title="You choose the autonomy level" description="From read-only coaching to fully delegated work. You define the boundaries, and agents operate transparently within them." />
+  <Card title="Everything is recorded" description="Every action, reflection, agent interaction, and delegation decision is an immutable event. Nothing is hidden. Nothing is lost." />
+</Cards>
+
+## What This Looks Like in Practice
+
+**Morning.** You open your terminal. `rei today` shows your active intentions, what agents worked on overnight, pending reviews from delegated work, and habits due today. An agent nudge suggests focusing on a stalled intention.
+
+**Working.** You delegate a research task to an agent: `rei intention delegate <id> --scope research`. The agent investigates, records findings as notes, and submits a review for your approval. Meanwhile, you're focused on creative work, recording actions, resolving blockers, making progress on what matters most.
+
+**Evening.** `rei agent reflect today` helps you interpret the day's work. The agent asks questions that surface patterns you wouldn't have noticed. Your reflection becomes part of the permanent record.
+
+**Background.** Scheduled agents run on their own: morning briefings, stalled-intention checks, event-triggered responses when blockers are declared. They work while you sleep, but every action is visible and traceable.
+
+## The Deliberate Foundation
+
+Agents amplify whatever system they're built on. Rei's foundation is *intentionality*: nine composable primitives designed for meaning, not throughput.
+
+| | Primitive | What it captures |
+|---|-----------|-----------------|
+| 🎯 | **Intention** | A commitment to change in the world |
+| ⚡ | **Action** | The concrete work you do |
+| 📊 | **Outcome** | Observable evidence something changed |
+| 🚧 | **Blocker** | What prevents the next meaningful step |
+| 🔗 | **Dependency** | Another intention that constrains this one |
+| 🔄 | **Habit** | A recurring practice with lifecycle management |
+| 💭 | **Reflection** | Deliberate interpretation of past work |
+| 🔍 | **Focus** | A category of activity for daily time allocation |
+| 📅 | **Cycle** | A bounded time period for tracking focus |
+
+Every event, human and agent alike, is appended to an immutable log. State is always derived, never mutated. This means complete history, no data loss, and the ability to understand exactly what happened and why.
+
+On top of the primitives, **custom properties** let you attach typed metadata (paths, URLs, quantities, state machines) to any entity. These become shared context between you and your agents. A `project_path` tells the agent where your code lives. A `workflow` state machine with enforced transitions, WIP limits, and checklist-gated gates lets you manage complex work with full discipline. Properties make implicit knowledge explicit and queryable, for you and your agents alike.
+
+## Five Principles
+
+1. **Intention-centered.** Organize work by meaning, not checklists.
+2. **Agent-augmented.** AI agents coach, assist, execute, and automate within boundaries you control.
+3. **Event-sourced truth.** Every change is an immutable fact; state is always derived.
+4. **Evidence-based review.** Outcomes and reflections beat memory.
+5. **Local-first & transparent.** Your files, your data, nothing hidden.
+
+<Cards>
+  <Card title="The Vision" href="/docs/vision" description="Why agent-augmented intentional living changes everything" />
+  <Card title="Core Concepts" href="/docs/concepts" description="Understand the primitives and philosophy" />
+  <Card title="See It In Action" href="/docs/quickstart" description="A walkthrough of rei's full power" />
 </Cards>

@@ -1,32 +1,34 @@
 ---
 title: Custom Properties
-description: Extend entities with your own typed metadata fields
+description: Shared structured context between humans and agents, typed metadata that powers smarter collaboration
 icon: Settings
 ---
 
-Custom properties allow you to extend Rei entities with your own metadata fields. Define properties once, then assign values to individual entities to track information specific to your workflow.
+Custom properties are how you and your agents share structured context. They're typed metadata fields you define on entities, and because agents see them, they become a communication channel between human intent and agent understanding.
+
+When you set `project_path` on an intention, the agent knows where to look. When you define a `workflow` state machine, the agent understands where each intention stands. When you track `swimming_distance` on a habit, the agent can reason about trends. **Properties turn implicit context into explicit, queryable, agent-readable facts.**
 
 ## Why Custom Properties?
 
-Custom properties serve three main purposes:
+### Shared Human-Agent Context
 
-### Agent Semantics
+Properties are the bridge between your knowledge and agent capability. Agents see every property value when coaching, assisting, or executing delegated work.
 
-Add context that the AI agent can use for coaching, assistance, and delegation.
+**Example:** An intention has a `project_path` property pointing to where the related project lives on the filesystem. When you delegate research, the agent knows exactly where to look. When you ask for coaching, the agent can reference actual code and files.
 
-**Example:** An intention has a `project_path` property pointing to where the related project lives on the filesystem, enabling the agent to understand project context when providing help.
+**Example:** A `repo_url` property on an intention means the agent can look at PRs, issues, and recent commits when reviewing your progress.
+
+### Advanced Workflow Management
+
+State machine properties bring full workflow discipline: defined states, enforced transitions, WIP limits, lifecycle automation, and checklist-gated gates. See the [State Machine Properties](/docs/guides/state-machines) guide for the complete picture.
+
+**Example:** A kanban-style `workflow` with states from backlog through review to done, where transitions are enforced, WIP limits are advisory, and reaching a terminal state auto-completes the intention after a configurable delay.
 
 ### Structured Tracking
 
-Track quantifiable data on entities that enables queries and analysis.
+Track quantifiable data on entities that enables queries, analysis, and trend-aware coaching.
 
-**Example:** A habit tracks `swimming_distance` with units (meters, km), allowing queries like "total distance this month" or "average per session."
-
-### State Auditing
-
-Use state machine properties to audit system-wide status without building dedicated features.
-
-**Example:** A `task_state` property with states tagged as `queue`, `active`, or `done` lets you query "how many intentions are queued vs active" across your entire system.
+**Example:** A habit tracks `swimming_distance` with units (meters, km), allowing queries like "total distance this month" and enabling the agent to notice patterns like "you've been increasing distance steadily, ready for the next goal?"
 
 ## Core Concepts
 
@@ -34,10 +36,10 @@ Use state machine properties to audit system-wide status without building dedica
 
 A property definition describes **what a property is** and **where it's available**:
 
-- **Key** — Unique, immutable identifier (e.g., `priority`, `effort-level`)
-- **Label** — Human-readable display name
-- **Value Type** — The data type and validation constraints
-- **Scope** — Which entity types and categories can use this property
+- **Key**: Unique, immutable identifier (e.g., `priority`, `effort-level`)
+- **Label**: Human-readable display name
+- **Value Type**: The data type and validation constraints
+- **Scope**: Which entity types and categories can use this property
 
 Property keys cannot be changed after creation. Use the label for display purposes.
 
@@ -97,8 +99,8 @@ rei habit set-property habit_01abc... distance 5km
 
 These types are useful for giving the AI agent context about related resources:
 
-- **Path** — Store project directories, config files, or workspace locations
-- **URL** — Store repository URLs, documentation links, or external resources
+- **Path**: Store project directories, config files, or workspace locations
+- **URL**: Store repository URLs, documentation links, or external resources
 
 ```bash
 # Create a project path property
@@ -124,9 +126,9 @@ State machines enable workflow tracking with defined states and allowed transiti
 
 A state machine defines:
 
-- **States** — Named workflow stages with optional tags and colors
-- **Transitions** — Allowed moves between states
-- **Initial State** — The default state for new assignments
+- **States**: Named workflow stages with optional tags and colors
+- **Transitions**: Allowed moves between states
+- **Initial State**: The default state for new assignments
 
 ### System Tags
 
@@ -331,10 +333,10 @@ Actions, Outcomes, and Blockers (sub-entities of Intentions) do not support cust
 
 ### When to Use Each Type
 
-- **Enum** — Fixed sets where any value can become any other (priority, status)
-- **State Machine** — Workflows where transitions matter (task lifecycle, approval process)
-- **Quantity** — Values with units you'll want to aggregate (distance, time, money)
-- **Path/URL** — Resources the agent should know about for context
+- **Enum**: Fixed sets where any value can become any other (priority, status)
+- **State Machine**: Workflows where transitions matter (task lifecycle, approval process)
+- **Quantity**: Values with units you'll want to aggregate (distance, time, money)
+- **Path/URL**: Resources the agent should know about for context
 
 ### Category Scoping
 

@@ -1,10 +1,12 @@
 ---
 title: State Machine Properties
-description: Workflow tracking with states, transitions, and WIP limits
+description: Advanced workflow management with enforced transitions, WIP limits, lifecycle automation, and agent-aware state tracking
 icon: Workflow
 ---
 
-State machine properties enable workflow tracking for entities. Define states with allowed transitions to enforce workflow discipline while tracking progress.
+State machine properties are one of rei's most powerful features for managing complex work. They bring workflow discipline (enforced transitions, WIP limits, checklist-gated gates, and lifecycle automation) while giving agents structured context about where every intention stands.
+
+Because agents see state machine values, they can reason about workflow: coaching suggestions that account for what's blocked vs. in-progress, delegation that respects workflow gates, and scheduled checks that react to state changes.
 
 ## Overview
 
@@ -138,7 +140,7 @@ When multiple properties share the same key (category-scoped), resolution is aut
 
 ## WIP Limits
 
-WIP (Work In Progress) limits are advisory — they show warnings but don't block transitions.
+WIP (Work In Progress) limits are advisory. They show warnings but don't block transitions.
 
 ### Setting Limits
 
@@ -480,5 +482,5 @@ rei custom-property init-entities workflow
 
 ## Related
 
-- [Custom Properties](/docs/guides/custom-properties) — General custom property information
-- [`rei custom-property`](/docs/commands/custom-property) — Full command reference
+- [Custom Properties](/docs/guides/custom-properties): General custom property information
+- [`rei custom-property`](/docs/commands/custom-property): Full command reference

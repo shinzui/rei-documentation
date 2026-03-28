@@ -1,59 +1,35 @@
 ---
-title: Quick Start
-description: Get up and running with rei in 5 minutes
+title: See It In Action
+description: A walkthrough of rei's full power, from intention to agent-assisted execution
 icon: Rocket
 ---
 
-This guide walks you through using rei with a realistic example. By the end, you'll understand how rei's primitives work together to support intentional progress over time.
+This walkthrough shows what using rei *feels like*. Not just the mechanics, but how human intention and agent capability work together. We'll follow a real goal from creation through coaching, delegation, and reflection.
 
-## Prerequisites
+## The Scenario: Becoming a Better Writer
 
-- [Nix](https://nixos.org/download.html) for the development environment
-- Optionally, the `claude` CLI for AI agent features
+This is a good rei intention because it's:
 
-## Installation
+- **Long-lived**, not finished in a sprint
+- **Identity-shaping**, about who you become, not just what you produce
+- **Multi-faceted**, involving habits, research, creation, and reflection
 
-```bash
-git clone https://github.com/shinzui/rei.git
-cd rei
-nix develop
-cabal build all
-```
-
-## Starting Services
-
-```bash
-just process-up           # Start database
-just run-migrations       # Apply database migrations
-```
-
-## Example: Becoming a Better Writer
-
-This example follows a real goal: becoming a better writer. It's:
-
-- **Long-lived** — not finished in a sprint
-- **Identity-shaping** — about who you become, not just what you produce
-- **Habit-driven** — progress comes from consistency, not heroics
-
-### Step 1: Start with Meaning
+### Start with Meaning
 
 Rei organizes work by *meaning*, not checklists. Start with the *why*:
 
 ```bash
-rei intention create "Connect with like-minded people and grow professionally" --context personal
+rei intention create "Connect with like-minded people and grow professionally" \
+  --context personal
 ```
 
-This creates your **parent intention**—the deeper purpose.
-
-### Step 2: Create a Child Intention
-
-Now create the intention that serves that meaning:
+Now create the intention that serves that purpose:
 
 ```bash
 rei intention create "Become a better writer" --parent <parent-id>
 ```
 
-View the hierarchy:
+The parent-child relationship isn't just organization. It's a reminder of *why this matters*. When you're deep in the details, the parent pulls you back to the larger purpose.
 
 ```bash
 rei intention tree
@@ -64,9 +40,9 @@ Connect with like-minded people and grow professionally
 └── Become a better writer
 ```
 
-### Step 3: Create a Habit
+### Build the Practice
 
-Writing improves through daily practice. Create a habit:
+Writing improves through daily practice. Create a habit linked to your intention:
 
 ```bash
 rei habit create \
@@ -74,23 +50,54 @@ rei habit create \
   --purpose "Build fluency and clarity" \
   --daily \
   --action "Write freely"
-```
 
-Link the habit to your intention for context:
-
-```bash
 rei habit link-intention <habit-id> <intention-id>
 ```
 
-### Step 4: Record Your Work
+### Add Structured Context
+
+Give agents (and yourself) structured context with custom properties:
+
+```bash
+# Point agents to your blog repo
+rei custom-property create project-path --type-path --must-exist -e intention
+rei intention set-property <intention-id> project-path ~/projects/blog
+
+# Track your writing workflow with a state machine
+rei custom-property create workflow \
+  --type-state-machine --from-file writing-workflow.yaml \
+  -e intention
+```
+
+Now when an agent coaches you or executes delegated work, it knows where your project lives and what workflow phase you're in. Properties are the shared language between you and your agents.
+
+### Ask the Agent for Perspective
+
+Before diving in, get coaching from an agent that understands your full context (your intentions, habits, properties, and workflow state):
+
+```bash
+rei agent coach --today
+```
+
+The agent sees your intentions, habits, recent actions, and blockers. It might respond:
+
+> *You've created a writing intention but haven't recorded any actions yet. Consider starting small. Even 10 minutes of freewriting today would build momentum. Your "Daily Writing" habit is scheduled but hasn't been completed today.*
+
+For deeper guidance, start an interactive session:
+
+```bash
+rei agent coach -i
+```
+
+Now you're in a multi-turn conversation. The agent can help you break down your intention, suggest approaches, and even create sub-intentions or adjust habits on your behalf, all attributed to the agent in your event log.
+
+### Do the Work
 
 After a writing session, record it:
 
 ```bash
-rei action record "Wrote morning pages for 20 minutes" --duration 20m
+rei action record <intention-id> "Wrote morning pages for 20 minutes" --duration 20m
 ```
-
-### Step 5: Record Outcomes
 
 When something meaningful happens, record the evidence:
 
@@ -98,29 +105,129 @@ When something meaningful happens, record the evidence:
 rei outcome record <intention-id> "Published first blog post"
 ```
 
-### Step 6: Reflect
-
-At the end of the day, reflect on what happened:
+Hit a wall? Record that too:
 
 ```bash
-rei reflect today
+rei blocker declare <intention-id> "Not sure what topics resonate with my audience"
 ```
 
-This opens your editor to capture insights about your progress.
+### Delegate Research to an Agent
 
-### Step 7: Check Your Dashboard
+That blocker is a perfect delegation candidate. Instead of spending hours researching yourself:
 
-See everything at a glance:
+```bash
+rei intention delegate <intention-id> \
+  --to claude-code \
+  --scope research \
+  --autonomy supervised
+```
+
+The agent now knows: *investigate this intention's blocker, research the topic, and submit findings for review.* With `supervised` autonomy, it will create a review checkpoint when done.
+
+Check what's been delegated:
+
+```bash
+rei intention delegations
+```
+
+### Review Agent Work
+
+When the agent completes its research, you'll see it in your dashboard:
 
 ```bash
 rei today
 ```
 
-This shows your active intentions, pending habits, recent actions, and any blockers.
+```
+Pending Reviews
+  ✎ Research findings for "Become a better writer"
+    Agent: claude-code | Scope: research | Submitted: 2h ago
+```
 
-## Next Steps
+Review and approve, request changes, or reject:
+
+```bash
+rei review approve <review-id>
+# or
+rei review request-changes <review-id> --feedback "Focus more on technical writing communities"
+```
+
+The agent sees your feedback and iterates. Every decision is part of the intention's event log.
+
+### Set Up Autonomous Schedules
+
+You want the agent to check in on your writing practice without you having to ask:
+
+```bash
+rei agent-schedule add \
+  --trigger daily-at:07:00 \
+  --intention <intention-id> \
+  --guidance "Review my writing habit completion and suggest what to focus on today"
+```
+
+Or react to events. When you declare a blocker, an agent automatically investigates:
+
+```bash
+rei agent-schedule add \
+  --trigger on-blocker-declared \
+  --intention <intention-id> \
+  --guidance "Research the blocker and suggest approaches to resolve it"
+```
+
+These run in the background. Every execution creates a session with full traceability.
+
+### Reflect with Agent Assistance
+
+At the end of the day:
+
+```bash
+rei agent reflect today
+```
+
+The agent reviews your day's actions, completed habits, and open blockers. Instead of staring at a blank page, it asks questions that surface patterns:
+
+> *You wrote for 20 minutes this morning and published a blog post, your first outcome on this intention. What made today different from days you didn't write? What would make tomorrow's session even better?*
+
+Your reflection becomes a permanent record, informing future coaching and reviews.
+
+### See the Full Picture
+
+```bash
+rei today
+```
+
+Your dashboard shows everything in one view:
+
+- Active intentions with recent activity (human and agent)
+- Delegated work and its status
+- Pending reviews from agent work
+- Habits due today
+- Agent schedules and their last execution
+- Blockers across your intentions
+
+Every action, yours and the agents', is visible, attributed, and part of the permanent record.
+
+## What Just Happened
+
+In this walkthrough, you:
+
+1. **Set intentions** rooted in meaning, not tasks
+2. **Built habits** to support consistent practice
+3. **Added structured context** with custom properties and state machines that agents read
+4. **Got coaching** from an agent that understands your full context
+5. **Recorded work** as actions and outcomes in an immutable log
+6. **Delegated research** to an agent with explicit scope and review
+7. **Reviewed agent work** through structured checkpoints
+8. **Scheduled autonomous agents** that work in the background
+9. **Reflected with AI assistance** that surfaces patterns
+
+This is agent-augmented intentional living: you bring the clarity, agents bring the capacity, custom properties provide the shared context, and the system keeps everything transparent and traceable.
+
+## Ready to Start?
 
 <Cards>
-  <Card title="Core Concepts" href="/docs/concepts" description="Deep dive into rei's philosophy" />
-  <Card title="Commands Reference" href="/docs/commands" description="Complete command documentation" />
+  <Card title="Installation" href="/docs/installation" description="Set up rei on your system" />
+  <Card title="Core Concepts" href="/docs/concepts" description="Deep dive into the primitives and philosophy" />
+  <Card title="AI Agents" href="/docs/concepts/ai-coaching" description="Full guide to the agent system" />
+  <Card title="Commands Reference" href="/docs/commands" description="Complete CLI documentation" />
 </Cards>

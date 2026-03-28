@@ -3,10 +3,10 @@
 	"pages": [
 		"index",
 		"intentions",
+		"ai-coaching",
 		"habits",
 		"reflections",
 		"focus-cycles",
-		"custom-properties",
-		"ai-coaching"
+		"custom-properties"
 	]
 }

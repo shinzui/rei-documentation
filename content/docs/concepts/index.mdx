@@ -1,69 +1,95 @@
 ---
 title: Core Concepts
-description: Understanding rei's philosophy and primitives
+description: The primitives and philosophy that make agent-augmented intentional living work
 icon: Lightbulb
 ---
 
-Rei is built around **intentional action over time**. Unlike task managers that focus on what you do, rei focuses on *why* you do it and *what changes* as a result.
+Rei is built on a simple conviction: **the right foundation makes everything, including AI agents, more effective.** That foundation is intentionality: organizing life by meaning, recording evidence of change, and reflecting deliberately on what happened.
+
+Agents amplify whatever system they're built on. If the system is a task list, agents become task-completion machines. If the system is built around intention, evidence, and reflection, agents become thinking partners that understand *why* you're doing what you're doing.
 
 ## The Nine Primitives
 
-Everything in rei is built from nine composable primitives:
+Everything in rei is built from nine composable primitives. These represent the minimum set of concepts needed to capture intentional action over time.
 
-### Work Primitives
+### Intention & Execution
 
-| Primitive | Purpose |
-|-----------|---------|
-| **Intention** | A commitment to a meaningful change in the world |
-| **Action** | The concrete work you perform |
-| **Outcome** | Observable evidence that something changed |
-| **Blocker** | What prevents the next meaningful action |
-| **Dependency** | Another intention that constrains this one |
+| Primitive | What it captures |
+|-----------|-----------------|
+| **Intention** | A commitment to a meaningful change in the world. Not a task, but a promise with identity. |
+| **Action** | The concrete work you (or an agent) do. Attributed, timestamped, immutable. |
+| **Outcome** | Observable evidence that something changed. Proof, not self-report. |
+| **Blocker** | What prevents the next meaningful step. Makes obstacles visible and actionable. |
+| **Dependency** | Another intention that constrains this one. Makes relationships explicit. |
 
-### Practice Primitives
+### Practice & Reflection
 
-| Primitive | Purpose |
-|-----------|---------|
-| **Habit** | A recurring activity with lifecycle management |
-| **Reflection** | Deliberate interpretation of past work |
+| Primitive | What it captures |
+|-----------|-----------------|
+| **Habit** | A recurring activity with lifecycle management. Build habits, break habits, track consistency. |
+| **Reflection** | Deliberate interpretation of past work. What happened, what it means, what to do next. |
 
-### Time Primitives
+### Time & Focus
 
-| Primitive | Purpose |
-|-----------|---------|
-| **Focus** | A category of activity for daily time allocation |
-| **Cycle** | A bounded time period for tracking focus selections |
+| Primitive | What it captures |
+|-----------|-----------------|
+| **Focus** | A category of activity for daily time allocation. See where your time goes. |
+| **Cycle** | A bounded time period for tracking focus selections. Rhythm, not rigidity. |
 
-## Key Principles
+## The Agent Layer
 
-### 1. Event-Sourced Truth
+On top of these primitives, rei adds a full agent system that operates within the same event-sourced model:
 
-State is derived, never mutated directly. Every change is recorded as an immutable event. This means:
+| Concept | What it enables |
+|---------|----------------|
+| **Agent Sessions** | Every agent interaction is recorded with timing, tokens, model, and summary |
+| **Actor Identity** | Every event is attributed to human or agent. You always know who did what. |
+| **Delegation** | Assign intentions to agents with explicit scope (research, draft, execute) and autonomy level |
+| **Review Checkpoints** | Agents submit work for your approval. Structured human-in-the-loop oversight. |
+| **Agent Memory** | Agents build persistent understanding across sessions: facts, patterns, preferences, constraints |
+| **Scheduled Automation** | Agents run on recurring schedules or react to events. Background work that's always traceable. |
 
-- Complete history of everything that happened
-- No data loss from updates or deletes
-- Ability to rebuild views from events
+## Shared Structured Context
 
-### 2. Intention-Centered
+Custom properties and state machines create a communication layer between you and your agents:
 
-Organize work by meaning, not checklists. An intention is not a task—it's a commitment to change something in the world. Tasks are disposable; intentions have identity.
+| Concept | What it enables |
+|---------|----------------|
+| **Custom Properties** | Typed metadata (paths, URLs, quantities, booleans) that agents read for context when coaching or executing work |
+| **State Machines** | Full workflow discipline with enforced transitions, WIP limits, checklist-gated gates, and lifecycle automation |
+| **Category Scoping** | Properties that vary by domain. Your work workflow differs from your personal workflow. |
 
-### 3. Evidence-Based Review
+When you set a `project_path` on an intention, the agent knows where to look. When an intention enters a `review` state in your workflow, the agent understands what phase it's in. Properties turn implicit context into explicit, queryable, agent-readable facts.
 
-Outcomes and reflections beat memory. Instead of checking boxes, you record evidence of progress and reflect on what it means.
+The primitives provide the *meaning*. The agents provide the *capacity*. Custom properties provide the *shared context*. The event log provides the *truth*.
 
-### 4. Local-First & Transparent
+## Five Principles
 
-Files are yours; nothing is hidden. Your workspace is a folder of markdown files. The database stores events, but knowledge lives in files you control.
+### 1. Intention-Centered
 
-### 5. Agent Assistance with Boundaries
+Organize work by meaning, not checklists. An intention is not a task; it's a commitment to change something in the world. Tasks are disposable; intentions have identity. The hierarchy of intentions connects daily work to deeper purpose.
 
-AI agents coach, assist, and execute within explicit scope and autonomy controls. From read-only coaching to delegated work, you define the boundaries — and agents operate transparently within them.
+### 2. Agent-Augmented
+
+AI agents coach, assist, execute, and automate, always within boundaries you define. From read-only coaching to fully delegated work, you control the autonomy level. Agent actions are recorded alongside your own in the same timeline.
+
+### 3. Event-Sourced Truth
+
+Every change is recorded as an immutable event. State is always derived, never mutated. This means complete history, no data loss, full auditability, and the ability to rebuild any view from events. Human and agent work share the same event model.
+
+### 4. Evidence-Based Review
+
+Outcomes and reflections beat memory. Instead of checking boxes, you record evidence of progress and reflect on what it means. Agents assist the reflection process by surfacing patterns and asking questions.
+
+### 5. Local-First & Transparent
+
+Your files are yours; nothing is hidden. The workspace is a folder of markdown files. The database stores events, but knowledge lives in files you control. Agent work is fully visible: sessions, actions, delegations, reviews.
 
 <Cards>
-  <Card title="Intentions" href="/docs/concepts/intentions" description="The core of rei's philosophy" />
-  <Card title="Habits" href="/docs/concepts/habits" description="Building consistent practice" />
-  <Card title="Reflections" href="/docs/concepts/reflections" description="Making sense of your progress" />
+  <Card title="Intentions" href="/docs/concepts/intentions" description="The core primitive: commitments to meaningful change" />
   <Card title="AI Agents" href="/docs/concepts/ai-coaching" description="Coaching, assistance, delegation, and autonomous work" />
-  <Card title="Custom Properties" href="/docs/concepts/custom-properties" description="Extend entities with typed metadata" />
+  <Card title="Habits" href="/docs/concepts/habits" description="Building consistent practice with lifecycle management" />
+  <Card title="Reflections" href="/docs/concepts/reflections" description="Deliberate interpretation that turns experience into wisdom" />
+  <Card title="Focus & Cycles" href="/docs/concepts/focus-cycles" description="Time allocation and rhythmic review" />
+  <Card title="Custom Properties" href="/docs/concepts/custom-properties" description="Shared structured context between humans and agents" />
 </Cards>

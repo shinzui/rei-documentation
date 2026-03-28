@@ -1,103 +1,161 @@
 ---
 title: AI Agents
-description: Coaching, assistance, delegation, and autonomous agent work
+description: From coaching to autonomous execution, agents that augment your ability to act on what matters
 icon: Bot
 ---
 
-Rei integrates AI agents across a spectrum of autonomy — from passive coaching to autonomous task execution — always within explicit boundaries you control.
+Rei's agent system isn't a bolt-on feature. It's central to the vision. AI agents operate within the same event-sourced model as human actions, with full attribution, traceability, and boundaries you control.
 
-## Philosophy
+The result: agents that understand your intentions, build persistent memory across sessions, and augment your capacity to make meaningful progress, without ever hiding what they're doing.
 
-AI agents in rei operate on a principle of **bounded agency**:
+## The Collaboration Model
 
-- **Read your data** — They see your intentions, actions, reflections, and knowledge
-- **Offer perspective** — They ask questions, suggest approaches, and surface patterns
-- **Act within boundaries** — Agents can take actions, but only within scope and autonomy levels you define
-- **Build persistent understanding** — Agents accumulate memory across sessions to provide increasingly relevant assistance
+You and your agents are both actors in the same system. Every action, human or agent, is an immutable event, attributed to its author, visible in the same timeline.
+
+- **You bring the clarity** by setting intentions, defining what matters, reflecting on progress
+- **Agents bring the capacity** by researching, drafting, executing, and automating within your boundaries
+- **The event log provides the truth** because every interaction is recorded, nothing is hidden
+
+This isn't about replacing your judgment. It's about giving you the bandwidth to act on it.
 
 ## Spectrum of Autonomy
 
-Rei's agent system spans four levels of engagement:
+Rei provides four levels of agent engagement. You choose the right level for each situation:
 
 ### Coaching (Read-Only Perspective)
 
-Agents observe your state and offer guidance without changing anything:
+Agents observe your state and offer guidance without changing anything. They see your intentions, actions, reflections, blockers, and knowledge, and use that context to ask better questions and surface patterns you might miss.
 
 ```bash
 rei agent coach              # Full system review
 rei agent coach --today      # Today-focused coaching
 rei agent nudge              # Quick suggestion for what to do next
 rei agent review <id>        # Deep dive on a specific intention
-rei agent reflect today      # AI-assisted reflection prompts
-rei agent reflect week
+rei agent reflect today      # AI-assisted daily reflection
+rei agent reflect week       # AI-assisted weekly reflection
 ```
+
+Coaching is powerful because the agent understands your *whole* context: not just the task you're working on, but the intentions it serves, the habits you've built, the blockers you've declared, and what the agent remembers from previous sessions.
 
 ### Interactive Assistance
 
-Full interactive sessions for system setup, management, and exploration:
+Full multi-turn conversations where agents help you set up, reorganize, and work through problems. In interactive mode, agents can take actions on your behalf (creating intentions, resolving blockers, recording actions), all attributed to the agent.
 
 ```bash
-rei agent assist             # Interactive assistant session
-rei agent explore <id>       # Thematic analysis of a collection
+rei agent assist                       # Full workspace assistant
+rei agent intention-assist <id>        # Scoped to an intention subtree
+rei agent explore <collection>         # Thematic analysis of a collection
+rei agent create-note <category> -i <text>  # Structured note creation
+rei agent create-skill                 # Create workspace skills for Claude Code
 ```
+
+Interactive sessions give agents access to the full CLI. They can see your files, run commands, and make changes, but everything is recorded and attributed. The agent is a capable partner, not a black box.
 
 ### Delegation (Bounded Work)
 
-Assign intentions to agents with explicit scope and autonomy controls:
+Assign an intention to an agent with explicit scope and autonomy level. The agent knows exactly what it's been asked to do and operates within those boundaries.
 
 ```bash
-rei intention delegate <id> --scope research      # Read-only research
-rei intention delegate <id> --scope draft          # Create artifacts
-rei intention delegate <id> --scope execute        # Full agency within scope
+rei intention delegate <id> --to claude-code --scope research
+rei intention delegate <id> --to claude-code --scope draft
+rei intention delegate <id> --to claude-code --scope execute
 ```
 
-Autonomy levels control oversight:
-- **supervised** — Agent work creates review checkpoints for your approval
-- **autonomous** — Agent executes directly within the defined scope
+**Scope** defines what the agent can do:
+- **Research**: investigate and report findings (read-only)
+- **Draft**: produce a note, document, or artifact for your review
+- **Execute**: take actions, create notes, resolve blockers within the intention
+
+**Autonomy** defines the oversight level:
+- **Supervised**: agent work creates review checkpoints for your approval before being finalized
+- **Autonomous**: agent executes directly within the defined scope
+
+Delegation context is injected into agent prompts, so the agent knows the intention, its hierarchy, the delegation scope, active blockers, and any custom guidance you've attached.
 
 ### Scheduled Automation
 
-Recurring or event-triggered agent work that runs without manual invocation:
+Recurring or event-triggered agent work that runs without manual invocation. Agents work in the background via rei's worker process, with every execution creating a recorded session.
 
 ```bash
-rei agent-schedule add --trigger daily-at:09:00 --scope workspace
+# Morning briefing every weekday
+rei agent-schedule add --trigger daily-at:07:00 --scope workspace
+
+# React to blockers
 rei agent-schedule add --trigger on-blocker-declared --intention <id>
+
+# Check for stalled intentions
 rei agent-schedule add --trigger on-stalled:7d --scope children-of:<id>
+
+# Time-boxed daily check until a deadline
+rei agent-schedule add --trigger daily-at:09:00 --until 2026-04-15 --intention <id>
 ```
+
+**Three trigger types:**
+- **Recurring**: cron-based schedules (daily, weekly, custom)
+- **Time-bound**: recurring until a deadline
+- **Event-triggered**: fire when specific domain events occur (blocker declared, delegation completed, review requested, intention stalled)
+
+Scheduled agents are aware of each other's work on related intentions through coordination context injection. They see sibling agent work, active delegations, and relevant memories.
 
 ## Agent Memory
 
-Agents build persistent understanding across sessions:
+Agents build persistent understanding across sessions through structured memory:
 
-- **Facts** — Concrete observations about your work
-- **Patterns** — Recurring behaviors or tendencies
-- **Preferences** — How you like to work
-- **Constraints** — Boundaries and limitations
+| Type | What it captures |
+|------|-----------------|
+| **Fact** | Verified observation, e.g. "the API uses OAuth 2.0" |
+| **Pattern** | Recurring behavior, e.g. "user tends to stall on writing tasks mid-week" |
+| **Preference** | How you work, e.g. "prefers short daily actions over weekend marathons" |
+| **Constraint** | Hard limitation, e.g. "no work scheduled on Saturdays" |
 
-Memories evolve through supersession chains, so the agent's understanding improves over time.
+Memories have a lifecycle: **Active** memories inform agent responses. When understanding improves, old memories are **superseded** by new ones, creating a chain that shows how understanding evolved. Memories can also be **archived** when no longer relevant.
+
+Every memory traces back to the agent session that produced it. Memories are injected into future agent prompts, so agents don't start from zero each session.
 
 ```bash
-rei agent-memory list
-rei agent-memory show <id>
+rei agent-memory list              # See what agents remember
+rei agent-memory show <id>         # Inspect a specific memory
+rei agent-memory archive <id>      # Archive a stale memory
 ```
 
 ## Review Checkpoints
 
-Supervised delegations create structured review points:
+When agents work with supervised autonomy, they create structured review points:
 
-- Agents submit work for your review
-- You can approve, reject, or request changes
-- Agents see your feedback and iterate
+1. Agent completes work and calls `requestReview` with an artifact reference
+2. You see the pending review in `rei today`
+3. You **approve**, **request changes**, or **reject**
+4. If changes are requested, the agent sees your feedback and iterates
+5. The review decision becomes part of the intention's event log
+
+```bash
+rei review list --pending          # See what's waiting for you
+rei review approve <id>            # Accept the work
+rei review request-changes <id> --feedback "Focus on X"
+rei review reject <id> --reason "Wrong approach"
+```
+
+This creates a structured human-in-the-loop workflow. Not ad-hoc "looks good" but recorded decisions with rationale.
 
 ## Intention-Level Guidance
 
 Attach custom guidance to shape how agents approach specific intentions:
 
 ```bash
-rei intention guidance <id> "Remind me to focus on quality over quantity"
+rei intention guidance <id> "Focus on quality over quantity. Prefer depth to breadth."
 ```
 
-This guidance is included whenever the agent works on that intention.
+This guidance is included whenever any agent works on that intention, whether coaching, delegation, or scheduled work. It's how you communicate your values and preferences for specific areas of your life.
+
+## Observable by Default
+
+Every piece of agent work in rei is fully observable:
+
+- `rei agent sessions`: history of all agent interactions with timing, tokens, and summaries
+- `rei today`: dashboard shows agent work alongside yours, pending reviews, active delegations, scheduled agents
+- `rei intention timeline <id>`: interleaved human and agent actions on any intention
+- `rei action list --actor agent`: filter to see only agent work
+- `rei note list --actor claude-code`: notes created by a specific agent
 
 ## Configuration
 
@@ -105,13 +163,13 @@ This guidance is included whenever the agent works on that intention.
 
 Rei supports two backends:
 
-**claude-cli** (default) — Uses the Claude CLI if installed:
+**claude-cli** (default), uses the Claude CLI if installed:
 
 ```bash
 export REI_LLM_BACKEND=claude-cli
 ```
 
-**anthropic-api** — Direct API access:
+**anthropic-api**, direct API access:
 
 ```bash
 export REI_LLM_BACKEND=anthropic-api
@@ -123,16 +181,19 @@ export REI_ANTHROPIC_API_KEY=sk-ant-...
 Override the default model:
 
 ```bash
-export REI_LLM_MODEL=claude-3-opus-20240229
+export REI_LLM_MODEL=claude-sonnet-4-6-20250514
 ```
 
-## When to Use Each Mode
+## Choosing the Right Level
 
-| Mode | When to Use |
-|------|-------------|
-| **Coaching** | Feeling stuck, need perspective, end-of-day/week reflection, priority decisions |
-| **Assist** | Setting up your workspace, managing categories, bulk operations |
-| **Delegation** | Research tasks, drafting notes, executing work within clear boundaries |
-| **Schedules** | Recurring check-ins, automated responses to events (blockers, stalls) |
+| Situation | Level | Why |
+|-----------|-------|-----|
+| Feeling stuck, need perspective | **Coaching** | Agent observes without changing anything |
+| End-of-day/week reflection | **Coaching** | Agent prompts deeper thinking |
+| Setting up workspace, organizing | **Assist** | Agent helps with bulk operations |
+| Research task with clear scope | **Delegation** | Agent investigates and reports back |
+| Drafting a document or note | **Delegation** | Agent creates artifacts for your review |
+| Recurring daily check-in | **Schedule** | Agent runs without you having to ask |
+| Respond to blockers automatically | **Schedule** | Agent reacts to events in real-time |
 
-The agent is a thinking partner at the coaching level, a capable assistant for setup and management, and a bounded executor for delegated work — but in all modes, you define the boundaries.
+The agent is a thinking partner at the coaching level, a capable assistant for interactive work, and a bounded executor for delegated and scheduled work. In all modes, you define the boundaries, and the event log makes everything transparent.

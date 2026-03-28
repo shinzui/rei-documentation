@@ -1,10 +1,10 @@
 ---
 title: Reflections
-description: Making sense of your progress through deliberate interpretation
+description: Deliberate interpretation of past work, solo or with AI-assisted prompting
 icon: BookText
 ---
 
-Reflections are deliberate interpretations of past work. Unlike actions (which record what you did), reflections capture what you *learned* and what it *means*.
+Reflections are deliberate interpretations of past work. Unlike actions (which record what you did), reflections capture what you *learned* and what it *means*. They're one of the most powerful points of human-agent collaboration. Agents can prompt deeper thinking by surfacing patterns across your intentions, habits, and actions that you might not notice on your own.
 
 ## Why Reflect?
 
@@ -14,6 +14,7 @@ Memory is unreliable. What felt important yesterday fades. Reflection:
 - Builds self-awareness over time
 - Creates a record you can reference later
 - Transforms raw experience into wisdom
+- Gives agents richer context for future coaching and delegation
 
 ## Types of Reflections
 
@@ -61,10 +62,10 @@ Useful when:
 
 ## Reflection Workflow
 
-1. **Open** — Create a new reflection
-2. **Write** — Capture your thoughts in your editor
-3. **Complete** — Mark the reflection as done
-4. **Review** — Reference past reflections when needed
+1. **Open**: Create a new reflection
+2. **Write**: Capture your thoughts in your editor
+3. **Complete**: Mark the reflection as done
+4. **Review**: Reference past reflections when needed
 
 ```bash
 # See pending reflections
@@ -76,21 +77,40 @@ rei reflect history
 
 ## AI-Assisted Reflection
 
-Let the AI agent help prompt your thinking:
+This is where the agent partnership shines. Instead of staring at a blank page, let an agent prompt your thinking:
 
 ```bash
 rei agent reflect today
 rei agent reflect week
 ```
 
-The agent reviews your recent activity and asks questions to help you reflect more deeply.
+The agent reviews your recent actions, completed habits, open blockers, and delegation results. It asks questions that surface patterns:
+
+> *You completed your writing habit 4 of 5 days this week, but skipped Wednesday. You also declared a blocker on your "Become a better writer" intention that day. Is there a connection? What would have made Wednesday different?*
+
+For deeper exploration, use interactive mode:
+
+```bash
+rei agent reflect today -i
+```
+
+This starts a multi-turn conversation where the agent can dig deeper, help you articulate insights, and even record reflection notes on your behalf.
+
+The agent's memory means reflections compound across sessions. Patterns noticed in week 1 inform questions in week 4.
 
 ## Building the Habit
 
 Reflection works best as a regular practice:
 
-- **Daily** — 5 minutes at end of day
-- **Weekly** — 15-30 minutes on Sunday
-- **Milestone** — whenever you complete something significant
+- **Daily**: 5 minutes at end of day
+- **Weekly**: 15-30 minutes on Sunday
+- **Milestone**: whenever you complete something significant
 
-The insights compound over time. After a month, you'll have a valuable record of your growth.
+You can also schedule agent-assisted reflection automatically:
+
+```bash
+rei agent-schedule add --trigger daily-at:21:00 --scope workspace \
+  --guidance "Help me reflect on today's work"
+```
+
+The insights compound over time. After a month, you'll have a valuable record of your growth, and an agent that understands your patterns deeply enough to ask better questions.

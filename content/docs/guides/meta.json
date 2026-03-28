@@ -1,6 +1,13 @@
 {
 	"title": "Guides",
 	"pages": [
+		"delegation",
+		"agent-sessions",
+		"agent-memory",
+		"agent-memory-filesystem",
+		"agent-schedules",
+		"multi-agent-orchestration",
+		"review-checkpoints",
 		"config",
 		"intention-filtering",
 		"custom-properties",
@@ -12,13 +19,6 @@
 		"collections",
 		"disruptions",
 		"templates",
-		"agent-memory",
-		"agent-memory-filesystem",
-		"agent-sessions",
-		"agent-schedules",
-		"delegation",
-		"multi-agent-orchestration",
-		"review-checkpoints",
 		"time-formats"
 	]
 }

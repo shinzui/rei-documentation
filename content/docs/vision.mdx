@@ -1,0 +1,120 @@
+---
+title: The Vision
+description: Augmenting human potential through agent-assisted intentional living
+icon: Sparkles
+---
+
+# Augmenting Human Potential
+
+Most productivity systems assume a single actor: you. They give you lists, timers, and reminders, then leave you alone to execute. When you fall behind, the system offers no help. When the work is complex, you scale by working longer hours. The ceiling is always *your* capacity.
+
+Rei starts from a different premise: **what if your system could think alongside you?**
+
+## The Core Insight
+
+There are two problems worth solving in personal productivity:
+
+1. **Clarity**: knowing what matters, why it matters, and what to do next
+2. **Capacity**: having the bandwidth to make meaningful progress across everything you care about
+
+Traditional tools address clarity (at best) and ignore capacity entirely. AI tools often address capacity but sacrifice clarity. They do things *for* you without understanding *why*.
+
+Rei solves both by combining **a deliberate practice of intention** with **AI agents that understand your world**.
+
+## Human + Agent
+
+In rei, you and your agents are both actors in the same system. Every action, whether taken by you or an agent, is an event in the same immutable log, attributed to its author, visible in the same timeline.
+
+This isn't "AI-assisted task management." It's a collaboration model:
+
+**You bring the clarity.** You set intentions, commitments to meaningful change, not just tasks. You reflect on progress. You approve or redirect agent work. You decide what matters and why.
+
+**Agents bring the capacity.** They research what you need to know. They draft artifacts you'll refine. They execute scoped work within boundaries you set. They run on schedules, respond to events, and build persistent understanding of your world across sessions.
+
+**The system brings the truth.** Every interaction is recorded. Agent sessions track timing, tokens, and summaries. Delegations have explicit scope. Reviews create structured checkpoints. Nothing is hidden. You can always answer: *what happened, who did it, and why?*
+
+## The Spectrum of Autonomy
+
+Rei doesn't force a binary choice between doing everything yourself and handing everything to an agent. Instead, it provides a spectrum. You choose the right level of agent involvement for each situation:
+
+### Coaching
+Agents observe your state and offer perspective. They read your intentions, actions, reflections, and blockers. They ask questions and surface patterns. They never modify anything.
+
+*"You have three intentions with no actions in two weeks. Want to talk about what's blocking them?"*
+
+### Interactive Assistance
+Full multi-turn conversations where agents help you set up, reorganize, and work through problems. They can take actions on your behalf (creating intentions, resolving blockers, recording actions), all attributed to the agent and visible in your timeline.
+
+*"Let me help you break down that intention into concrete next steps and set up habits for the daily work."*
+
+### Delegation
+You assign an intention to an agent with explicit scope (research, draft, or execute) and autonomy level (supervised or autonomous). The agent knows exactly what it's asked to do, works within those boundaries, and submits results for your review.
+
+*"Research the landscape of event-sourcing libraries in Haskell. Produce a note summarizing the options, trade-offs, and your recommendation."*
+
+### Scheduled Automation
+Agents run on recurring schedules or react to events: morning briefings, stalled-intention checks, responses when blockers are declared. They work in the background, but every action is recorded and reviewable.
+
+*"Every weekday at 7am, review my active intentions and suggest what to focus on today."*
+
+## Why Intentions, Not Tasks
+
+The foundation matters because agents amplify whatever system they're built on. If the foundation is a task list, agents become task-completion machines: efficient but directionless.
+
+Rei's foundation is *intentionality*:
+
+- An **intention** is a commitment to a meaningful change in the world. "Become a better writer," not "Write 500 words."
+- A **hierarchy** of intentions connects daily work to deeper purpose. The parent reminds you *why*.
+- **Actions** record what you actually did, not what you planned to do.
+- **Outcomes** capture evidence that something changed. Observable proof, not self-reported progress.
+- **Reflections** are deliberate interpretations, not status updates. What did you *learn*?
+
+When agents operate within this system, they inherit its values. A coaching nudge connects to your intentions, not just your task list. A delegated research task understands which intention it serves and what scope it has. A scheduled review checks for meaning, not just completion.
+
+## Shared Context Through Custom Properties
+
+One of the most powerful aspects of human-agent collaboration is shared structured context. Custom properties let you attach typed metadata to any entity, and because agents see every property, they become a communication channel:
+
+- **Paths and URLs** tell agents where to look. A `project_path` on an intention means the agent can read actual source code, not guess.
+- **State machines** give agents workflow awareness. They know what's in backlog, what's in review, what's blocked.
+- **Quantities** enable trend analysis. Agents notice when your swimming distance is increasing and can suggest the next goal.
+- **Enums and booleans** create structured flags. A `deploy-ready=true` gate on a workflow state means work can't advance until prerequisites are met.
+
+State machines deserve special attention: they bring full workflow discipline with enforced transitions, WIP limits, checklist-gated gates, and lifecycle automation (auto-complete intentions when they reach a terminal state). This isn't just tracking. It's a workflow engine that both you and your agents understand.
+
+## Agent Memory
+
+Agents don't start from zero each session. Rei gives agents durable, structured memory:
+
+- **Facts**: verified observations about your work and preferences
+- **Patterns**: recurring behaviors the agent has noticed
+- **Preferences**: how you like to work
+- **Constraints**: hard limitations to respect
+
+Memories evolve through supersession chains. When understanding improves, old memories are superseded by new ones. Every memory traces back to the session that produced it. The result: agents that get better at helping you over time, without you having to re-explain context.
+
+## Transparent by Design
+
+Every piece of state in rei is derived from an append-only event log. This isn't just a technical choice; it's a trust guarantee:
+
+- **Agent sessions** are recorded with timing, tokens used, model, and summary
+- **Agent actions** appear alongside your actions in the intention timeline, attributed to the agent
+- **Delegations** have explicit scope and autonomy level, so you can always see what the agent was asked to do
+- **Reviews** create a structured approval workflow: the agent submits, you decide
+- **Schedules** are visible and manageable. Pause, resume, or complete them at any time.
+
+You never have to wonder what the agent did. The event log tells you.
+
+## Where This Is Heading
+
+Rei today is a single-player system: one human working with AI agents. But the patterns being validated here (typed actor identity, delegation, review checkpoints, multi-agent orchestration) are the foundation for **Ren (連)**, a multiplayer system where teams of humans and agents collaborate on shared intentions.
+
+Every event you create in Rei today will be a valid Ren event tomorrow. The agent sessions, delegations, reviews, and schedules you use now are proving the patterns that will scale to teams.
+
+But you don't have to care about that. Right now, Rei is about one thing: **helping you live more intentionally, with AI agents that genuinely augment your ability to make progress on what matters to you.**
+
+<Cards>
+  <Card title="Core Concepts" href="/docs/concepts" description="The primitives and philosophy behind rei" />
+  <Card title="See It In Action" href="/docs/quickstart" description="A walkthrough of what using rei feels like" />
+  <Card title="AI Agents" href="/docs/concepts/ai-coaching" description="Deep dive on the agent system" />
+</Cards>

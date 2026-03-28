@@ -1,16 +1,20 @@
 {
 	"title": "Documentation",
 	"pages": [
-		"---Getting Started---",
+		"---Vision---",
 		"index",
+		"vision",
+		"---Core Ideas---",
+		"concepts",
+		"---See It In Action---",
 		"quickstart",
+		"---Guides---",
+		"guides",
+		"---Setup---",
 		"installation",
 		"configuration",
-		"---Learn---",
-		"concepts",
-		"commands",
-		"guides",
 		"---Reference---",
+		"commands",
 		"changelog"
 	]
 }
