@@ -1,227 +1,429 @@
 ---
 title: See It In Action
-description: A walkthrough of rei's full power, from intention to agent-assisted execution
+description: Building a software project with rei, from architecture to deployment with agent assistance at every stage
 icon: Rocket
 ---
 
-This walkthrough shows what using rei *feels like*. Not just the mechanics, but how human intention and agent capability work together. We'll follow a real goal from creation through coaching, delegation, and reflection.
+This walkthrough follows a realistic software project from start to finish. You'll see how rei's primitives, custom properties, agent delegation, and scheduled automation work together to keep a complex effort organized and moving forward.
 
-## The Scenario: Becoming a Better Writer
+## The Project: Building an Event-Sourced API
 
-This is a good rei intention because it's:
+You want to build a REST API for a side project. It's a meaningful undertaking: multiple components, architectural decisions, and weeks of work. In rei, this isn't a task list. It's a hierarchy of intentions with agents helping at every level.
 
-- **Long-lived**, not finished in a sprint
-- **Identity-shaping**, about who you become, not just what you produce
-- **Multi-faceted**, involving habits, research, creation, and reflection
+### Define the Intention Hierarchy
 
-### Start with Meaning
-
-Rei organizes work by *meaning*, not checklists. Start with the *why*:
+Start with the root intention and break it into meaningful children:
 
 ```bash
-rei intention create "Connect with like-minded people and grow professionally" \
-  --context personal
+# The root: why this project matters
+rei intention create "Build a portfolio-quality API project" \
+  --context personal --horizon 3m
+
+# Children: the major workstreams
+rei intention create "Design the API architecture" \
+  --parent <root-id> --horizon 1w
+
+rei intention create "Implement authentication" \
+  --parent <root-id> --horizon 2w
+
+rei intention create "Build the data layer" \
+  --parent <root-id> --horizon 2w
+
+rei intention create "Write API documentation" \
+  --parent <root-id> --horizon 1w
 ```
 
-Now create the intention that serves that purpose:
-
-```bash
-rei intention create "Become a better writer" --parent <parent-id>
-```
-
-The parent-child relationship isn't just organization. It's a reminder of *why this matters*. When you're deep in the details, the parent pulls you back to the larger purpose.
+View the full tree:
 
 ```bash
 rei intention tree
 ```
 
 ```
-Connect with like-minded people and grow professionally
-└── Become a better writer
+Build a portfolio-quality API project [3m]
+├── Design the API architecture [1w]
+├── Implement authentication [2w]
+├── Build the data layer [2w]
+└── Write API documentation [1w]
 ```
 
-### Build the Practice
+Each child intention has its own actions, outcomes, blockers, and delegation. The parent holds the big picture. Notice there's no "deploy" intention: deployment is a phase in the workflow state machine, not a separate workstream.
 
-Writing improves through daily practice. Create a habit linked to your intention:
+### Add Custom Properties for Shared Context
 
-```bash
-rei habit create \
-  --name "Daily Writing" \
-  --purpose "Build fluency and clarity" \
-  --daily \
-  --action "Write freely"
-
-rei habit link-intention <habit-id> <intention-id>
-```
-
-### Add Structured Context
-
-Give agents (and yourself) structured context with custom properties:
+Custom properties give both you and your agents structured context about each intention. Define them once, use them everywhere:
 
 ```bash
-# Point agents to your blog repo
-rei custom-property create project-path --type-path --must-exist -e intention
-rei intention set-property <intention-id> project-path ~/projects/blog
+# Project path: tells agents where the code lives
+rei custom-property create project-path \
+  --type-path --must-exist --must-be-directory \
+  -e intention
 
-# Track your writing workflow with a state machine
+# Repository URL: agents can reference PRs and issues
+rei custom-property create repo-url \
+  --type-url --allowed-schemes https \
+  -e intention
+
+# Workflow state machine: tracks each intention through a dev lifecycle
 rei custom-property create workflow \
-  --type-state-machine --from-file writing-workflow.yaml \
+  --type-state-machine --from-file dev-workflow.yaml \
   -e intention
 ```
 
-Now when an agent coaches you or executes delegated work, it knows where your project lives and what workflow phase you're in. Properties are the shared language between you and your agents.
+The workflow state machine (`dev-workflow.yaml`) defines your full development process, from backlog through deployment:
 
-### Ask the Agent for Perspective
-
-Before diving in, get coaching from an agent that understands your full context (your intentions, habits, properties, and workflow state):
-
-```bash
-rei agent coach --today
+```yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateOrder: 1
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateOrder: 2
+    stateLimit: 3
+    stateTags:
+      - systemTag: TagActive
+  - stateId: in-review
+    stateLabel: "In Review"
+    stateOrder: 3
+    stateTags:
+      - systemTag: TagActive
+      - userTag: "needs-review"
+  - stateId: deploying
+    stateLabel: "Deploying"
+    stateOrder: 4
+    stateTags:
+      - systemTag: TagActive
+  - stateId: done
+    stateLabel: "Done"
+    stateOrder: 5
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+transitions:
+  - transitionFrom: backlog
+    transitionTo: in-progress
+    transitionLabel: "Start"
+  - transitionFrom: in-progress
+    transitionTo: in-review
+    transitionLabel: "Submit for review"
+  - transitionFrom: in-review
+    transitionTo: in-progress
+    transitionLabel: "Request changes"
+  - transitionFrom: in-review
+    transitionTo: deploying
+    transitionLabel: "Approve for deploy"
+  - transitionFrom: deploying
+    transitionTo: done
+    transitionLabel: "Deployed"
+  - transitionFrom: deploying
+    transitionTo: in-progress
+    transitionLabel: "Rollback"
 ```
 
-The agent sees your intentions, habits, recent actions, and blockers. It might respond:
-
-> *You've created a writing intention but haven't recorded any actions yet. Consider starting small. Even 10 minutes of freewriting today would build momentum. Your "Daily Writing" habit is scheduled but hasn't been completed today.*
-
-For deeper guidance, start an interactive session:
+The WIP limit of 3 on "In Progress" keeps you from spreading too thin. Deployment is a workflow phase, so every intention flows through the same lifecycle. Now assign properties to your intentions:
 
 ```bash
-rei agent coach -i
+# Set the project path and repo on the root intention
+rei intention set-property <root-id> project-path ~/projects/my-api
+rei intention set-property <root-id> repo-url https://github.com/you/my-api
+
+# Move the first workstream to in-progress
+rei intention set-property <design-id> workflow in-progress
 ```
 
-Now you're in a multi-turn conversation. The agent can help you break down your intention, suggest approaches, and even create sub-intentions or adjust habits on your behalf, all attributed to the agent in your event log.
+When any agent coaches you, reviews your work, or executes a delegation, it sees these properties. It knows where the code lives, what repo to reference, and what workflow phase each intention is in.
 
-### Do the Work
+### Create a Project Dashboard View
 
-After a writing session, record it:
+Views let you check on the project at a glance. Create a `project-board.yaml`:
 
-```bash
-rei action record <intention-id> "Wrote morning pages for 20 minutes" --duration 20m
+```yaml
+sections:
+  - label: "Kanban Board"
+    target: children
+    filters:
+      - type: status
+        value: active
+    groupBy: workflow
+    showProperties: [workflow]
+
+  - label: "Blocked"
+    target: descendants
+    filters:
+      - type: state_tag
+        property: workflow
+        tag: blocked
+    hideIfEmpty: true
+
+  - label: "Recent Actions"
+    target: actions
+    limit: 5
+
+  - label: "Project Notes"
+    target: notes
+    limit: 5
+    hideIfEmpty: true
+
+showDormant: false
 ```
 
-When something meaningful happens, record the evidence:
+Register and run it:
 
 ```bash
-rei outcome record <intention-id> "Published first blog post"
+rei view create project-board --from-file project-board.yaml -d "API project kanban"
+rei view exec project-board --scope <root-id>
 ```
 
-Hit a wall? Record that too:
+```
+project-board
+  API project kanban
 
-```bash
-rei blocker declare <intention-id> "Not sure what topics resonate with my audience"
+━━━ Kanban Board (4) ━━━
+  ▸ In Progress (2)
+    ● Implement authentication
+    ● Build the data layer
+  ▸ In Review (1)
+    ● Design the API architecture
+  ▸ Backlog (1)
+    ● Write API documentation
+
+━━━ Recent Actions (3) ━━━
+  2026-03-25  Set up JWT middleware with refresh token rotation
+  2026-03-24  Chose MessageDB based on agent research
+  2026-03-23  Initial project scaffolding
 ```
 
-### Delegate Research to an Agent
+Run this view any time with `rei view exec project-board --scope <root-id>`, or use `rei intention view` with FZF to pick the intention and view interactively.
 
-That blocker is a perfect delegation candidate. Instead of spending hours researching yourself:
+### Delegate the Architecture Research
+
+The architecture design needs research. Instead of spending a day evaluating options yourself, delegate it:
 
 ```bash
-rei intention delegate <intention-id> \
+rei intention delegate <design-id> \
   --to claude-code \
   --scope research \
   --autonomy supervised
 ```
 
-The agent now knows: *investigate this intention's blocker, research the topic, and submit findings for review.* With `supervised` autonomy, it will create a review checkpoint when done.
-
-Check what's been delegated:
+Attach guidance so the agent knows what you care about:
 
 ```bash
-rei intention delegations
+rei intention guidance <design-id> \
+  "Event-sourced architecture using PostgreSQL. Evaluate MessageDB vs EventStoreDB vs custom. Prioritize simplicity and Haskell ecosystem support."
 ```
 
-### Review Agent Work
+The agent receives your full context: the intention, its parent, the project path, the repo URL, and your guidance. It investigates and submits findings for your review.
 
-When the agent completes its research, you'll see it in your dashboard:
+### Review and Act on Agent Research
+
+The agent finishes and submits a review checkpoint. You see it in your dashboard:
 
 ```bash
 rei today
 ```
 
 ```
+Active Cycle: Discipline Cycle 3 (Day 4/10)
+Focus: Create
+
+Active Intentions (In Progress)
+  ⚡ Design the API architecture [1w]
+      workflow: in-progress | delegated to: claude-code (research)
+
 Pending Reviews
-  ✎ Research findings for "Become a better writer"
-    Agent: claude-code | Scope: research | Submitted: 2h ago
+  ✎ Research: "Design the API architecture"
+    Agent: claude-code | Scope: research | Submitted: 1h ago
+    Artifact: note_01abc... (Architecture evaluation)
+
+Habits Due Today
+  □ Daily coding practice (flexible)
+
+Agent Schedules
+  ⏰ Morning standup (daily at 07:00) | last run: today 07:00
 ```
 
-Review and approve, request changes, or reject:
+Read the agent's research note, then decide:
 
 ```bash
+# Approve the research
 rei review approve <review-id>
-# or
-rei review request-changes <review-id> --feedback "Focus more on technical writing communities"
+
+# Or send it back with feedback
+rei review request-changes <review-id> \
+  --feedback "Good overview, but dig deeper into MessageDB's subscription model"
 ```
 
-The agent sees your feedback and iterates. Every decision is part of the intention's event log.
-
-### Set Up Autonomous Schedules
-
-You want the agent to check in on your writing practice without you having to ask:
+Once approved, record your decision as an action:
 
 ```bash
+rei action record <design-id> "Chose MessageDB based on agent research. PostgreSQL-native, simple subscription model."
+```
+
+Move the intention forward in the workflow:
+
+```bash
+rei intention set-property <design-id> workflow in-review
+```
+
+### Set Up Scheduled Agents
+
+You want agents working in the background without manual invocation:
+
+```bash
+# Morning standup: daily review of active intentions
 rei agent-schedule add \
   --trigger daily-at:07:00 \
-  --intention <intention-id> \
-  --guidance "Review my writing habit completion and suggest what to focus on today"
-```
+  --scope children-of:<root-id> \
+  --guidance "Review progress on active intentions. Flag anything stalled for more than 2 days. Suggest what to focus on today based on workflow states and blockers."
 
-Or react to events. When you declare a blocker, an agent automatically investigates:
-
-```bash
+# Auto-research blockers: when you declare a blocker, an agent investigates
 rei agent-schedule add \
   --trigger on-blocker-declared \
-  --intention <intention-id> \
-  --guidance "Research the blocker and suggest approaches to resolve it"
+  --scope children-of:<root-id> \
+  --guidance "Research the blocker using the project source code at the project-path property. Suggest concrete approaches to resolve it."
+
+# Stall detection: catch intentions that go quiet
+rei agent-schedule add \
+  --trigger on-stalled:3d \
+  --scope children-of:<root-id> \
+  --guidance "This intention has had no activity for 3 days. Check if it's blocked, deprioritized, or forgotten. Suggest next steps."
 ```
 
-These run in the background. Every execution creates a session with full traceability.
-
-### Reflect with Agent Assistance
-
-At the end of the day:
+These agents run autonomously. Each execution creates a session with timing, tokens, and a summary. You see the results in `rei today` and can inspect any session:
 
 ```bash
-rei agent reflect today
+rei agent sessions
+rei agent session show <session-id>
 ```
 
-The agent reviews your day's actions, completed habits, and open blockers. Instead of staring at a blank page, it asks questions that surface patterns:
+### Work Through the Implementation
 
-> *You wrote for 20 minutes this morning and published a blog post, your first outcome on this intention. What made today different from days you didn't write? What would make tomorrow's session even better?*
-
-Your reflection becomes a permanent record, informing future coaching and reviews.
-
-### See the Full Picture
+As you build, the system captures everything. Start the auth implementation:
 
 ```bash
-rei today
+rei intention set-property <auth-id> workflow in-progress
+
+rei action record <auth-id> "Set up JWT middleware with refresh token rotation"
+rei action record <auth-id> "Added integration tests for auth flows" --duration 2h
 ```
 
-Your dashboard shows everything in one view:
+Hit a blocker:
 
-- Active intentions with recent activity (human and agent)
-- Delegated work and its status
-- Pending reviews from agent work
-- Habits due today
-- Agent schedules and their last execution
-- Blockers across your intentions
+```bash
+rei blocker declare <auth-id> "OAuth provider documentation is unclear on PKCE flow edge cases"
+```
 
-Every action, yours and the agents', is visible, attributed, and part of the permanent record.
+Because you set up the `on-blocker-declared` schedule, an agent automatically picks this up. It reads the project source code (using the `project-path` property), investigates the PKCE flow, and posts findings as an action on the intention. You see it next time you check your dashboard.
 
-## What Just Happened
+### Delegate Documentation Drafting
 
-In this walkthrough, you:
+Writing docs is valuable but time-consuming. Delegate it:
 
-1. **Set intentions** rooted in meaning, not tasks
-2. **Built habits** to support consistent practice
-3. **Added structured context** with custom properties and state machines that agents read
-4. **Got coaching** from an agent that understands your full context
-5. **Recorded work** as actions and outcomes in an immutable log
-6. **Delegated research** to an agent with explicit scope and review
-7. **Reviewed agent work** through structured checkpoints
-8. **Scheduled autonomous agents** that work in the background
-9. **Reflected with AI assistance** that surfaces patterns
+```bash
+rei intention delegate <docs-id> \
+  --to claude-code \
+  --scope draft \
+  --autonomy supervised
 
-This is agent-augmented intentional living: you bring the clarity, agents bring the capacity, custom properties provide the shared context, and the system keeps everything transparent and traceable.
+rei intention guidance <docs-id> \
+  "Generate OpenAPI spec and a getting-started guide. Reference the actual endpoint implementations at the project-path. Follow the conventions in the existing README."
+```
+
+With `draft` scope, the agent creates artifacts (notes and files) for your review. With `supervised` autonomy, it submits a review checkpoint before anything is finalized. You review the draft, request changes if needed, and approve when it's ready.
+
+### Mark Dependencies Between Intentions
+
+Documentation depends on the API being built. Make that explicit:
+
+```bash
+rei intention add-dependency <docs-id> --on <auth-id>
+rei intention add-dependency <docs-id> --on <data-id>
+```
+
+When you check `rei today`, the dashboard shows that the docs intention is waiting on two dependencies. The morning standup agent sees this too and won't suggest working on docs until the dependencies are resolved.
+
+### Track Progress with Metrics and Views
+
+Check your project board to see the current state:
+
+```bash
+rei view exec project-board --scope <root-id>
+```
+
+Or get the raw workflow metrics:
+
+```bash
+rei custom-property metrics workflow
+```
+
+```
+State Distribution
+  in-progress:  1  (Build the data layer)
+  in-review:    1  (Implement authentication)
+  deploying:    1  (Design the API architecture)
+  done:         1  (Write API documentation)
+```
+
+Record outcomes as milestones are reached:
+
+```bash
+rei outcome record <auth-id> "Auth system passes all integration tests, ready for review"
+rei intention set-property <auth-id> workflow in-review
+```
+
+### Reflect on the Week
+
+At the end of the week, reflect with agent assistance:
+
+```bash
+rei agent reflect week
+```
+
+The agent reviews your week's actions across all child intentions, the agent delegations and their results, blockers resolved and still open, and workflow state changes. It asks questions that help you think about the bigger picture:
+
+> *You moved three intentions forward this week and resolved two blockers. The auth implementation took longer than your 2-week horizon suggested. The agent's PKCE research saved you time, but you spent a full day on refresh token edge cases. Is the 2-week horizon still realistic, or should you adjust? The data layer hasn't started yet and depends on the auth design. What's the risk of that becoming the critical path?*
+
+Your reflection is recorded and informs future coaching sessions.
+
+### Complete the Project
+
+As intentions reach their terminal workflow state, they can auto-complete:
+
+```bash
+# Designate workflow as a lifecycle property with 3-day auto-complete
+rei custom-property set-lifecycle workflow --days 3
+```
+
+When an intention moves through review, deployment, and finally to `done`, rei schedules auto-completion in 3 days. If you realize there's more work, just move it back to an earlier state and the auto-complete is cancelled.
+
+Once all children are complete, record the final outcome on the root:
+
+```bash
+rei outcome record <root-id> "API deployed, documented, and serving production traffic"
+rei intention complete <root-id>
+```
+
+## What This Walkthrough Covered
+
+| Capability | How it was used |
+|-----------|----------------|
+| **Intention hierarchy** | Root intention with four child workstreams, each with its own lifecycle |
+| **Custom properties** | `project-path`, `repo-url`, and a `workflow` state machine with WIP limits and a deploying phase |
+| **Intention views** | Kanban board view grouped by workflow state for at-a-glance project status |
+| **Agent delegation** | Research (architecture evaluation), draft (API documentation), with supervised review |
+| **Review checkpoints** | Structured approve/request-changes workflow for agent-produced artifacts |
+| **Scheduled automation** | Morning standup, auto-research on blockers, stall detection |
+| **Dependencies** | Documentation blocked on auth and data layer completion |
+| **Workflow metrics** | State distribution across all project intentions |
+| **Lifecycle automation** | Auto-complete intentions when they reach a terminal workflow state |
+| **Agent-assisted reflection** | Weekly review that synthesizes progress across the whole project |
+
+This is what agent-augmented intentional living looks like for a real project: you focus on the creative and decision-making work, agents handle research, drafting, and background monitoring, and the system keeps everything transparent, attributed, and traceable.
 
 ## Ready to Start?
 
