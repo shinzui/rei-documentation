@@ -199,25 +199,45 @@ project-board
 
 Run this view any time with `rei view exec project-board --scope <root-id>`, or use `rei intention view` with FZF to pick the intention and view interactively.
 
+### Add Guidance for Agent Interactions
+
+Guidance is persistent context that shapes how agents approach an intention. It's included in every agent interaction, whether that's coaching, reviewing, assisting, or delegated work. Edit it in your `$EDITOR`:
+
+```bash
+rei intention guidance <design-id>
+```
+
+This opens a markdown file where you describe what matters for this intention. For example:
+
+```markdown
+## Context
+This is a Haskell project targeting GHC 9.12. The team has strong opinions
+about simplicity over abstraction. We prefer boring technology.
+
+## When coaching
+Focus on architectural trade-offs, not implementation details. Push back
+if I'm over-engineering.
+
+## When researching
+Prioritize Haskell ecosystem support and PostgreSQL compatibility.
+Ignore solutions that require JVM or Node.js infrastructure.
+```
+
+This guidance is loaded into every agent session that touches this intention. Unlike delegation instructions (which are task-specific), guidance persists and informs all future agent interactions.
+
 ### Delegate the Architecture Research
 
-The architecture design needs research. Instead of spending a day evaluating options yourself, delegate it:
+The architecture design needs research. Instead of spending a day evaluating options yourself, delegate it with specific instructions:
 
 ```bash
 rei intention delegate <design-id> \
   --to claude-code \
   --scope research \
-  --autonomy supervised
+  --autonomy supervised \
+  --instructions "Evaluate MessageDB vs EventStoreDB vs custom event store. Compare on: Haskell client support, subscription model, operational complexity, and PostgreSQL integration."
 ```
 
-Attach guidance so the agent knows what you care about:
-
-```bash
-rei intention guidance <design-id> \
-  "Event-sourced architecture using PostgreSQL. Evaluate MessageDB vs EventStoreDB vs custom. Prioritize simplicity and Haskell ecosystem support."
-```
-
-The agent receives your full context: the intention, its parent, the project path, the repo URL, and your guidance. It investigates and submits findings for your review.
+The agent receives the delegation instructions, plus the intention's persistent guidance, the project path, the repo URL, and the parent context. It investigates and submits findings for your review.
 
 ### Review and Act on Agent Research
 
@@ -322,19 +342,17 @@ Because you set up the `on-blocker-declared` schedule, an agent automatically pi
 
 ### Delegate Documentation Drafting
 
-Writing docs is valuable but time-consuming. Delegate it:
+Writing docs is valuable but time-consuming. Delegate it with specific instructions:
 
 ```bash
 rei intention delegate <docs-id> \
   --to claude-code \
   --scope draft \
-  --autonomy supervised
-
-rei intention guidance <docs-id> \
-  "Generate OpenAPI spec and a getting-started guide. Reference the actual endpoint implementations at the project-path. Follow the conventions in the existing README."
+  --autonomy supervised \
+  --instructions "Generate OpenAPI spec and a getting-started guide. Reference the actual endpoint implementations at the project-path. Follow the conventions in the existing README."
 ```
 
-With `draft` scope, the agent creates artifacts (notes and files) for your review. With `supervised` autonomy, it submits a review checkpoint before anything is finalized. You review the draft, request changes if needed, and approve when it's ready.
+With `draft` scope, the agent creates artifacts (notes and files) for your review. With `supervised` autonomy, it submits a review checkpoint before anything is finalized. The agent also sees any guidance you've set on this intention, giving it persistent context about your preferences. You review the draft, request changes if needed, and approve when it's ready.
 
 ### Mark Dependencies Between Intentions
 
@@ -415,7 +433,8 @@ rei intention complete <root-id>
 | **Intention hierarchy** | Root intention with four child workstreams, each with its own lifecycle |
 | **Custom properties** | `project-path`, `repo-url`, and a `workflow` state machine with WIP limits and a deploying phase |
 | **Intention views** | Kanban board view grouped by workflow state for at-a-glance project status |
-| **Agent delegation** | Research (architecture evaluation), draft (API documentation), with supervised review |
+| **Intention guidance** | Persistent agent context: coaching style, research preferences, constraints |
+| **Agent delegation** | Research (architecture evaluation), draft (API documentation), with task-specific `--instructions` and supervised review |
 | **Review checkpoints** | Structured approve/request-changes workflow for agent-produced artifacts |
 | **Scheduled automation** | Morning standup, auto-research on blockers, stall detection |
 | **Dependencies** | Documentation blocked on auth and data layer completion |

@@ -95,17 +95,18 @@ Common horizons:
 
 Intentions are the primary unit of human-agent collaboration:
 
-- **Delegation**: assign an intention to an agent with explicit scope (research, draft, execute) and autonomy level
-- **Guidance**: attach custom instructions that shape how agents approach this intention
+- **Guidance**: persistent context (opened in `$EDITOR`) that shapes how agents approach this intention across all interactions
+- **Delegation**: assign an intention to an agent with explicit scope (research, draft, execute), autonomy level, and task-specific `--instructions`
 - **Review**: agents submit work for your approval through structured review checkpoints
 - **Timeline**: `rei intention timeline <id>` shows interleaved human and agent actions
 
 ```bash
-# Delegate research on an intention
-rei intention delegate <id> --to claude-code --scope research
+# Edit persistent guidance for this intention (opens $EDITOR)
+rei intention guidance <id>
 
-# Attach guidance for agents working on this intention
-rei intention guidance <id> "Focus on practical approaches, not theory"
+# Delegate with task-specific instructions
+rei intention delegate <id> --to claude-code --scope research \
+  --instructions "Evaluate library options for OAuth2 PKCE flow"
 ```
 
 ## Related Concepts

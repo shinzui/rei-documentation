@@ -139,13 +139,28 @@ This creates a structured human-in-the-loop workflow. Not ad-hoc "looks good" bu
 
 ## Intention-Level Guidance
 
-Attach custom guidance to shape how agents approach specific intentions:
+Guidance is persistent context that shapes how agents approach a specific intention. It opens in your `$EDITOR` as a markdown file:
 
 ```bash
-rei intention guidance <id> "Focus on quality over quantity. Prefer depth to breadth."
+rei intention guidance <id>
+```
+
+You might write something like:
+
+```markdown
+## Context
+This is a customer-facing API. Reliability matters more than feature velocity.
+
+## When coaching
+Ask whether I'm taking on too much scope. Push back on complexity.
+
+## When researching
+Prefer battle-tested libraries over cutting-edge ones.
 ```
 
 This guidance is included whenever any agent works on that intention, whether coaching, delegation, or scheduled work. It's how you communicate your values and preferences for specific areas of your life.
+
+Guidance is distinct from delegation `--instructions`: guidance is persistent and applies to all agent interactions, while instructions are task-specific and scoped to a single delegation.
 
 ## Observable by Default
 
