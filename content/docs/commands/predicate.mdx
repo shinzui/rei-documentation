@@ -1,0 +1,119 @@
+---
+title: rei predicate
+description: Define reusable relationship types for edges
+icon: Tags
+---
+
+Predicates define reusable relationship types for edges. A predicate like "summarizes" or "inspired-by" can be used by many edges to express the same kind of relationship between different entity pairs.
+
+## Overview
+
+```bash
+# Define a predicate with type constraints
+rei predicate define summarizes --label "Summarizes" \
+  --description "Source summarizes target" \
+  --source-types note --target-types link,note
+
+# List all predicates
+rei predicate list
+
+# Show predicate details
+rei predicate show summarizes
+
+# Update metadata
+rei predicate update summarizes --label "Summarizes Content"
+
+# Archive (prevents new edges from using it)
+rei predicate archive summarizes
+
+# Restore
+rei predicate restore summarizes
+```
+
+## Subcommands
+
+### define
+
+Define a new predicate.
+
+```bash
+rei predicate define KEY --label LABEL [options]
+```
+
+**Arguments:**
+- `KEY` — Unique slug (lowercase letters, digits, hyphens)
+
+**Options:**
+- `-l, --label LABEL` — Human-readable display name (required)
+- `-d, --description TEXT` — Optional description
+- `--source-types TYPES` — Comma-separated allowed source entity types
+- `--target-types TYPES` — Comma-separated allowed target entity types
+
+**Examples:**
+
+```bash
+# Unconstrained predicate (any entity type)
+rei predicate define related-to --label "Related To"
+
+# Constrained predicate
+rei predicate define summarizes --label "Summarizes" \
+  --source-types note --target-types link,note
+```
+
+### list
+
+List defined predicates.
+
+```bash
+rei predicate list [options]
+```
+
+**Options:**
+- `--json` — Output as JSON
+- `--include-archived` — Include archived predicates
+
+### show
+
+Show details for a predicate.
+
+```bash
+rei predicate show KEY [options]
+```
+
+**Options:**
+- `--json` — Output as JSON
+
+### update
+
+Update predicate metadata. Only provided fields are changed.
+
+```bash
+rei predicate update KEY [options]
+```
+
+**Options:**
+- `-l, --label LABEL` — New label
+- `-d, --description TEXT` — New description
+- `--source-types TYPES` — New source type constraints
+- `--target-types TYPES` — New target type constraints
+
+### archive
+
+Archive a predicate. Existing edges remain unaffected, but new edges cannot use this predicate.
+
+```bash
+rei predicate archive KEY
+```
+
+### restore
+
+Restore an archived predicate.
+
+```bash
+rei predicate restore KEY
+```
+
+## Related Commands
+
+- [`rei edge`](/docs/commands/edge) — Create and manage edges using predicates
+- [`rei help edges`](/docs/guides/edges) — Detailed guide on edges and predicates

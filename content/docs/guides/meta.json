@@ -17,6 +17,7 @@
 		"dashboard",
 		"views",
 		"collections",
+		"edges",
 		"disruptions",
 		"templates",
 		"time-formats"

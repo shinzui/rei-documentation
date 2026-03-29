@@ -1,0 +1,106 @@
+---
+title: rei dependency
+description: Manage dependencies between intentions
+icon: GitBranch
+---
+
+Track dependency relationships between intentions. Dependencies indicate that one intention requires another to be completed first.
+
+## Overview
+
+```bash
+# Add a dependency
+rei dependency add --from intention_01abc --on intention_01xyz
+
+# Remove a dependency
+rei dependency remove --from intention_01abc --on intention_01xyz
+
+# Show dependencies for an intention
+rei dependency show intention_01abc
+
+# Show all blocked intentions
+rei dependency blocked
+```
+
+## Subcommands
+
+### add
+
+Add a dependency between two intentions.
+
+```bash
+rei dependency add --from INTENTION_ID --on INTENTION_ID
+```
+
+**Options:**
+- `-f, --from <id>` — The dependent intention (uses FZF if not provided)
+- `-o, --on <id>` — The dependency (intention that must complete first; uses FZF if not provided)
+
+> **FZF Support:** If IDs are not provided and [fzf](https://github.com/junegunn/fzf) is installed, interactive pickers will let you select intentions.
+
+**Examples:**
+
+```bash
+# Add a dependency
+rei dependency add --from intention_01abc --on intention_01xyz
+
+# Let FZF pick both
+rei dependency add
+```
+
+### remove
+
+Remove a dependency between two intentions.
+
+```bash
+rei dependency remove --from INTENTION_ID --on INTENTION_ID
+```
+
+**Options:**
+- `-f, --from <id>` — The dependent intention (uses FZF if not provided)
+- `-o, --on <id>` — The dependency to remove (uses FZF if not provided)
+
+**Examples:**
+
+```bash
+rei dependency remove --from intention_01abc --on intention_01xyz
+```
+
+### show
+
+Show dependencies for an intention (both what it depends on and what depends on it).
+
+```bash
+rei dependency show [intention-id]
+```
+
+**Arguments:**
+- `[intention-id]` — Intention ID (optional if fzf is available)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+
+**Options:**
+- `--json` — Output as JSON
+
+**Examples:**
+
+```bash
+# Show with explicit ID
+rei dependency show intention_01abc
+
+# Let FZF pick the intention
+rei dependency show
+```
+
+### blocked
+
+Show all intentions that are currently blocked by incomplete dependencies.
+
+```bash
+rei dependency blocked
+```
+
+## Related Commands
+
+- [`rei intention`](/docs/commands/intention) — Manage intentions
+- [`rei support`](/docs/commands/support) — Manage support relationships

@@ -1,0 +1,206 @@
+---
+title: Edges and Predicates
+description: Creating typed relationships between entities using predicates and edges
+icon: GitBranch
+---
+
+Edges create directed, typed relationships between any two entities in Rei.
+Each edge connects a source entity to a target entity through a predicate
+that defines the relationship type. For example, a note can "summarize" a
+link, or an intention can be "inspired-by" a disruption.
+
+The system has two parts: predicates define reusable relationship types, and
+edges are the individual connections that use those predicates.
+
+## Quick Start
+
+1. Define a predicate (a relationship type):
+
+```bash
+rei predicate define summarizes --label "Summarizes" \
+  --source-types note --target-types link,note
+```
+
+2. Create an edge between two entities:
+
+```bash
+rei edge add --from note_01abc --to link_01xyz --predicate summarizes
+```
+
+3. View edges for an entity:
+
+```bash
+rei edge show note_01abc
+```
+
+## Predicates
+
+A predicate is a reusable relationship type identified by a unique key.
+The key is a slug: lowercase letters, digits, and hyphens only. Predicates
+carry a human-readable label and an optional description.
+
+### Defining Predicates
+
+```bash
+# Simple predicate (any entity type at either end)
+rei predicate define related-to --label "Related To"
+
+# Constrained predicate (restricts entity types)
+rei predicate define summarizes --label "Summarizes" \
+  --description "Source summarizes target" \
+  --source-types note --target-types link,note
+```
+
+Type constraints restrict which entity types can appear at each end of
+an edge using this predicate. When `--source-types` or `--target-types` is
+omitted, any entity type is allowed at that end. Constraints are
+comma-separated lists of entity type prefixes (e.g., note, link,
+intention, disruption, habit, collection).
+
+### Managing Predicates
+
+```bash
+# List all predicates
+rei predicate list
+
+# Include archived predicates
+rei predicate list --include-archived
+
+# Show details for a predicate
+rei predicate show summarizes
+
+# Update predicate metadata (only provided fields change)
+rei predicate update summarizes --label "Summarizes Content"
+rei predicate update summarizes --source-types note,collection
+
+# Archive a predicate (prevents new edges, existing edges unaffected)
+rei predicate archive summarizes
+
+# Restore an archived predicate
+rei predicate restore summarizes
+```
+
+## Creating Edges
+
+An edge connects a source entity to a target entity via a predicate key.
+Entity IDs are TypeID-prefixed strings like "note_01abc" or "link_01xyz".
+The entity type is extracted automatically from the ID prefix.
+
+```bash
+# Create an edge
+rei edge add --from note_01abc --to link_01xyz --predicate summarizes
+
+# Create with an annotation
+rei edge add --from intention_01abc --to disruption_01xyz \
+  --predicate inspired-by --description "Sparked by recurring alerts"
+```
+
+**Validation rules:**
+- The predicate must exist and not be archived
+- The source entity type must be allowed by the predicate's source-types constraint (if any)
+- The target entity type must be allowed by the predicate's target-types constraint (if any)
+- Duplicate edges (same source, target, and predicate) are rejected
+
+## Querying Edges
+
+```bash
+# Show all edges for an entity, both outgoing and incoming
+rei edge show note_01abc
+
+# Filter by predicate
+rei edge show note_01abc --predicate summarizes
+
+# List edges by predicate across all entities
+rei edge list --predicate summarizes
+
+# Filter by entity type
+rei edge list --predicate summarizes --from-type note
+rei edge list --predicate summarizes --to-type link
+
+# JSON output
+rei edge show note_01abc --json
+rei edge list --predicate summarizes --json
+```
+
+## Managing Edges
+
+```bash
+# Remove an edge (soft-delete; the edge history is preserved)
+rei edge remove edge_01def
+
+# Restore a previously removed edge
+rei edge restore edge_01def
+```
+
+## Workflow Example
+
+Suppose you want to track which notes summarize which links.
+
+First, define the relationship type:
+
+```bash
+rei predicate define summarizes --label "Summarizes" \
+  --source-types note --target-types link,note
+```
+
+Create edges as you write notes about links:
+
+```bash
+rei edge add --from note_01abc --to link_01xyz --predicate summarizes
+rei edge add --from note_01def --to link_01xyz --predicate summarizes
+```
+
+Later, see all summaries of a link:
+
+```bash
+rei edge show link_01xyz --predicate summarizes
+```
+
+Or see what a note summarizes:
+
+```bash
+rei edge show note_01abc --predicate summarizes
+```
+
+Define another predicate for a different relationship:
+
+```bash
+rei predicate define inspired-by --label "Inspired By"
+```
+
+Now connect intentions to disruptions:
+
+```bash
+rei edge add --from intention_01ghi --to disruption_01jkl \
+  --predicate inspired-by \
+  --description "Created to address recurring timeouts"
+```
+
+List all inspired-by relationships:
+
+```bash
+rei edge list --predicate inspired-by
+```
+
+## Command Reference
+
+### Predicate Commands
+
+| Command | Description |
+|---------|-------------|
+| `predicate define` | Define a new relationship type |
+| `predicate list` | List defined predicates |
+| `predicate show` | Show predicate details |
+| `predicate update` | Update predicate metadata |
+| `predicate archive` | Archive a predicate (prevents new edges) |
+| `predicate restore` | Restore an archived predicate |
+
+### Edge Commands
+
+| Command | Description |
+|---------|-------------|
+| `edge add` | Create an edge between two entities |
+| `edge show` | Show edges for an entity (both directions) |
+| `edge list` | List edges filtered by predicate and type |
+| `edge remove` | Soft-delete an edge |
+| `edge restore` | Restore a removed edge |

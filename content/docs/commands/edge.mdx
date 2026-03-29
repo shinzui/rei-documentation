@@ -1,0 +1,108 @@
+---
+title: rei edge
+description: Create and manage typed relationships between entities
+icon: GitBranch
+---
+
+Edges create directed, typed relationships between any two entities. Each edge references a predicate that defines the relationship type.
+
+## Overview
+
+```bash
+# Create an edge
+rei edge add --from note_01abc --to link_01xyz --predicate summarizes
+
+# Show edges for an entity (both directions)
+rei edge show note_01abc
+
+# List edges by predicate
+rei edge list --predicate summarizes
+
+# Remove an edge
+rei edge remove edge_01def
+
+# Restore a removed edge
+rei edge restore edge_01def
+```
+
+## Subcommands
+
+### add
+
+Create an edge between two entities.
+
+```bash
+rei edge add --from ENTITY_ID --to ENTITY_ID --predicate KEY [options]
+```
+
+**Options:**
+- `-f, --from ENTITY_ID` — Source entity ID (required)
+- `-t, --to ENTITY_ID` — Target entity ID (required)
+- `-p, --predicate KEY` — Predicate key (required)
+- `-d, --description TEXT` — Optional per-edge annotation
+
+The entity type is extracted from the TypeID prefix (e.g. "note" from "note_01abc...").
+
+**Validation:**
+- The predicate must exist and not be archived
+- Source entity type must be allowed by the predicate's source-types constraint (if set)
+- Target entity type must be allowed by the predicate's target-types constraint (if set)
+- Duplicate edges (same source, target, and predicate) are rejected
+
+**Examples:**
+
+```bash
+# Note summarizes a link
+rei edge add --from note_01abc --to link_01xyz --predicate summarizes
+
+# Intention inspired by a disruption, with annotation
+rei edge add --from intention_01abc --to disruption_01xyz \
+  --predicate inspired-by --description "Sparked by recurring alerts"
+```
+
+### show
+
+Show edges for an entity, both outgoing and incoming.
+
+```bash
+rei edge show ENTITY_ID [options]
+```
+
+**Options:**
+- `-p, --predicate KEY` — Filter by predicate
+- `--json` — Output as JSON
+
+### list
+
+List edges with filters.
+
+```bash
+rei edge list --predicate KEY [options]
+```
+
+**Options:**
+- `-p, --predicate KEY` — Filter by predicate (required)
+- `--from-type TYPE` — Filter by source entity type
+- `--to-type TYPE` — Filter by target entity type
+- `--json` — Output as JSON
+
+### remove
+
+Soft-delete an edge.
+
+```bash
+rei edge remove EDGE_ID
+```
+
+### restore
+
+Restore a removed edge.
+
+```bash
+rei edge restore EDGE_ID
+```
+
+## Related Commands
+
+- [`rei predicate`](/docs/commands/predicate) — Define relationship types for edges
+- [`rei help edges`](/docs/guides/edges) — Detailed guide on edges and predicates

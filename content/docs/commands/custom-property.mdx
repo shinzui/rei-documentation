@@ -37,6 +37,7 @@ Custom properties support the following value types:
 | `path` | File path | reference file |
 | `url` | URL | documentation link |
 | `note` | Reference to a note entity | spec note, next action note |
+| `git-ref` | Git commit SHA or SHA range | deployed commit, change range |
 
 ## State Machine YAML Format
 
@@ -232,6 +233,9 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 
 - `--type-note` — Note reference type (value is a note ID)
 
+- `--type-git-ref` — Git commit reference type
+  - `--ref-format <format>` — Allowed format: `commit` (single SHA), `range` (SHA..SHA or SHA...SHA), or `any` (default)
+
 **Examples:**
 
 ```bash
@@ -266,6 +270,16 @@ rei custom-property create task-state \
 # Create a note reference property for cross-referencing
 rei custom-property create spec \
   --type-note \
+  -e intention
+
+# Create a git ref property for tracking deployed commits
+rei custom-property create deployed-commit \
+  --type-git-ref --ref-format commit \
+  -e intention
+
+# Create a git ref property that accepts commit ranges
+rei custom-property create change-range \
+  --type-git-ref --ref-format range \
   -e intention
 
 # Create a text property scoped to a category
@@ -321,6 +335,7 @@ rei custom-property show [KEY] [options]
 **Options:**
 - `--with-counts` — Include entity counts per state (state machine properties only)
 - `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
+- `--json` — Output as JSON
 
 > **FZF Support:** If the key is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available properties.
 
@@ -342,6 +357,48 @@ rei custom-property show workflow --category work
 
 **Notes:**
 - The `--with-counts` flag shows the number of entities currently in each state, useful for tracking WIP limits
+
+### entities
+
+List all entities that have a custom property set.
+
+```bash
+rei custom-property entities [KEY] [options]
+```
+
+**Arguments:**
+- `KEY` — Property key or ID (optional; launches FZF picker if omitted)
+
+**Options:**
+- `-v, --value <value>` — Filter to entities with this specific value
+- `-e, --entity-type <type>` — Filter by entity type (intention, habit, disruption, note, collection, link)
+- `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
+- `--json` — Output as JSON
+
+**Examples:**
+
+```bash
+# List all entities with the "priority" property set
+rei custom-property entities priority
+
+# Filter to a specific value
+rei custom-property entities priority --value high
+
+# Show only intentions
+rei custom-property entities workflow --entity-type intention
+
+# Disambiguate category-scoped property
+rei custom-property entities workflow --category work
+
+# JSON output for scripting
+rei custom-property entities priority --json
+```
+
+**Notes:**
+- Only active/non-archived entities are shown (active/future intentions, active habits, unresolved disruptions, etc.)
+- For state machine properties, entities are grouped by state and sorted by state order
+- For other property types, entities are shown in a flat list sorted by entity type and name
+- Only entity types in the property's allowed scope are queried
 
 ### archive
 

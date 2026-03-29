@@ -5,11 +5,50 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `efba3c1` (2026-03-24)
+**Last Source Commit Reviewed:** `c233cf02` (2026-03-29)
 
 ---
 
 ## Changelog
+
+### 2026-03-29
+
+**Reviewed commits:** `efba3c1` through `c233cf02`
+
+**New command pages:**
+- `commands/edge.mdx` — New edge command for creating typed relationships between entities
+- `commands/predicate.mdx` — New predicate command for defining reusable relationship types
+- `commands/dependency.mdx` — Dependency command (previously undocumented)
+
+**New guide pages:**
+- `guides/edges.mdx` — Edges and predicates guide (from help topic `edges.md`)
+
+**Updated command pages:**
+- `commands/category.mdx` — Added context association (`set-context`, `clear-context`), child defaults (`set-child-default`, `clear-child-default`), `--context` filter on `list`, `--json` on `show`
+- `commands/custom-property.mdx` — Added `git-ref` value type, `entities` subcommand, `--json` on `show`
+- `commands/help.mdx` — Added `edges` topic
+- `commands/intention.mdx` — `--json` no longer requires `--full`, TUI navigation improvements (vim jump/scroll keys)
+- `commands/habit.mdx` — `--json` no longer requires `--full`
+- `commands/collection.mdx` — Added `--json` on `show`
+- `commands/cycle.mdx` — Added `--json` on `show`
+- `commands/disruption.mdx` — Added `--json` on `show`
+- `commands/focus.mdx` — Added `--json` on `show`
+- `commands/link.mdx` — Added `--json` on `show`
+- `commands/note.mdx` — Added `--json` on `show`
+- `commands/reminder.mdx` — Added `--json` on `show`
+- `commands/support.mdx` — Added `--json` on `show`
+
+**Updated meta files:**
+- `commands/meta.json` — Added `dependency`, `edge`, `predicate` entries
+- `guides/meta.json` — Added `edges` entry
+
+**Features documented:**
+- First-class edges and predicates system for typed entity relationships
+- Category context association for life-area tagging
+- Category child defaults for automatic child intention categorization
+- `git-ref` custom property value type for tracking commits and ranges
+- `custom-property entities` subcommand for listing entities by property
+- `--json` flag added to all `show` commands across the CLI
 
 ### 2026-03-24
 

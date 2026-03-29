@@ -252,7 +252,7 @@ rei intention show [id] [options]
 
 **Options:**
 - `--full` — Show full details including actions, outcomes, blockers, notes
-- `--json` — Output as JSON (requires `--full`)
+- `--json` — Output as JSON
 
 > **FZF Support:** If ID is not provided, an interactive picker will let you select from active intentions.
 
@@ -340,10 +340,12 @@ rei intention tree --tui
 The `--tui` flag launches an interactive terminal UI for browsing the intention hierarchy:
 
 - **Navigation**: Use `j`/`k` or arrow keys to move up/down
+- **Jump**: Press `G` to jump to the end, `gg` to jump to the start
+- **Page scroll**: Press `Ctrl-d`/`Ctrl-u` for half-page down/up
 - **Filter**: Press `/` to enter filter mode, type to fuzzy-search by title
 - **View details**: Press `Enter` to open the full detail view for an intention
 - **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
-- **Add child**: Press `a` to open the child intention creation form
+- **Add child**: Press `a` to open the child intention creation form (ID auto-copied to clipboard)
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
 - **Close views**: Press `Esc` to close detail view or form, or cancel filter
 - **Quit**: Press `q` to exit

@@ -6,6 +6,47 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-03-29
+
+### New Commands: Edge and Predicate
+
+Edges create directed, typed relationships between any two entities in Rei. Predicates define the reusable relationship types that edges reference.
+
+- `rei predicate define summarizes --label "Summarizes" --source-types note --target-types link,note` — Define a relationship type with optional entity type constraints
+- `rei edge add --from note_01abc --to link_01xyz --predicate summarizes` — Create an edge between entities
+- `rei edge show note_01abc` — View edges for an entity (both directions)
+- `rei edge list --predicate summarizes` — List all edges of a given type
+
+### New Command: Dependency
+
+- `rei dependency add --from int_01abc --on int_01xyz` — Add a dependency between intentions
+- `rei dependency show int_01abc` — Show dependencies for an intention
+- `rei dependency blocked` — Show all blocked intentions
+
+### Category Enhancements
+
+- **Context association** — Categories can now have a context label (e.g., "work", "personal") for filtering and life-area organization
+  - `rei category create "Meeting" -p work -c work` — Create with context
+  - `rei category set-context work/meeting work` — Set context on existing category
+  - `rei category list --context work` — Filter by context
+- **Child defaults** — Categories can specify a default category for child intentions
+  - `rei category set-child-default initiative project` — Children of "initiative" intentions auto-get "project" category
+
+### Custom Property Enhancements
+
+- **`git-ref` value type** — Track git commit SHAs or SHA ranges as property values
+  - `rei custom-property create deployed-commit --type-git-ref --ref-format commit -e intention`
+- **`rei custom-property entities`** — List all entities that have a specific property set, with optional value and type filters
+
+### Feature Enhancements
+
+- **`--json` on all `show` commands** — JSON output is now available on `show` subcommands across `intention`, `habit`, `collection`, `cycle`, `disruption`, `focus`, `link`, `note`, `reminder`, `support`, `dependency`, and `custom-property`
+- **`rei intention show --json`** — No longer requires `--full` flag
+- **`rei habit show --json`** — No longer requires `--full` flag
+- **Tree TUI navigation** — Added `G`/`gg` for jump to end/start, `Ctrl-d`/`Ctrl-u` for half-page scroll, and auto-clipboard on child creation
+
+---
+
 ## 2026-03-24
 
 ### Feature Enhancements
