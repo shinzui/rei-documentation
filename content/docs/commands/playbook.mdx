@@ -1,0 +1,186 @@
+---
+title: rei playbook
+description: Run named, parameterized sequences of Rei operations from YAML definitions
+icon: ScrollText
+---
+
+Playbooks are named, parameterized sequences of Rei operations stored as YAML files
+in your workspace. They codify multi-step property mutations into a single command.
+
+## Overview
+
+A playbook defines:
+- **Parameters** — typed inputs the user provides at run time
+- **Steps** — ordered actions to execute (`set-property` and `run-command`)
+
+Each execution goes through multi-phase validation:
+1. **Schema validation** — verifies property keys exist, entity types are allowed, literal values are valid, and run-command steps are permitted
+2. **Parameter validation** — checks required parameters are provided and values match declared types
+3. **Interactive resolution** — missing entity-ref parameters trigger FZF picker when available
+
+## YAML Schema
+
+Playbook files live in `<workspace>/playbooks/` with a `.yaml` extension.
+
+```yaml
+name: move-to-planning
+description: Move a project to the planning phase with analysis doc
+parameters:
+  initiative-id:
+    kind: entity-ref
+    entity-type: intention
+    description: The initiative to move to planning
+    required: true
+  analysis-doc:
+    kind: property-value
+    property: local-path
+    description: Path to the analysis document
+    required: true
+steps:
+  - action: set-property
+    entity-type: intention
+    entity-id: "{{initiative-id}}"
+    property: version-phase
+    value: planning
+    description: Transition version-phase to planning
+  - action: set-property
+    entity-type: intention
+    entity-id: "{{initiative-id}}"
+    property: local-path
+    value: "{{analysis-doc}}"
+    description: Set analysis doc path
+```
+
+### Parameter Types
+
+| Kind | YAML `kind` | Description |
+|------|-------------|-------------|
+| Entity Reference | `entity-ref` | References an entity by type (intention, habit, note, disruption, collection, link). Requires `entity-type` field. |
+| Property Value | `property-value` | Bound to a custom property key. Inherits type and validation rules. Requires `property` field. |
+| Text | `text` | Untyped text value. Escape hatch for values that don't map to properties. |
+
+### Step Values
+
+Step `entity-id` and `value` fields support:
+- **Literals** — e.g., `planning` — validated at schema time against the property type
+- **Parameter references** — e.g., `{{initiative-id}}` — validated at run time
+
+### Step Actions
+
+| Action | Description |
+|--------|-------------|
+| `set-property` | Set a custom property on an entity. Fields: `entity-type`, `entity-id`, `property`, `value`, `force` (optional, default false). |
+| `run-command` | Execute an external program. Fields: `command` (program name), `args` (argument list), `working-directory` (optional). Requires `playbooks.run-commands-allowed: true` in `config.yaml`. |
+
+#### run-command Example
+
+```yaml
+steps:
+  - action: run-command
+    command: echo
+    args:
+      - "Playbook executed for"
+      - "{{initiative-id}}"
+    description: Log execution
+```
+
+Arguments support parameter references (`{{param}}`) just like set-property values. The command
+is executed with `proc` (argument-list form, no shell injection). Exit code 0 = success.
+
+## CLI Commands
+
+### List playbooks
+
+```bash
+rei playbook list
+```
+
+Shows all available playbooks in the workspace with their descriptions.
+
+### Show playbook details
+
+```bash
+rei playbook show <name>
+```
+
+Displays parameters (with types and requirements) and steps for a playbook.
+
+### Validate playbook schema
+
+```bash
+rei playbook validate <name>
+```
+
+Validates the playbook definition against current property definitions. Checks that
+all referenced property keys exist, entity types are allowed, and literal values parse
+correctly. Requires database access.
+
+### Run a playbook
+
+```bash
+rei playbook run <name> --param key=value [--param key=value ...] [--dry-run] [--force]
+```
+
+Options:
+- `--param KEY=VALUE` / `-p KEY=VALUE` — provide a parameter value (repeatable)
+- `--dry-run` — validate against live entity state without executing
+- `--force` — bypass state machine transition guards
+
+When a required `entity-ref` parameter is not provided via `--param`, an FZF picker
+opens for that entity type (intentions, habits, notes, links). If FZF is unavailable
+or the user cancels, parameter validation reports the missing parameter.
+
+#### Dry-run output
+
+Dry-run queries the current property values and validates transitions:
+
+```
+Dry-run results:
+  Step 1: version-phase: draft -> planning (valid)
+  Step 2: local-path: (not set) -> /docs/analysis.md (valid)
+```
+
+For run-command steps, dry-run shows the command preview without executing:
+
+```
+  Step 3: run-command: echo Playbook executed for intention_01abc... (valid)
+```
+
+### View execution history
+
+```bash
+rei playbook history [--playbook <name>]
+```
+
+Shows recent playbook executions with status, step counts, and timestamps.
+Every playbook run writes execution events to the message store; the subscription
+handler materializes them into the `playbook_executions` read model.
+
+## Execution Behavior
+
+### Stop-on-failure
+
+Steps execute sequentially. If a step fails, remaining steps are **skipped** — not
+executed. The output reports which steps succeeded, which failed, and which were skipped:
+
+```
+  Step 1: Set version-phase = planning
+  Step 2 FAILED: Validation error: Cannot leave terminal state 'done'
+  Step 3: skipped
+Playbook failed: 1/3 steps succeeded, 1 skipped
+```
+
+Already-committed steps cannot be rolled back. Use `rei playbook history` to see
+partial-completion details.
+
+### Security: run-command gate
+
+Shell commands via `run-command` are **disabled by default**. To enable, add the
+following to your `config.yaml`:
+
+```yaml
+playbooks:
+  run-commands-allowed: true
+```
+
+Without this flag, any playbook containing `run-command` steps will fail schema validation.

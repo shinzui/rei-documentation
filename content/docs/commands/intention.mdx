@@ -343,7 +343,7 @@ The `--tui` flag launches an interactive terminal UI for browsing the intention 
 - **Jump**: Press `G` to jump to the end, `gg` to jump to the start
 - **Page scroll**: Press `Ctrl-d`/`Ctrl-u` for half-page down/up
 - **Filter**: Press `/` to enter filter mode, type to fuzzy-search by title
-- **View details**: Press `Enter` to open the full detail view for an intention
+- **View details**: Press `Enter` to open the full detail view for an intention (see Detail View below)
 - **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
 - **Add child**: Press `a` to open the child intention creation form (ID auto-copied to clipboard)
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
@@ -379,6 +379,28 @@ Use `Tab` to move between fields, `Enter` to create the intention, and `Esc` to 
 - Status indicators (e.g., `(future)`, `(dormant)`)
 
 The TUI works with all tree variants (active, future, completed, all) and respects context filtering.
+
+**Detail View:**
+
+Pressing `Enter` on an intention opens a scrollable detail view showing all information from `intention show --full`:
+
+- **Header**: Title, status (with dormant indicator), creation date, context, horizon, deadline (color-coded by urgency), category, focus area (with inherited marker), dormancy date, and active days count
+- **Hierarchy**: Parent intention and child intentions
+- **Overview**: Designated overview note if set
+- **Actions**: All recorded actions with dates
+- **Outcomes**: Recorded outcomes with dates
+- **Blockers**: Active and resolved blockers with status icons
+- **Dependencies**: Active and inactive dependency relationships
+- **Supports**: Outgoing support relationships (what this intention helps)
+- **Supported By**: Incoming support relationships (what helps this intention)
+- **Notes**: All attached notes
+- **Links**: External URLs with optional titles
+- **Tasks**: Pending and completed tasks
+- **Linked Habits**: Associated habits with status
+- **Reminders**: Active and past reminders with status icons and snooze counts
+- **Properties**: Custom property values formatted by type
+
+Scroll with `j`/`k`, press `o` to open notes, press `Esc` to return to the tree.
 
 **Clipboard support:** The `y` key copies to clipboard using `pbcopy` (macOS), `wl-copy` (Wayland), or `xclip` (X11). A confirmation message appears in the footer.
 

@@ -5,11 +5,32 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `c233cf02` (2026-03-29)
+**Last Source Commit Reviewed:** `a1c9eef8` (2026-03-29)
 
 ---
 
 ## Changelog
+
+### 2026-03-29
+
+**Reviewed commits:** `34029bf7` through `a1c9eef8`
+
+**Updated command pages:**
+- `commands/intention.mdx` — Added TUI detail view documentation (all FullView sections: header, hierarchy, actions, outcomes, blockers, dependencies, supports, notes, links, tasks, habits, reminders, properties)
+- `commands/playbook.mdx` — Fixed run-command config location (`playbooks.run-commands-allowed` in `config.yaml` instead of `runCommandsAllowed` in workspace config)
+- `commands/today.mdx` — Updated TUI mode with specific keybindings and detail view cross-reference
+
+### 2026-03-29
+
+**Reviewed commits:** `c233cf02` through `34029bf7`
+
+**New command pages:**
+- `commands/playbook.mdx` — Playbook command for running named, parameterized YAML automation sequences
+
+**No documentation changes needed:**
+- `9bcd49ff` Add UUID property value type — no user-facing doc changes in `docs/user/cli/`
+- `34029bf7` Enhance TUI intention detail view — TUI-only change, no CLI doc impact
+- Plan files (`docs/plans/`) are not synced to documentation site
 
 ### 2026-03-29
 

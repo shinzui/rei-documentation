@@ -8,6 +8,28 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-03-29
 
+### TUI Detail View
+
+The intention tree TUI (`rei intention tree --tui`) now shows a comprehensive detail view when pressing `Enter` on an intention. The detail view displays all sections from `intention show --full` including hierarchy, actions, outcomes, blockers, dependencies, supports, notes, links, tasks, linked habits, reminders, and custom properties. The today TUI (`rei today --tui`) also supports opening intention detail views.
+
+### New Command: Playbook
+
+Playbooks are named, parameterized sequences of Rei operations stored as YAML files. They codify multi-step property mutations into a single command with typed parameters and validation.
+
+- `rei playbook list` — List available playbooks in the workspace
+- `rei playbook show <name>` — Display parameters and steps for a playbook
+- `rei playbook validate <name>` — Validate a playbook against current property definitions
+- `rei playbook run <name> --param key=value` — Execute a playbook with parameters
+- `rei playbook run <name> --dry-run` — Validate against live entity state without executing
+- `rei playbook history` — View recent playbook execution history
+
+Key features:
+- **Typed parameters** — `entity-ref`, `property-value`, and `text` parameter kinds
+- **`run-command` action** — Execute external programs as playbook steps (gated by workspace config)
+- **FZF interactive pickers** — Missing entity-ref parameters trigger interactive selection
+- **Stop-on-failure** — First failing step halts execution; remaining steps are skipped
+- **Execution history** — Event-sourced history with status and step diagnostics
+
 ### New Commands: Edge and Predicate
 
 Edges create directed, typed relationships between any two entities in Rei. Predicates define the reusable relationship types that edges reference.

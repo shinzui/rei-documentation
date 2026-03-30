@@ -36,6 +36,7 @@
 		"agent-schedule",
 		"checkpoint",
 		"template",
+		"playbook",
 		"help",
 		"system",
 		"subscription",
