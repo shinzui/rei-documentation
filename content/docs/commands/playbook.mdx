@@ -105,6 +105,19 @@ rei playbook show <name>
 
 Displays parameters (with types and requirements) and steps for a playbook.
 
+### Edit a playbook
+
+```bash
+rei playbook edit <name>
+```
+
+Opens the playbook in `$EDITOR`. If the file does not exist yet, a scaffold YAML is
+created first with a starter template. After the editor closes, the file is
+automatically committed to git (if enabled).
+
+This is the recommended way to create new playbooks — run `rei playbook edit my-new-playbook`
+and fill in the scaffold.
+
 ### Validate playbook schema
 
 ```bash
@@ -184,3 +197,21 @@ playbooks:
 ```
 
 Without this flag, any playbook containing `run-command` steps will fail schema validation.
+
+## Git Integration
+
+Playbook YAML files are automatically committed to git through two paths:
+
+1. **On edit** — `rei playbook edit <name>` commits the file after the editor closes
+2. **On run** — `rei playbook run <name>` commits untracked or modified playbook files before execution, catching manually-created playbooks
+
+### Configuration
+
+Git auto-commit for playbooks is enabled by default. To disable, add to your `config.yaml`:
+
+```yaml
+git:
+  commit_playbooks: false
+```
+
+This requires the master `git.enabled` switch to also be `true` (the default).

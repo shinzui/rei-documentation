@@ -6,6 +6,28 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-04-04
+
+### New Guide: Kit
+
+The kit system distributes Claude Code skills and subagents from the `rei-kit` GitHub repository so they can be installed, updated, and removed independently of Rei binary releases.
+
+- `rei kit list` — List available skills and agents
+- `rei kit install <name>` — Install to user scope (all projects)
+- `rei kit install <name> --project` — Install to project scope (current project only)
+- `rei kit update` — Pull latest versions and re-install
+- `rei kit uninstall <name>` — Remove an installed skill or agent
+- `rei kit status` — Show installed items with type and scope
+
+### Playbook Enhancements
+
+- **`rei playbook edit <name>`** — Opens a playbook in `$EDITOR` with scaffold generation for new playbooks and automatic git commit on save
+- **Git auto-commit** — Playbook files are automatically committed on edit and before execution. Controlled by `git.commit_playbooks` in `config.yaml`
+
+### Category-Qualified Property Filters
+
+- **`category/key` filter syntax** — When the same property key exists on multiple categories, use `--where "work/priority=high"` or `--where "health/status:exists"` to filter by a specific category's property. Works with all filter operators
+
 ## 2026-03-29
 
 ### TUI Detail View

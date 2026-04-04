@@ -1,0 +1,103 @@
+---
+title: Kit
+description: Install, update, and manage distributable Claude Code skills and agents from the rei-kit registry
+icon: Package
+---
+
+The kit system distributes Claude Code skills and subagents from a
+separate GitHub repository (`rei-kit`) so they can be installed, updated,
+and removed independently of Rei binary releases.
+
+## Quick Start
+
+```bash
+# List available skills and agents
+rei kit list
+
+# Install a skill (user scope, available in all projects)
+rei kit install rei-bootstrap
+
+# Install to project scope (only this project)
+rei kit install rei-bootstrap --project
+
+# Check what is installed
+rei kit status
+
+# Pull latest versions and re-install
+rei kit update
+
+# Remove an installed skill
+rei kit uninstall rei-bootstrap
+```
+
+## Scopes
+
+Kit supports two installation scopes:
+
+### User Scope (default)
+
+Installed to `~/.config/rei/agents/.claude/skills/<name>/`.
+Available in every project when using `rei agent`.
+
+### Project Scope (`--project` flag)
+
+Installed to `.rei/agents/.claude/skills/<name>/`.
+Available only in the current project directory. Can be
+version-controlled by committing the `.rei/agents/` directory.
+
+Both scopes are checked automatically when starting any agent session
+(`rei agent`, `rei agent assist`, intention-scoped sessions, etc.).
+
+## How It Works
+
+The kit command maintains a local cache of the `rei-kit` GitHub
+repository at `~/.cache/rei/kit/`. On first use, the repo is
+shallow-cloned. Subsequent operations pull the latest changes.
+
+The repository contains a `kit.json` manifest that lists all available
+skills and agents with their descriptions and file paths. The `install`
+command copies the relevant files from the cache into the appropriate
+scope directory.
+
+When `rei agent` starts a Claude Code session, it passes both scope
+directories via `--add-dir`. Claude Code then auto-discovers any
+`.claude/skills/` and `.claude/agents/` within those directories, making
+installed skills available as slash commands and subagents.
+
+## Offline Use
+
+If a git pull fails (no network), the kit command falls back to the
+cached repository data and prints a warning. As long as the cache
+exists (`~/.cache/rei/kit/`), all commands continue to work offline.
+
+The cache is disposable: delete `~/.cache/rei/kit/` and it will be
+re-cloned on next use.
+
+## Commands
+
+### `rei kit list`
+
+Fetch (or update) the registry and show all available skills and
+agents with their descriptions.
+
+### `rei kit install <name> [--project]`
+
+Install a skill or agent. By default installs to user scope. Use
+`--project` to install to the current project directory instead.
+Re-installing overwrites existing files with the latest version.
+
+### `rei kit update [<name>]`
+
+Pull the latest registry and re-install all installed items. If a
+name is given, only that item is re-installed.
+
+### `rei kit uninstall <name> [--project]`
+
+Remove an installed skill or agent. By default removes from user
+scope. Use `--project` for project scope. Uninstalling something
+that is not installed prints a message but does not fail.
+
+### `rei kit status`
+
+Show all installed items with their type (skill or agent) and
+scope (user or project).

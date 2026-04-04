@@ -5,11 +5,25 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `a1c9eef8` (2026-03-29)
+**Last Source Commit Reviewed:** `6b2dfdcc` (2026-04-04)
 
 ---
 
 ## Changelog
+
+### 2026-04-04
+
+**Reviewed commits:** `a1c9eef8` through `6b2dfdcc`
+
+**New guide pages:**
+- `guides/kit.mdx` — Kit guide for distributable skill and agent registry (from help topic `kit.md`)
+
+**Updated command pages:**
+- `commands/intention.mdx` — Added category-qualified property filter syntax (`category/key=value`) for disambiguating keys shared across multiple categories
+- `commands/playbook.mdx` — Added `edit` subcommand and git integration section (auto-commit on edit/run, `git.commit_playbooks` config)
+
+**Updated website changelog:**
+- Added entries for kit guide, playbook edit/git integration, and category-qualified property filters
 
 ### 2026-03-29
 

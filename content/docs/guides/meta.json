@@ -20,6 +20,7 @@
 		"edges",
 		"disruptions",
 		"templates",
-		"time-formats"
+		"time-formats",
+		"kit"
 	]
 }

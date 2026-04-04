@@ -180,6 +180,10 @@ rei intention list --group-by status --context work
 
 # Combine grouping with filters
 rei intention list --where "effort>=3" --group-by priority
+
+# Category-qualified property filter (when same key exists in multiple categories)
+rei intention list --where "work/priority:exists"
+rei intention list --where "work/priority=high"
 ```
 
 The `--format=fzf` output is designed for shell scripting and fzf widgets. Each line contains: `ID<tab>title<tab>horizon`
@@ -192,6 +196,7 @@ The `--format=fzf` output is designed for shell scripting and fzf widgets. Each 
 - `key any label1,label2` — LabelSet membership: has any of the listed labels
 - `key all label1,label2` — LabelSet membership: has all of the listed labels
 - `key:tag=value` — State machine tag query
+- `category/key=value` — Category-qualified filter (for disambiguating keys shared across multiple categories)
 
 **State Tag Filter:**
 
