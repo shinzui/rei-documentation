@@ -8,6 +8,23 @@ Track documentation updates synchronized from the rei source repository.
 
 ## 2026-04-04
 
+### New Command: Kit
+
+The `rei kit` command manages distributable Claude Code skills and subagents from the rei-kit registry. Skills and agents can be installed, updated, and removed independently of Rei binary releases.
+
+- `rei kit list` — List available skills and agents
+- `rei kit install <name>` — Install to user scope (all projects)
+- `rei kit install <name> --project` — Install to project scope
+- `rei kit update` — Pull latest versions and re-install
+- `rei kit uninstall <name>` — Remove an installed skill or agent
+- `rei kit status` — Show installed items with type and scope
+
+### Feature Enhancements
+
+- **`rei doc`** — `doc add` and `doc attach --copy` now automatically commit files to the workspace git repository
+- **`rei edge list`** — `--predicate` is now optional; when omitted and fzf is available, an interactive picker shows all active predicates with labels and type constraints
+- **`rei intention tree --tui`** — Filter mode improved: press `Enter` to accept filter and browse filtered results with all standard commands; press `Esc` to restore the full tree. Detail view now supports `a` (add child) and `y` (yank ID) shortcuts
+
 ### New Guide: Kit
 
 The kit system distributes Claude Code skills and subagents from the `rei-kit` GitHub repository so they can be installed, updated, and removed independently of Rei binary releases.

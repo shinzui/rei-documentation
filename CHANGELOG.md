@@ -5,11 +5,26 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `6b2dfdcc` (2026-04-04)
+**Last Source Commit Reviewed:** `59f0edd5` (2026-04-04)
 
 ---
 
 ## Changelog
+
+### 2026-04-04 (2)
+
+**Reviewed commits:** `6b2dfdcc` through `59f0edd5`
+
+**New command pages:**
+- `commands/kit.mdx` — Kit command for managing distributable Claude Code skills and subagents from the rei-kit registry
+
+**Updated command pages:**
+- `commands/doc.mdx` — Added auto-commit note for `doc add` and `doc attach --copy`
+- `commands/edge.mdx` — `--predicate` is now optional on `edge list` with FZF picker support
+- `commands/intention.mdx` — Updated tree TUI filter mode (accept filter with Enter, browse filtered results) and detail view shortcuts (`a` to add child, `y` to yank ID)
+
+**Updated website changelog:**
+- Added entries for kit command, doc auto-commit, edge FZF picker, and TUI filter/detail enhancements
 
 ### 2026-04-04
 

@@ -77,14 +77,16 @@ rei edge show ENTITY_ID [options]
 List edges with filters.
 
 ```bash
-rei edge list --predicate KEY [options]
+rei edge list [--predicate KEY] [options]
 ```
 
 **Options:**
-- `-p, --predicate KEY` — Filter by predicate (required)
+- `-p, --predicate KEY` — Filter by predicate (optional if fzf is available)
 - `--from-type TYPE` — Filter by source entity type
 - `--to-type TYPE` — Filter by target entity type
 - `--json` — Output as JSON
+
+> **FZF Support:** If `--predicate` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker shows all active predicates with their labels and type constraints.
 
 ### remove
 

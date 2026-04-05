@@ -363,8 +363,10 @@ Press `/` to enter filter mode. As you type, the list filters in real-time using
 - Matched characters are highlighted in yellow
 - Match count shows as `(3/15)` in the filter bar
 - Navigate with `j`/`k` while filtering
-- Press `Enter` to view details (filter persists when returning)
-- Press `Esc` to clear the filter and show all intentions
+- Press `Enter` to accept the filter and return to browse mode with filtered results
+- In filtered browse mode, all standard commands work: `Enter` (details), `a` (add child), `y` (yank ID), `/` (refine filter with previous query pre-filled)
+- Press `Esc` to clear the filter and restore the full tree
+- Press `q` to quit immediately (even with an active filter)
 
 **Child Intention Creation Form:**
 
@@ -405,7 +407,7 @@ Pressing `Enter` on an intention opens a scrollable detail view showing all info
 - **Reminders**: Active and past reminders with status icons and snooze counts
 - **Properties**: Custom property values formatted by type
 
-Scroll with `j`/`k`, press `o` to open notes, press `Esc` to return to the tree.
+Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy) the ID to clipboard, press `o` to open notes, press `Esc` to return to the tree.
 
 **Clipboard support:** The `y` key copies to clipboard using `pbcopy` (macOS), `wl-copy` (Wayland), or `xclip` (X11). A confirmation message appears in the footer.
 

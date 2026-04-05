@@ -1,0 +1,100 @@
+---
+title: rei kit
+description: Manage distributable Claude Code skills and subagents from the rei-kit registry
+icon: Package
+---
+
+Manage distributable Claude Code skills and subagents from the rei-kit registry. Skills and agents can be installed, updated, and removed independently of Rei binary releases.
+
+## Subcommands
+
+### list
+
+Fetch (or update) the registry and show all available skills and agents with their descriptions.
+
+```bash
+rei kit list
+```
+
+### install
+
+Install a skill or agent.
+
+```bash
+rei kit install <name> [--project]
+```
+
+**Arguments:**
+- `<name>` — Name of the skill or agent to install (required)
+
+**Options:**
+- `--project` — Install to project scope (`.rei/agents/`) instead of user scope
+
+Re-installing overwrites existing files with the latest version.
+
+**Examples:**
+
+```bash
+# Install to user scope (available in all projects)
+rei kit install rei-bootstrap
+
+# Install to project scope (only this project)
+rei kit install rei-bootstrap --project
+```
+
+### update
+
+Pull the latest registry and re-install installed items.
+
+```bash
+rei kit update [<name>]
+```
+
+**Arguments:**
+- `[name]` — Name of a specific item to update (optional; default: all installed items)
+
+### uninstall
+
+Remove an installed skill or agent.
+
+```bash
+rei kit uninstall <name> [--project]
+```
+
+**Arguments:**
+- `<name>` — Name of the skill or agent to uninstall (required)
+
+**Options:**
+- `--project` — Uninstall from project scope instead of user scope
+
+### status
+
+Show all installed items with their type (skill or agent) and scope (user or project).
+
+```bash
+rei kit status
+```
+
+## Scopes
+
+Kit supports two installation scopes:
+
+**User scope** (default):
+- Installed to `~/.config/rei/agents/.claude/skills/<name>/`
+- Available in every project when using `rei agent`
+
+**Project scope** (`--project` flag):
+- Installed to `.rei/agents/.claude/skills/<name>/`
+- Available only in the current project directory
+- Can be version-controlled by committing the `.rei/agents/` directory
+
+Both scopes are checked automatically when starting any agent session.
+
+## Offline Use
+
+If a git pull fails (no network), kit falls back to the cached repository at `~/.cache/rei/kit/` and prints a warning. The cache is disposable — delete it and it will be re-cloned on next use.
+
+## Related Commands
+
+- [`rei kit` guide](/docs/guides/kit) — Detailed guide on the kit system
+- [`rei agent`](/docs/commands/agent) — Start agent sessions that use installed skills
