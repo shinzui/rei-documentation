@@ -407,7 +407,19 @@ Pressing `Enter` on an intention opens a scrollable detail view showing all info
 - **Reminders**: Active and past reminders with status icons and snooze counts
 - **Properties**: Custom property values formatted by type
 
-Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy) the ID to clipboard, press `o` to open notes, press `Esc` to return to the tree.
+**Edit Custom Properties:**
+
+Press `p` in the detail view to edit a custom property on the selected intention (requires FZF). The TUI suspends and presents an FZF picker to choose a property, then prompts for a value based on the property type:
+
+- **Enum**: FZF picker with available values
+- **State machine**: FZF picker showing normal transitions and `[force]` entries that bypass transition rules
+- **Label set**: FZF multi-select picker for labels
+- **Bool**: FZF picker with true/false
+- **Free-form types** (text, number, date, URL): Text input prompt
+
+A `(clear)` option is available to remove the property value. After changes, the detail view refreshes to reflect the update.
+
+Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy) the ID to clipboard, press `o` to open notes, press `p` to edit a custom property, press `Esc` to return to the tree.
 
 **Clipboard support:** The `y` key copies to clipboard using `pbcopy` (macOS), `wl-copy` (Wayland), or `xclip` (X11). A confirmation message appears in the footer.
 

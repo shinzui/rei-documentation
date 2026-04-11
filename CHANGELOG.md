@@ -5,11 +5,22 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `59f0edd5` (2026-04-04)
+**Last Source Commit Reviewed:** `35cc300c` (2026-04-11)
 
 ---
 
 ## Changelog
+
+### 2026-04-11
+
+**Reviewed commits:** `59f0edd5` through `35cc300c`
+
+**Updated command pages:**
+- `commands/disruption.mdx` — Added `action list` subcommand for listing all recorded actions for a disruption
+- `commands/intention.mdx` — Added custom property editing (`p` key) in tree TUI detail view with type-specific FZF pickers
+
+**Updated website changelog:**
+- Added entries for disruption action list and tree TUI property editing
 
 ### 2026-04-04 (2)
 

@@ -389,6 +389,35 @@ rei disruption note list redis-timeouts
 rei disruption note list redis-timeouts --json
 ```
 
+### action list
+
+List all recorded actions for a disruption.
+
+```bash
+rei disruption action list [SOURCE] [--json]
+```
+
+**Arguments:**
+- `[SOURCE]` — Disruption source identifier (optional if fzf is available)
+
+**Options:**
+- `--json` — Output as JSON
+
+> **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
+
+**Examples:**
+
+```bash
+# List actions for a disruption
+rei disruption action list redis-timeouts
+
+# Output as JSON
+rei disruption action list redis-timeouts --json
+
+# Use FZF to select
+rei disruption action list
+```
+
 ### action update-occurred-at
 
 Update when a disruption action occurred.
