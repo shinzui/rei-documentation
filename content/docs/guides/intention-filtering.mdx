@@ -96,13 +96,14 @@ rei intention list --where "priority:missing"
 - `key:exists` matches any intention that has the specified property assigned, regardless of its value
 - `key:missing` matches intentions that do not have the property set
 
-### LabelSet Membership
+### LabelSet / TagSet Membership
 
-Filter by label-set property membership using `any` (has any of) or `all` (has all of) operators:
+Filter by label-set or tag-set property membership using `any` (has any of) or `all` (has all of) operators. The same syntax applies to both property types:
 
 ```bash
-rei intention list --where "tags any bug,feature"   # Has any of the labels
+rei intention list --where "tags any bug,feature"     # Has any of the labels
 rei intention list --where "tags all urgent,blocking" # Has all of the labels
+rei intention list --where "topics any haskell,rust"  # Same syntax for tag-set
 ```
 
 ### State Machine Tag Query

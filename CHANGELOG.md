@@ -5,11 +5,30 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `35cc300c` (2026-04-11)
+**Last Source Commit Reviewed:** `095bdcd7` (2026-04-12)
 
 ---
 
 ## Changelog
+
+### 2026-04-12
+
+**Reviewed commits:** `84ae32e0` through `095bdcd7`
+
+**Updated help topic guides:**
+- `guides/custom-properties.mdx` — Added `git-ref`, `uuid`, and `tag-set` value types; tag-set creation, assignment, and filtering examples; updated condition `~` operator description to cover tag-set
+- `guides/intention-filtering.mdx` — Generalised `any`/`all` membership section to cover both label-set and tag-set properties
+
+**Updated command pages:**
+- `commands/custom-property.mdx` — Added `--type-tag-set` to value types, create options, and examples; generalised LabelSet filtering section to LabelSet / TagSet
+- `commands/link.mdx` — Documented inline `-p KEY=VALUE` custom properties and `--no-prompt-properties` on `link add`; interactive property walk; `--where` filter on `link list` with full operator set and compose notes
+- `commands/note.mdx` — Documented the previously undocumented `-w, --where` flag on `note list` with the full operator set and anchor-composition note
+- `commands/habit.mdx` — Expanded Property Filter Syntax to the full unified operator set (`:exists`, `:missing`, `:tag=`, `any`, `all`, `category/key=`) with examples
+- `commands/disruption.mdx` — Same Property Filter Syntax expansion for `disruption list`
+- `commands/intention.mdx` — Generalised `any`/`all` descriptions to cover tag-set; added fzf-style extended filter syntax table for the tree TUI filter mode
+
+**Updated website changelog:**
+- Added 2026-04-12 entry covering tag-set property type, link list `--where`, link add inline properties, tree TUI fzf-style filter, and the habit/disruption/note --where operator expansion
 
 ### 2026-04-11
 

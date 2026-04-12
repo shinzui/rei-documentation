@@ -38,6 +38,7 @@ Custom properties support the following value types:
 | `url` | URL | documentation link |
 | `note` | Reference to a note entity | spec note, next action note |
 | `git-ref` | Git commit SHA or SHA range | deployed commit, change range |
+| `tag-set` | Free-form set of tags (no predeclared values) | topics, keywords |
 
 ## State Machine YAML Format
 
@@ -236,6 +237,9 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 - `--type-git-ref` — Git commit reference type
   - `--ref-format <format>` — Allowed format: `commit` (single SHA), `range` (SHA..SHA or SHA...SHA), or `any` (default)
 
+- `--type-tag-set` — Free-form tag set (no predeclared values)
+  - No options. Tags are provided at assignment time as a comma-separated list and validated per-tag (must be non-empty after trim, no newlines). Unlike `--type-label-set`, there is no allowed-values list on the definition, so no `add-label` / `remove-label` evolution commands apply.
+
 **Examples:**
 
 ```bash
@@ -287,6 +291,18 @@ rei custom-property create client-notes \
   --type-text --max-length 1000 \
   -e intention \
   -c work
+
+# Create a free-form tag set property for topics on notes
+rei custom-property create topics \
+  --type-tag-set \
+  -e note \
+  --label "Topics"
+
+# Assign tags at value-set time (comma-separated)
+rei note set-property NOTE_ID topics "haskell,event-sourcing,decider"
+
+# Filter by any/all using the same operators as label-set
+rei note list --where "topics any haskell,rust"
 ```
 
 **Notes:**
@@ -908,12 +924,12 @@ rei intention list --where "effort>=5"
 rei habit list --where "effort<3"
 ```
 
-### LabelSet Filtering
+### LabelSet / TagSet Filtering
 
-LabelSet properties support two special operators for filtering:
+Label-set and tag-set properties support two special operators for filtering:
 
-- `any` — Match entities that have **any** of the specified labels
-- `all` — Match entities that have **all** of the specified labels
+- `any` — Match entities that have **any** of the specified values
+- `all` — Match entities that have **all** of the specified values
 
 ```bash
 # Find intentions with any of the specified areas

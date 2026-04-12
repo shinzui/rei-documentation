@@ -28,6 +28,8 @@ rei link add <url> [options]
 - `-r, --reflection <id>` — Attach to reflection
 - `-t, --title <title>` — Link title (optional)
 - `--actor <actor>` — Actor that created this link (optional)
+- `-p, --property KEY=VALUE` — Set a custom property on the new link (repeatable)
+- `--no-prompt-properties` — Skip the interactive property walk after creating the link
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -50,6 +52,33 @@ rei link add https://pr-url.com -i intention_01h455vb4pex -a action_01h455vb4pex
 rei link add https://github.com/user/repo -i intention_01h789abc
 ```
 
+#### Setting custom properties while adding
+
+You can set custom properties inline when adding a link so you don't have to follow up with `rei link set-property`.
+
+**Non-interactive (scripting / pipelines):** pass one or more `-p KEY=VALUE` flags. Each pair is applied after the link is created; validation errors are reported per-property and do not prevent the link from being created.
+
+```bash
+rei link add https://example.com/article \
+    -i intention_01h455vb4pex \
+    -p status=unread \
+    -p priority=high
+```
+
+A malformed `-p` argument (e.g. missing `=`) fails at parse time with `expected KEY=VALUE (non-empty KEY, '=' separator)`, and no link is created.
+
+**Interactive walk:** if `-p` is not supplied (or only partially supplied) and your shell is a TTY with `fzf` available, `rei link add` walks through every custom property that lists `link` in its allowed entity types after the link is created, prompting for each one. Constrained types (enum, state machine, label set, bool) use an FZF picker; free-form types (text, int, float, date, url, etc.) use a text prompt. Press Esc (or submit empty input) to skip a property.
+
+```bash
+rei link add https://example.com/article -i intention_01h455vb4pex
+# ... link is created, then:
+#   Found 2 custom properties for links. Press Esc on any to skip.
+#   status   > (FZF picker)
+#   priority > (FZF picker)
+```
+
+To suppress the interactive walk entirely, pass `--no-prompt-properties`. The walk is also automatically skipped when stdin is not a TTY or `fzf` is unavailable, so piped invocations never block on input.
+
 ### list
 
 List links for an entity or across all entities.
@@ -69,6 +98,7 @@ rei link list [options]
 - `--tree` — Recursively include links from descendant intentions and their notes (with `-i`)
 - `--include-removed` — Include removed links (with `--all`)
 - `--json` — Output as JSON (with `--all`)
+- `-w, --where FILTER` — Filter by custom property value (repeatable, AND semantics; see "Filter by custom property" below)
 
 > **FZF Support:** If no anchor is specified and fzf is available, an interactive picker will let you select an entity. Press **Ctrl-F** to toggle between active intentions only and all intentions (including future).
 
@@ -93,6 +123,54 @@ rei link list --all --query "haskell"
 # Recursively gather links from an intention and all its descendants
 rei link list --tree -i intention_01h455vb4pex
 ```
+
+#### Filter by custom property
+
+Use `--where` (short: `-w`) to restrict the listing to links whose custom properties match an expression. The flag can be repeated; multiple `--where` flags combine with AND semantics — a link must satisfy every filter to appear in the output. A non-empty `--where` without an anchor or `--tree` is treated like `--all`, so you can query across every link without passing `--all` explicitly.
+
+Supported expression forms (identical to [`rei intention list`](/docs/commands/intention#list)):
+
+- `key=value` — exact match against text, enum state, or integer-as-text.
+- `key>=N`, `key>N`, `key<=N`, `key<N` — numeric comparison (integer).
+- `key:exists` — the property has any value.
+- `key:missing` — the property is not set.
+- `key:tag=value` — match a state-machine property by its current state tag.
+- `key any v1,v2,...` — label set contains at least one of the listed labels.
+- `key all v1,v2,...` — label set contains every listed label.
+- `cat/key=value` — qualify by category slug when the same `key` is defined under multiple categories.
+
+**Examples:**
+
+```bash
+# Only "to-read" links
+rei link list --where status=to-read
+
+# Numeric filter
+rei link list --where priority>=3
+
+# Existence / absence checks
+rei link list --where topic:exists
+rei link list --where topic:missing
+
+# Multiple filters (AND)
+rei link list --where status=to-read --where priority>=3
+
+# Label set
+rei link list --where tags any haskell,rust
+rei link list --where tags all haskell,async
+
+# Category-qualified (when 'priority' is defined in multiple categories)
+rei link list --where work/priority=high
+
+# Compose with domain / query / include-removed
+rei link list --domain github.com --where topic=haskell
+rei link list --include-removed --where topic=haskell
+
+# Anchor + filter
+rei link list --intention intention_01h455vb4pex --where topic=haskell
+```
+
+If an unqualified `key` matches properties in more than one category, `rei link list` prints a note to stderr suggesting the `cat/key` disambiguation form. Filtering still runs — the note is advisory.
 
 ### show
 

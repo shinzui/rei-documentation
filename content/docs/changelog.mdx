@@ -6,6 +6,29 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-04-12
+
+### New Custom Property Type: Tag Set
+
+- **`--type-tag-set`** — Free-form multi-value custom property type. Behaves like `label-set` (comma-separated, `any`/`all` filter support) but accepts any non-empty tag without predeclaring allowed values. No `add-label` / `remove-label` evolution commands — tags are validated at assignment time only.
+
+### Filter `rei link list` by Custom Property
+
+- **`rei link list --where FILTER`** (short: `-w`) — Filter links by custom property value, using the same expression syntax as `rei intention list --where`. Supports `key=value`, numeric comparisons, `:exists` / `:missing`, `:tag=`, `any` / `all` membership, and `category/key=value` disambiguation. Multiple `--where` flags combine with AND. A non-empty `--where` without an anchor is treated like `--all`. Composes with `--domain`, `--query`, `--include-removed`, `--tree`, and anchor filters.
+
+### Inline Custom Properties on `rei link add`
+
+- **`rei link add -p KEY=VALUE`** — Set one or more custom properties on a new link in the same invocation. The flag is repeatable; each pair is applied after the link is created and validation errors are reported per-property without preventing link creation.
+- **Interactive property walk** — When stdin is a TTY and `fzf` is available, `rei link add` walks through every custom property scoped to `link` after creation and prompts for a value (FZF picker for constrained types, text input for free-form). Skip any property with Esc, or suppress the walk entirely with `--no-prompt-properties`.
+
+### fzf-style Filter Syntax in Intention Tree TUI
+
+- **`rei intention tree --tui`** — The `/` filter now accepts fzf-style extended syntax: `'exact`, `^prefix`, `suffix$`, `!inverse`, and space-separated AND. Bare terms still fuzzy-match as before. A legend appears under the input bar while filtering.
+
+### Feature Enhancements
+
+- **`rei habit list --where`**, **`rei disruption list --where`**, **`rei note list --where`** — These commands now accept the full operator set that was previously intention-only: `:exists`, `:missing`, `:tag=`, `any`, `all`, and `category/key=`. The reference pages have been updated to match. `rei note list` also gains the `-w, --where` flag, which was previously undocumented.
+
 ## 2026-04-11
 
 ### Feature Enhancements

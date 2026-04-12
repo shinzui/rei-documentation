@@ -81,11 +81,30 @@ rei disruption list --where severity=high
 
 # Filter by numeric property (comparison operators)
 rei disruption list --where "impact>=5"
+
+# Only disruptions with the key set / not set
+rei disruption list --where "severity:exists"
+rei disruption list --where "severity:missing"
+
+# LabelSet / tag-set: match any or all of a list of values
+rei disruption list --where "topics any home,errands"
+rei disruption list --where "topics all home,urgent"
+
+# Category-qualified filter (disambiguate keys shared across categories)
+rei disruption list --where "work/severity=high"
+
+# Combine filters with AND semantics
+rei disruption list --where "severity:exists" --where "impact>=3"
 ```
 
-**Property Filter Syntax:**
+**Property Filter Syntax:** the same operator set as [`rei intention list --where`](/docs/commands/intention#list):
 - `key=value` — Exact match (works with enum, text, and state properties)
 - `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+- `key:exists` / `key:missing` — Presence check
+- `key:tag=value` — State machine tag query
+- `key any v1,v2,...` — LabelSet / tag-set contains any of the listed values
+- `key all v1,v2,...` — LabelSet / tag-set contains all of the listed values
+- `category/key=value` — Scope the filter to a specific category's property
 
 **Notes:**
 - Property filters require custom properties to be defined (see [`rei custom-property`](/docs/commands/custom-property))

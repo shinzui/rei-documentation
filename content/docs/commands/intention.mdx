@@ -193,8 +193,8 @@ The `--format=fzf` output is designed for shell scripting and fzf widgets. Each 
 - `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
 - `key:exists` — Filter to intentions that have the property set (any value)
 - `key:missing` — Filter to intentions that do not have the property set
-- `key any label1,label2` — LabelSet membership: has any of the listed labels
-- `key all label1,label2` — LabelSet membership: has all of the listed labels
+- `key any v1,v2` — LabelSet / tag-set membership: has any of the listed values
+- `key all v1,v2` — LabelSet / tag-set membership: has all of the listed values
 - `key:tag=value` — State machine tag query
 - `category/key=value` — Category-qualified filter (for disambiguating keys shared across multiple categories)
 
@@ -357,9 +357,22 @@ The `--tui` flag launches an interactive terminal UI for browsing the intention 
 
 **Filtering:**
 
-Press `/` to enter filter mode. As you type, the list filters in real-time using fuzzy matching:
+Press `/` to enter filter mode. As you type, the list filters in real-time. The query supports fzf-style extended syntax so you can mix fuzzy and precise matches:
 
-- Type any characters to match against intention titles (non-contiguous matches work, e.g., "abc" matches "Add blocker component")
+| Token | Meaning |
+|-------|---------|
+| `term` | Fuzzy match — characters may appear non-contiguously in the title |
+| `'term` | Exact substring match (case-insensitive) |
+| `^term` | Prefix match — title must start with `term` |
+| `term$` | Suffix match — title must end with `term` |
+| `!term` | Inverse fuzzy — title must NOT fuzzy-match `term` |
+| `!'term` | Inverse exact |
+| `!^term` | Inverse prefix |
+| `!term$` | Inverse suffix |
+| `a b` | Space-separated terms are combined with AND |
+
+For example, `'build !wip` keeps only titles that literally contain `build` and do not fuzzy-match `wip`. OR groups (`|`) are not supported.
+
 - Matched characters are highlighted in yellow
 - Match count shows as `(3/15)` in the filter bar
 - Navigate with `j`/`k` while filtering

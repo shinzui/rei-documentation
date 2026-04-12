@@ -37,6 +37,9 @@ Property keys cannot be changed after creation. Use the label for display.
 | `path` | File path |
 | `url` | URL |
 | `note` | Reference to a note entity |
+| `git-ref` | Git commit SHA or SHA range |
+| `uuid` | UUID (v4, v7, or any) |
+| `tag-set` | Free-form tag set (no predeclared values) |
 
 ## Creating Properties
 
@@ -63,6 +66,17 @@ rei custom-property create areas \
   --type-label-set --labels backend,frontend,security,devops \
   -e intention \
   --label "Work Areas"
+```
+
+### Tag-Set Property (Free-Form Multi-Value)
+
+Tag-set is a multi-value property like label-set, but without a predeclared list of allowed values — any non-empty tag is accepted.
+
+```bash
+rei custom-property create topics \
+  --type-tag-set \
+  -e note -e intention \
+  --label "Topics"
 ```
 
 ### State Machine from YAML
@@ -169,6 +183,9 @@ rei intention set-property <id> priority high
 # Set a label-set property (comma-separated labels)
 rei intention set-property <id> areas backend,security
 
+# Set a tag-set property (comma-separated, free-form)
+rei intention set-property <id> topics haskell,event-sourcing
+
 # Set property on a habit
 rei habit set-property <id> effort 5
 
@@ -186,9 +203,10 @@ rei intention list --where priority=high
 rei intention list --where "effort>=5"
 rei habit list --where "effort<3"
 
-# LabelSet filtering (any = has any of, all = has all of)
+# LabelSet / TagSet filtering (any = has any of, all = has all of)
 rei intention list --where "areas any backend,frontend"
 rei intention list --where "areas all backend,security"
+rei intention list --where "topics any haskell,rust"
 ```
 
 For comprehensive filtering options, see [Intention Filtering](/docs/guides/intention-filtering).
@@ -364,7 +382,7 @@ rei custom-property remove-condition reading-status --when content-type
 | Greater than or equal | `key>=value` | `priority>=high` |
 | Less than | `key<value` | `complexity<5` |
 | Less than or equal | `key<=value` | `due-date<=2026-04-01` |
-| One of | `key~v1,v2` | `lifecycle~completed,failed` |
+| One of (enum, state machine, label set, tag set) | `key~v1,v2` | `lifecycle~completed,failed` |
 | Is set | `key?` | `assigned-to?` |
 | Is not set | `key!` | `review-notes!` |
 

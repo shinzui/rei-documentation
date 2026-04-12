@@ -154,6 +154,7 @@ rei note list [options]
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
 - `-d, --include-descendants` — Include notes from descendant categories (use with `-c`)
 - `--collection <name>` — Filter by collection membership (manual or virtual)
+- `-w, --where <filter>` — Filter by custom property value (see Property Filter Syntax below)
 - `--json` — Output as JSON (for scripting)
 
 > **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
@@ -195,9 +196,29 @@ rei note list --category work --include-descendants
 # Filter notes by collection membership
 rei note list --collection "Reading List"
 
+# Filter by custom property value
+rei note list --where "status=reviewed"
+rei note list --where "priority:exists"
+rei note list --where "priority:missing"
+rei note list --where "topics any architecture,design"
+
+# Combine with anchor/tag/category filters
+rei note list -i intention_01h455vb4pex --where "status=reviewed"
+
 # Output as JSON (for scripting)
 rei note list --json
 ```
+
+**Property Filter Syntax:** the same operator set as [`rei intention list --where`](/docs/commands/intention#list):
+- `key=value` — Exact match (works with enum, text, and state properties)
+- `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+- `key:exists` / `key:missing` — Presence check
+- `key:tag=value` — State machine tag query
+- `key any v1,v2,...` — LabelSet / tag-set contains any of the listed values
+- `key all v1,v2,...` — LabelSet / tag-set contains all of the listed values
+- `category/key=value` — Scope the filter to a specific category's property
+
+Multiple `--where` flags combine with AND semantics. `--where` is applied after the anchor / tag / category filter.
 
 ### show
 

@@ -181,13 +181,32 @@ rei habit list --where priority=medium
 # Filter by numeric property (comparison operators)
 rei habit list --where "effort>=5"
 
+# Only habits with the key set / not set
+rei habit list --where "priority:exists"
+rei habit list --where "priority:missing"
+
+# LabelSet / tag-set: match any or all of a list of values
+rei habit list --where "topics any korean,japanese"
+rei habit list --where "topics all korean,daily"
+
+# Category-qualified filter (disambiguate keys shared across categories)
+rei habit list --where "work/priority=high"
+
+# Combine filters with AND semantics
+rei habit list --where "priority:exists" --where "effort>=3"
+
 # Output as JSON (for scripting)
 rei habit list --json
 ```
 
-**Property Filter Syntax:**
+**Property Filter Syntax:** the same operator set as [`rei intention list --where`](/docs/commands/intention#list):
 - `key=value` — Exact match (works with enum, text, and state properties)
 - `key>N`, `key>=N`, `key<N`, `key<=N` — Numeric comparison (for int properties)
+- `key:exists` / `key:missing` — Presence check
+- `key:tag=value` — State machine tag query (e.g. `status:tag=started`)
+- `key any v1,v2,...` — LabelSet / tag-set contains any of the listed values
+- `key all v1,v2,...` — LabelSet / tag-set contains all of the listed values
+- `category/key=value` — Scope the filter to a specific category's property
 
 **Notes:**
 - Linked habits inherit context from their linked intention
