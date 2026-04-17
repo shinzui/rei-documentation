@@ -174,7 +174,7 @@ If an unqualified `key` matches properties in more than one category, `rei link 
 
 ### show
 
-Show link details including canonical URL, status, and all attachments.
+Show link details including canonical URL, status, all attachments, and any custom properties assigned to the link. The `Custom Properties` section is omitted when the link has none.
 
 ```bash
 rei link show [<link-id>]
@@ -186,7 +186,7 @@ rei link show [<link-id>]
 > **FZF Support:** If no ID is provided and fzf is available, an interactive picker will let you select a link.
 
 **Options:**
-- `--json` — Output as JSON
+- `--json` — Output as JSON (link row only; custom properties are not included in JSON output)
 
 **Example:**
 
@@ -202,6 +202,10 @@ rei link show link_01h789abc
 # Attachments (2):
 #   INTENTION intention_01h455...  "Never Gonna Give You Up"  2026-02-18 10:30
 #   INTENTION intention_01h456...  "Rickroll reference"       2026-02-18 10:35
+#
+# Custom Properties:
+#   link-status: watched
+#   priority: high
 ```
 
 ### detach

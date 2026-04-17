@@ -4,7 +4,7 @@ description: Define and manage custom properties for entities
 icon: SlidersHorizontal
 ---
 
-Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries). Custom properties allow you to extend entities with your own metadata fields.
+Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries, collections, links). Custom properties allow you to extend entities with your own metadata fields.
 
 ## Concepts
 
@@ -38,7 +38,9 @@ Custom properties support the following value types:
 | `url` | URL | documentation link |
 | `note` | Reference to a note entity | spec note, next action note |
 | `git-ref` | Git commit SHA or SHA range | deployed commit, change range |
+| `uuid` | UUID (optionally version-constrained) | external ticket ID |
 | `tag-set` | Free-form set of tags (no predeclared values) | topics, keywords |
+| `path-list` | Unique, sorted set of file paths | related specs, source paths |
 
 ## State Machine YAML Format
 
@@ -228,6 +230,12 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
   - `--must-be-file` — Path must be a file
   - `--must-be-absolute` — Path must be absolute
 
+- `--type-path-list` — Unique set of file paths (comma-separated at assignment)
+  - Same constraint flags as `--type-path` (`--must-exist`, `--must-be-directory`, `--must-be-file`, `--must-be-absolute`), applied to every path in the set.
+  - Duplicate paths in the input are silently collapsed via set semantics.
+  - Values are stored sorted and rendered joined by `", "`.
+  - `--where "key any path1,path2"` and `--where "key all path1,path2"` work as for tag sets.
+
 - `--type-url` — URL type
   - `--allowed-schemes <s1,s2,...>` — Comma-separated allowed schemes
   - `--allowed-hosts <h1,h2,...>` — Comma-separated allowed hosts
@@ -236,6 +244,9 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 
 - `--type-git-ref` — Git commit reference type
   - `--ref-format <format>` — Allowed format: `commit` (single SHA), `range` (SHA..SHA or SHA...SHA), or `any` (default)
+
+- `--type-uuid` — UUID type
+  - `--uuid-version <version>` — Allowed UUID version: `v4`, `v7`, or `any` (default: `any`)
 
 - `--type-tag-set` — Free-form tag set (no predeclared values)
   - No options. Tags are provided at assignment time as a comma-separated list and validated per-tag (must be non-empty after trim, no newlines). Unlike `--type-label-set`, there is no allowed-values list on the definition, so no `add-label` / `remove-label` evolution commands apply.
@@ -479,16 +490,17 @@ rei custom-property relabel workflow "Work Workflow" --category work
 Update property scope (entity types and category).
 
 ```bash
-rei custom-property set-scope KEY [options]
+rei custom-property set-scope KEY_OR_ID [options]
 ```
 
 **Arguments:**
-- `KEY` — Property key or ID
+- `KEY_OR_ID` — Property key or `custom_property_…` KindID
 
 **Options:**
 - `-e, --entity-type <type>` — Entity type (can be repeated to set multiple)
-- `-c, --category <slug>` — Category scope
+- `-c, --category <slug>` — New category scope to set
 - `--clear-category` — Remove category scope (make global)
+- `--lookup-category <slug>` — Disambiguate property lookup when multiple properties share the same key (has no effect when a KindID is given)
 
 **Examples:**
 
@@ -501,11 +513,16 @@ rei custom-property set-scope client-notes -c work
 
 # Remove category scope
 rei custom-property set-scope client-notes --clear-category
+
+# Disambiguate when key exists in multiple categories
+rei custom-property set-scope workflow -c personal --lookup-category work
 ```
 
 ## State Machine Evolution
 
 State machine properties can be evolved after creation using these commands.
+
+> **Tip:** All commands in this section accept a `custom_property_…` KindID in place of the key, and `--lookup-category SLUG` for disambiguation when multiple properties share the same key.
 
 ### add-state
 
@@ -781,6 +798,8 @@ rei custom-property revoke-lifecycle workflow
 
 Enum properties can be evolved after creation using these commands.
 
+> **Tip:** All commands in this section accept a `custom_property_…` KindID in place of the key, and `--lookup-category SLUG` for disambiguation.
+
 ### add-enum-value
 
 Add a value to an enum property.
@@ -825,6 +844,8 @@ rei custom-property remove-enum-value priority low
 ## LabelSet Evolution
 
 LabelSet properties can be evolved after creation using these commands.
+
+> **Tip:** All commands in this section accept a `custom_property_…` KindID in place of the key, and `--lookup-category SLUG` for disambiguation.
 
 ### add-label
 
@@ -885,14 +906,29 @@ rei habit set-property habit_01abc... effort 5
 # Set a property on a disruption
 rei disruption set-property redis-timeouts severity critical
 
-# Clear a property from an intention
-rei intention clear-property intention_01abc... priority
+# Set a property on a note
+rei note set-property note_01abc... topics haskell,event-sourcing
+
+# Set a property on a collection
+rei collection set-property collection_01abc... status active
+
+# Set a property on a link
+rei link set-property link_01abc... reading-status reading
 
 # Set a property on a journal entry (today's day)
 rei day set-property mood great
 
 # Set a property on a specific date
 rei day set-property --date 2026-02-12 mood good
+
+# Clear a property from any entity
+rei intention clear-property intention_01abc... priority
+rei habit clear-property habit_01abc... effort
+rei disruption clear-property redis-timeouts severity
+rei note clear-property note_01abc... topics
+rei collection clear-property collection_01abc... status
+rei link clear-property link_01abc... reading-status
+rei day clear-property mood
 ```
 
 ### Forcing State Machine Transitions
@@ -951,14 +987,15 @@ See [`rei intention list`](/docs/commands/intention), [`rei habit list`](/docs/c
 Retroactively initialize a state machine property for entities that have the matching category but don't have a value set.
 
 ```bash
-rei custom-property init-entities KEY [options]
+rei custom-property init-entities KEY_OR_ID [options]
 ```
 
 **Arguments:**
-- `KEY` — Property key of the state machine property to initialize
+- `KEY_OR_ID` — Property key or `custom_property_…` KindID
 
 **Options:**
 - `-n, --dry-run` — Show what would be done without making changes
+- `--lookup-category <slug>` — Disambiguate property lookup
 
 **Examples:**
 
@@ -984,6 +1021,51 @@ State machine properties scoped to a category are automatically initialized when
 3. The entity doesn't already have a value for those properties
 
 The `init-entities` command is useful for retroactively initializing existing entities that were created before the property was defined.
+
+## Property Resolution and Inheritance
+
+When you assign a property to an entity (e.g., `rei intention set-property ... priority high`), the system needs to decide *which* property definition applies. Resolution depends on the entity's **resolution category** and the property's scope.
+
+### Resolution Category by Entity Type
+
+| Entity | Resolution category used |
+|--------|---------------------------|
+| Intention | Own category if set; otherwise walks up the **parent intention chain** to the nearest ancestor with a category |
+| Habit | Own category only |
+| Note | Own category only (does **not** inherit from the entity the note is attached to) |
+| Disruption | Own category only |
+| Collection | Own category only |
+| Link | Own category only |
+| Journal entry | None — only global properties apply |
+
+### Intention Parent Inheritance (Category Context)
+
+Intentions are the only entity type that inherits a resolution category from an ancestor. If a child intention has no category of its own, the system walks up its parent chain until it finds an ancestor with a category, and uses that category for resolution.
+
+This means a category-scoped property defined on `work` is available to a child intention whose parent (or grandparent, etc.) is categorized as `work`, even if the child itself has no category set.
+
+**Important distinction:** what is inherited is the *category context* used to decide which property definition applies — **not** property values. Setting `priority=high` on a parent intention does NOT propagate that value to its children; each intention still holds its own property values.
+
+### Resolution Precedence
+
+When multiple property definitions could match a given key on an entity, the system picks the most specific one:
+
+1. **Category-scoped beats global.** If a `priority` property exists both globally and scoped to `work`, an entity resolving in the `work` category uses the `work` version.
+2. **Deeper category beats shallower.** If `priority` exists scoped to both `work` and `work/projects`, an entity in `work/projects` uses the `work/projects` version.
+3. **Global fallback.** If no category-scoped definition matches, the global definition applies.
+
+### Multi-Category Scope
+
+A single property can be scoped to **multiple categories simultaneously**. Pass `-c` multiple times at creation (or via `set-scope`):
+
+```bash
+rei custom-property create client-code \
+  --type-text \
+  -e intention \
+  -c work/clients -c consulting
+```
+
+The property then resolves for entities whose resolution category falls under *any* of the listed scopes.
 
 ## Category-Scoped Property Keys
 
@@ -1025,6 +1107,21 @@ rei custom-property metrics workflow --category personal
 
 # Relabel the work version
 rei custom-property relabel workflow "Work Pipeline" --category work
+```
+
+### Property lookup with --lookup-category
+
+Evolution commands (`add-state`, `remove-state`, `add-transition`, `add-enum-value`, `add-label`, `set-scope`, `init-entities`, `add-state-rule`, `add-condition`, etc.) use `--lookup-category SLUG` for disambiguation instead of `--category`, because `-c` may already have a different meaning on those commands (e.g. `-c` on `set-scope` sets the **new** category scope).
+
+All management and evolution commands also accept a `custom_property_…` **KindID** in place of the key. When a KindID is provided, `--lookup-category` has no effect because the ID is already unambiguous.
+
+```bash
+# Disambiguate by category slug
+rei custom-property add-state workflow blocked --label "Blocked" \
+  --lookup-category work
+
+# Or use the KindID directly (no disambiguation needed)
+rei custom-property add-state custom_property_01abc blocked --label "Blocked"
 ```
 
 ### Key Uniqueness Rules
@@ -1108,6 +1205,8 @@ rei custom-property notes workflow
 ## Conditional Properties
 
 Conditional properties add value-dependent relevance: a property can only be set when another property has a specific value. This is useful when certain metadata only makes sense in a particular context (e.g., `reading-status` only applies when `content-type = article`).
+
+> **Tip:** `add-condition` and `remove-condition` accept a `custom_property_…` KindID in place of the key, and `--lookup-category SLUG` for disambiguation.
 
 ### add-condition
 
@@ -1212,6 +1311,9 @@ rei custom-property add-state-rule workflow \
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
 - [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
 - [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions
+- [`rei note set-property`](/docs/commands/note) — Set properties on notes
+- [`rei collection set-property`](/docs/commands/collection) — Set properties on collections
+- [`rei link set-property`](/docs/commands/link) — Set properties on links
 - [`rei day set-property`](/docs/commands/day) — Set properties on journal entries (daily metrics)
 - [`rei category`](/docs/commands/category) — Manage categories for scoping properties
 - [`rei help state-machines`](/docs/guides/state-machines) — Detailed help for state machine properties

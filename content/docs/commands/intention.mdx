@@ -351,6 +351,7 @@ The `--tui` flag launches an interactive terminal UI for browsing the intention 
 - **View details**: Press `Enter` to open the full detail view for an intention (see Detail View below)
 - **Copy ID**: Press `y` to yank (copy) the selected intention ID to clipboard
 - **Add child**: Press `a` to open the child intention creation form (ID auto-copied to clipboard)
+- **Edit title**: Press `t` to open the selected intention's title in `$EDITOR` and apply the edit via `setTitle`. Empty titles are rejected and unchanged titles are a no-op. The tree refreshes in place on success.
 - **Open notes**: In detail view, press `o` to open notes (FZF picker if multiple)
 - **Close views**: Press `Esc` to close detail view or form, or cancel filter
 - **Quit**: Press `q` to exit
@@ -432,7 +433,7 @@ Press `p` in the detail view to edit a custom property on the selected intention
 
 A `(clear)` option is available to remove the property value. After changes, the detail view refreshes to reflect the update.
 
-Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy) the ID to clipboard, press `o` to open notes, press `p` to edit a custom property, press `Esc` to return to the tree.
+Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy) the ID to clipboard, press `o` to open notes, press `p` to edit a custom property, press `t` to edit the title, press `Esc` to return to the tree.
 
 **Clipboard support:** The `y` key copies to clipboard using `pbcopy` (macOS), `wl-copy` (Wayland), or `xclip` (X11). A confirmation message appears in the footer.
 
@@ -456,6 +457,43 @@ rei intention complete intention_01h455vb4pex
 # Backdate completion to yesterday
 rei intention complete intention_01h455vb4pex --at yesterday
 ```
+
+**Notes:**
+- Completion is refused while any immediate child is still `Active`. The error lists the offending children (id + title) so you know what to complete or defer first.
+- If you complete an intention by mistake, use `rei intention reopen` to restore it to Active.
+
+### reopen
+
+Undo a wrongly-completed intention, restoring it to Active.
+
+```bash
+rei intention reopen [id] [options]
+```
+
+**Arguments:**
+- `[id]` — Intention ID (optional if fzf is available)
+
+**Options:**
+- `-r, --reason <reason>` — Optional explanation for reopening
+- `-t, --at <time>` — When the reopen occurred (e.g., `5 minutes ago`)
+
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from Completed intentions.
+
+**Examples:**
+
+```bash
+# Reopen with explicit ID and a reason
+rei intention reopen intention_01h455vb4pex --reason "marked done by accident"
+
+# Let fzf pick a completed intention
+rei intention reopen
+```
+
+**Notes:**
+- Reopen is the **only** command that removes an intention from `Completed`. Abandoned intentions cannot be reopened.
+- Reopen is rejected if the parent is itself `Completed` or `Abandoned` — reopen the parent first.
+- The original `startedAt` is preserved; `completedAt` is cleared and any dormancy flag is reset.
+- The `IntentionReopened` event captures the original completion timestamp and the optional reason so the audit trail stays intact.
 
 ### abandon
 

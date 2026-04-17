@@ -5,11 +5,23 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `095bdcd7` (2026-04-12)
+**Last Source Commit Reviewed:** `5d3abccd` (2026-04-17)
 
 ---
 
 ## Changelog
+
+### 2026-04-17
+
+**Reviewed commits:** `2545256d` through `5d3abccd`
+
+**Updated command pages:**
+- `commands/custom-property.mdx` — Expanded entity list to include collections and links; added `uuid` and `path-list` value types to the table; documented `--type-uuid` (`--uuid-version`) and `--type-path-list` (path constraints, set semantics, `--where any/all`); set-scope `KEY_OR_ID` + `--lookup-category`; tip blocks under State Machine / Enum / LabelSet / Conditional Properties for KindID + `--lookup-category`; `init-entities` `KEY_OR_ID` + `--lookup-category`; new "Property Resolution and Inheritance" section (resolution category by entity type, intention parent inheritance distinction, precedence, multi-category scope); new "Property lookup with --lookup-category" subsection under Category-Scoped Property Keys; expanded set-property / clear-property examples for note, collection, link, day; added related links to note/collection/link
+- `commands/intention.mdx` — Added completion guard note (refused while children Active) and `reopen` subcommand (FZF picker, `--reason`, `--at`, parent-state guard, audit-trail notes); added `t` keybinding to tree-list view and detail view (edit title in `$EDITOR`)
+- `commands/link.mdx` — `link show` now lists Custom Properties section; clarified `--json` emits link row only
+
+**Updated website changelog:**
+- Added 2026-04-17 entry covering intention reopen + completion guard, path-list and uuid property types, link show custom properties, intention tree TUI title edit (`t`), and the custom-property `--lookup-category` / KindID lookup story
 
 ### 2026-04-12
 

@@ -6,6 +6,41 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-04-17
+
+### New Command: `rei intention reopen`
+
+Undo a wrongly-completed intention and restore it to Active. Reopen is the only command that removes an intention from `Completed` (Abandoned intentions cannot be reopened).
+
+- `rei intention reopen <id>` — Restores a Completed intention to Active. Optional `--reason` annotates the audit trail; `--at` backdates the reopen.
+- **FZF picker** — When no ID is provided and `fzf` is installed, the picker is restricted to Completed intentions.
+- **Parent guard** — Reopen is rejected if the parent intention is itself `Completed` or `Abandoned`. The original `startedAt` is preserved; `completedAt` is cleared and any dormancy flag is reset. The `IntentionReopened` event records the prior completion timestamp and reason.
+
+### Completion Guard for Active Children
+
+- **`rei intention complete`** — Now refuses to complete an intention while any of its immediate children are still `Active`. The error lists the offending children (id + title) so you know what to complete or defer first.
+
+### New Custom Property Types
+
+- **`--type-path-list`** — Unique, sorted set of file paths (comma-separated at assignment). Accepts the same constraint flags as `--type-path` (`--must-exist`, `--must-be-directory`, `--must-be-file`, `--must-be-absolute`), applied to every path. Filterable via `--where "key any path1,path2"` and `--where "key all path1,path2"`. As a side effect, `--type-path` now actually enforces its `--must-exist` / `--must-be-*` constraints at assignment time.
+- **`--type-uuid`** — UUID values, optionally constrained to a specific version via `--uuid-version v4|v7|any`.
+
+### `rei link show` Lists Custom Properties
+
+- **`rei link show <id>`** — Output now includes a `Custom Properties` section listing every property assigned to the link (omitted when empty). `--json` output is unchanged and emits the link row only.
+
+### Edit Intention Title in Tree TUI
+
+- **`rei intention tree --tui`** — Press `t` in either the tree-list view or the detail view to open the selected intention's title in `$EDITOR`. Empty titles are rejected, unchanged titles are a no-op, and the tree refreshes in place on success.
+
+### Custom Properties on Notes, Collections, and Links
+
+- **`rei custom-property`** — Documentation now reflects that custom properties can be defined for collections and links in addition to intentions, habits, disruptions, notes, and journal entries. New "Property Resolution and Inheritance" section explains how each entity type picks the resolution category, including the intention-only parent-chain inheritance and the precedence rules for global vs. category-scoped definitions.
+
+### Disambiguate Property Lookups by KindID or `--lookup-category`
+
+- **`rei custom-property` evolution and management commands** — All accept a `custom_property_…` KindID in place of the key (unambiguous lookup), or `--lookup-category SLUG` to disambiguate when the same key exists in multiple categories. Evolution commands use `--lookup-category` instead of `--category` because `-c` already sets the *new* category scope on commands like `set-scope`.
+
 ## 2026-04-12
 
 ### New Custom Property Type: Tag Set
