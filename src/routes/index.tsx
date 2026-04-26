@@ -15,8 +15,9 @@ function Home() {
 					Intentional action over time
 				</p>
 				<p className="text-fd-muted-foreground max-w-md mx-auto mb-8">
-					A CLI for personal time management built around clarity, not
-					productivity. See better. Act with intention.
+					If you have an intention, rei helps you accomplish it. One local-first
+					system for time, knowledge, and work — with AI agents augmenting your
+					capacity, not replacing your judgment.
 				</p>
 				<Link
 					to="/docs/$"
