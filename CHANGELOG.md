@@ -5,11 +5,33 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `5d3abccd` (2026-04-17)
+**Last Source Commit Reviewed:** `36b51f86` (2026-04-28)
 
 ---
 
 ## Changelog
+
+### 2026-04-28
+
+**Reviewed commits:** `be210d20` through `36b51f86`
+
+**Updated help topic guides:**
+- `guides/custom-properties.mdx` — Added inheritable property creation example, "Inheritance in the Intention Tree" section (resolution rules, observation, override/clear semantics, filter limitation), and `set-inheritable`/`unset-inheritable` to the command summary table
+- `guides/kit.mdx` — Documented the no-name `rei kit install` FZF picker
+
+**Updated command pages:**
+- `commands/note.mdx` — Documented note archive lifecycle: `archive`/`unarchive` subcommands, `--include-archived` flag on `list`/`backlinks`/`broken-links`/`outgoing-links`, `--archive` flag on `note new`, archived `Status` line in `show`, new `--title` substring filter, new `note export` subcommand, and the "Workflow: capture and summarize" worked example
+- `commands/action.mdx` — Added `set-property` and `clear-property` subcommands for action custom properties (state machine `--force` semantics, FZF action picker)
+- `commands/outcome.mdx` — Header rewrite to mention category and custom properties; added `set-category`, `clear-category`, `set-property`, and `clear-property` subcommands
+- `commands/blocker.mdx` — Header rewrite documenting intention-blocker-only category/property support; added `set-category`, `clear-category`, `set-property`, `clear-property` subcommands and an explicit habit-blocker exclusion note
+- `commands/custom-property.mdx` — Expanded entity-type list to include action/outcome/blocker; added `--inheritable` flag to `create`; new `set-inheritable`/`unset-inheritable` subcommands; updated `entities --entity-type` valid types and example; reworked Property Resolution distinction to point at the new value-inheritance opt-in; expanded `init-entities` to mention sub-entity backfill; new "Inheritance in the Intention Tree" section (enable/observe/override/clear semantics, resolution rules, filter limitation)
+- `commands/intention.mdx` — Tree TUI filter mode now navigates with `Ctrl-J`/`Ctrl-K`; `set-property` and `clear-property` notes now mention inheritable property semantics with cross-references
+- `commands/link.mdx` — `--no-prompt-properties` replaced by opt-in `--prompt-properties`; new `--include-archived` flag on `link list` (with archived-parent example); `link show` now documented to always list archived attachments; `link set-property` accepts FZF picker for property key with usage caveat
+- `commands/doc.mdx` — `doc list` now defaults to hiding docs whose parent note is archived; new `--include-archived` flag with example output and an `open`-by-ID exemption note
+- `commands/collection.mdx` — Added `export-notes` subcommand (FZF picker for collection, optional `--path`, slugified filenames, idempotent overwrite)
+
+**Updated website changelog:**
+- Added 2026-04-28 entry covering note archive lifecycle + attachment awareness, sub-entity custom properties (actions/outcomes/blockers), intention-tree custom property value inheritance, `note export` and `collection export-notes`, the `--title` substring filter on `note list`, `link add --prompt-properties` opt-in flip with `link set-property` FZF picker, the dashboard root-context inheritance fix, scriber suffix in today/yesterday/review day, the tree TUI filter Ctrl-J/Ctrl-K navigation rebind and stray prefix-character fix, and `rei kit install` no-name fzf picker
 
 ### 2026-04-17
 

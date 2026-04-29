@@ -349,6 +349,73 @@ rei action clear-category -a action_01h455vb4pex
 rei action clear-category
 ```
 
+### set-property
+
+Set a custom property on an action.
+
+```bash
+rei action set-property [-a ACTION_ID] PROPERTY_KEY VALUE [--force]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Set property with explicit action ID
+rei action set-property -a action_01h455vb4pex mood focused
+
+# Let fzf pick the action
+rei action set-property mood focused
+
+# Set a numeric property
+rei action set-property -a action_01h455vb4pex effort 5
+
+# Skip intermediate states on a state machine property
+rei action set-property -a action_01h455vb4pex debug-state resolved --force
+```
+
+**Notes:**
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to actions (`--entity-type action`)
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
+- See [`rei custom-property`](/docs/commands/custom-property) for how to define properties and how category-scoped state machine properties are auto-initialized when an action is categorized.
+
+### clear-property
+
+Remove a custom property from an action.
+
+```bash
+rei action clear-property [-a ACTION_ID] PROPERTY_KEY
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+**Options:**
+- `-a, --action <id>` — Action ID (optional if fzf is available)
+
+> **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
+
+**Examples:**
+
+```bash
+# Clear property with explicit action ID
+rei action clear-property -a action_01h455vb4pex mood
+
+# Let fzf pick the action
+rei action clear-property mood
+```
+
 ### delete
 
 Delete an action that was recorded in error.

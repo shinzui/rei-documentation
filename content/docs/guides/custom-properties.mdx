@@ -104,6 +104,16 @@ rei custom-property create client \
   -c work
 ```
 
+### Inheritable Property in the Intention Tree
+
+```bash
+rei custom-property create focus-area \
+  --type-text --inheritable \
+  -e intention
+```
+
+See [Inheritance in the Intention Tree](#inheritance-in-the-intention-tree) below for semantics.
+
 ## Category-Scoped Keys
 
 The same property key can exist in different categories with different configurations. This allows category-specific workflows while using consistent property names.
@@ -392,6 +402,50 @@ rei custom-property remove-condition reading-status --when content-type
 - `--force` on `set-property` bypasses condition validation
 - When a conditioning property changes and a dependent property's condition is no longer met, the dependent property is automatically cleared
 
+## Inheritance in the Intention Tree
+
+By default, a property value set on an intention is visible only on that exact intention. Flagging a property definition as **inheritable** changes this: descendants see the nearest ancestor's value, and a descendant can override it by setting its own local value.
+
+### Enabling inheritance
+
+Mark a property inheritable at creation:
+
+```bash
+rei custom-property create focus-area --type-text --inheritable
+```
+
+Toggle on an existing property:
+
+```bash
+rei custom-property set-inheritable focus-area
+rei custom-property unset-inheritable focus-area
+```
+
+### Resolution rules
+
+- Walks up the parent intention chain from the target.
+- Nearest ancestor wins. A local value always wins over any ancestor.
+- Only inheritable properties surface ancestor values; non-inheritable properties show local values only.
+- Matching is by `property_id`, not key — values never leak across category-scoped definitions that share the same key.
+- Clearing a local value reverts to the inherited one (if any).
+- Archived or completed ancestors still contribute values.
+
+State-machine properties cannot be inheritable. They represent per-entity lifecycle position and are rejected at create time and via `set-inheritable`.
+
+### Observing inherited values
+
+```bash
+rei intention set-property <root-id> focus-area Product
+rei intention show <child-id> --full
+# Custom Properties section renders:
+#   focus-area: Product (inherited from "Root Intention Title")
+
+rei intention show <child-id> --json
+# Inherited rows carry: inherited, inheritedFromId, inheritedFromTitle
+```
+
+Filter queries match local values only — `rei intention list --where k=v` does not follow the inheritance path.
+
 ## Important Limitations
 
 **Property keys are immutable:**
@@ -427,6 +481,8 @@ The same key CAN exist in different categories.
 | `custom-property show` | Show property details (use `--with-counts` for states) |
 | `custom-property rename` | Update display label |
 | `custom-property archive` | Archive a property |
+| `custom-property set-inheritable` | Mark property as inheritable in intention tree |
+| `custom-property unset-inheritable` | Stop propagating values to descendants |
 
 ### Enum Evolution
 

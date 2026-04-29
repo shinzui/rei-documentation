@@ -4,7 +4,7 @@ description: Manage blockers for intentions and habits
 icon: Ban
 ---
 
-Manage blockers for intentions and habits. Blockers represent obstacles or things preventing progress.
+Manage blockers for intentions and habits. Blockers represent obstacles or things preventing progress. Intention blockers can also be classified with a category and extended with user-defined custom properties; see [`rei custom-property`](/docs/commands/custom-property) for how to define and assign properties. These commands do not currently apply to habit blockers.
 
 ## Subcommands
 
@@ -124,6 +124,126 @@ When showing all blockers:
     Gym closed for renovation
 ```
 
+### set-category
+
+Assign a category to an intention blocker. Categories help classify and organize blockers for reporting and filtering, and they can auto-initialize category-scoped state machine properties on the blocker.
+
+```bash
+rei blocker set-category [-b BLOCKER_ID] CATEGORY_SLUG
+```
+
+**Arguments:**
+- `CATEGORY_SLUG` — Category slug (e.g., 'work', 'personal/health')
+
+**Options:**
+- `-b, --blocker <id>` — Blocker ID (optional if fzf is available)
+
+> **FZF Support:** If `-b` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intention blockers.
+
+**Examples:**
+
+```bash
+# Set category with explicit blocker ID
+rei blocker set-category -b blocker_01h455vb4pex external/dependency
+
+# Let fzf pick the blocker
+rei blocker set-category external/dependency
+```
+
+**Notes:**
+- Applies to intention blockers only; habit blockers are not supported by this command.
+- Any state machine custom property scoped to the category is auto-initialized on the blocker when the category is assigned.
+
+### clear-category
+
+Remove the category from an intention blocker.
+
+```bash
+rei blocker clear-category [-b BLOCKER_ID]
+```
+
+**Options:**
+- `-b, --blocker <id>` — Blocker ID (optional if fzf is available)
+
+> **FZF Support:** If `-b` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intention blockers.
+
+**Examples:**
+
+```bash
+# Clear category with explicit blocker ID
+rei blocker clear-category -b blocker_01h455vb4pex
+
+# Let fzf pick the blocker
+rei blocker clear-category
+```
+
+### set-property
+
+Set a custom property on an intention blocker.
+
+```bash
+rei blocker set-property [-b BLOCKER_ID] PROPERTY_KEY VALUE [--force]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+**Options:**
+- `-b, --blocker <id>` — Blocker ID (optional if fzf is available)
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
+
+> **FZF Support:** If `-b` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intention blockers.
+
+**Examples:**
+
+```bash
+# Set property with explicit blocker ID
+rei blocker set-property -b blocker_01h455vb4pex severity high
+
+# Let fzf pick the blocker
+rei blocker set-property severity high
+
+# Set a state machine property
+rei blocker set-property -b blocker_01h455vb4pex triage-status investigating
+
+# Skip intermediate states on a state machine property
+rei blocker set-property -b blocker_01h455vb4pex triage-status resolved --force
+```
+
+**Notes:**
+- Applies to intention blockers only; habit blockers are not supported by this command.
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to blockers (`--entity-type blocker`)
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states.
+
+### clear-property
+
+Remove a custom property from an intention blocker.
+
+```bash
+rei blocker clear-property [-b BLOCKER_ID] PROPERTY_KEY
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+**Options:**
+- `-b, --blocker <id>` — Blocker ID (optional if fzf is available)
+
+> **FZF Support:** If `-b` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intention blockers.
+
+**Examples:**
+
+```bash
+# Clear property with explicit blocker ID
+rei blocker clear-property -b blocker_01h455vb4pex severity
+
+# Let fzf pick the blocker
+rei blocker clear-property severity
+```
+
 ## Habit Blocker Behavior
 
 Habit blockers have automatic pause/resume behavior:
@@ -132,6 +252,8 @@ Habit blockers have automatic pause/resume behavior:
 2. **Auto-resume:** When the last blocker is resolved, the habit automatically resumes
 
 This means you don't need to manually pause/resume habits when blockers are involved.
+
+> **Note:** The `set-category`, `clear-category`, `set-property`, and `clear-property` subcommands above apply to intention blockers only. They do not act on habit blockers.
 
 ## Viewing Blocked Intentions
 

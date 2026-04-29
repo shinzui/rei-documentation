@@ -4,7 +4,7 @@ description: Record observable evidence of progress
 icon: Trophy
 ---
 
-Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results. Outcomes can be recorded on both **Active** and **Completed** intentions, allowing retrospective evidence to be added after an intention is finished.
+Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results. Outcomes can be recorded on both **Active** and **Completed** intentions, allowing retrospective evidence to be added after an intention is finished. Outcomes can also be classified with a category and extended with user-defined custom properties in the same way as intentions; see [`rei custom-property`](/docs/commands/custom-property) for how to define and assign properties.
 
 ## Subcommands
 
@@ -53,6 +53,103 @@ rei outcome record "Feature approved by client" --at "2 hours ago"
 
 # Record yesterday's outcome
 rei outcome record -i intention_01abc... "Milestone completed" -t yesterday
+```
+
+### set-category
+
+Assign a category to an outcome. Categories help classify and organize outcomes for reporting and filtering, and they can auto-initialize category-scoped state machine properties on the outcome.
+
+```bash
+rei outcome set-category OUTCOME_ID CATEGORY_SLUG
+```
+
+**Arguments:**
+- `OUTCOME_ID` — Outcome ID to categorize
+- `CATEGORY_SLUG` — Category slug (e.g., 'work', 'personal/health')
+
+**Examples:**
+
+```bash
+# Set category on an outcome
+rei outcome set-category outcome_01h455vb4pex work/milestone
+
+# Use a nested category slug
+rei outcome set-category outcome_01h455vb4pex personal/health
+```
+
+**Notes:**
+- Any state machine custom property scoped to the category is auto-initialized on the outcome when the category is assigned.
+
+### clear-category
+
+Remove the category from an outcome.
+
+```bash
+rei outcome clear-category OUTCOME_ID
+```
+
+**Arguments:**
+- `OUTCOME_ID` — Outcome ID
+
+**Examples:**
+
+```bash
+# Clear the category from an outcome
+rei outcome clear-category outcome_01h455vb4pex
+```
+
+### set-property
+
+Set a custom property on an outcome.
+
+```bash
+rei outcome set-property OUTCOME_ID KEY VALUE [--force]
+```
+
+**Arguments:**
+- `OUTCOME_ID` — Outcome ID
+- `KEY` — Property key
+- `VALUE` — Property value (validated against property definition)
+
+**Options:**
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
+
+**Examples:**
+
+```bash
+# Set a property on an outcome
+rei outcome set-property outcome_01h455vb4pex impact high
+
+# Set a numeric property
+rei outcome set-property outcome_01h455vb4pex confidence 4
+
+# Skip intermediate states on a state machine property
+rei outcome set-property outcome_01h455vb4pex review-state accepted --force
+```
+
+**Notes:**
+- The property must be defined first using `rei custom-property create`
+- The property must be configured to apply to outcomes (`--entity-type outcome`)
+- Values are validated against the property definition (enum options, numeric ranges, etc.)
+- `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states.
+
+### clear-property
+
+Remove a custom property from an outcome.
+
+```bash
+rei outcome clear-property OUTCOME_ID KEY
+```
+
+**Arguments:**
+- `OUTCOME_ID` — Outcome ID
+- `KEY` — Property key to clear
+
+**Examples:**
+
+```bash
+# Clear a property from an outcome
+rei outcome clear-property outcome_01h455vb4pex impact
 ```
 
 ## Actions vs Outcomes

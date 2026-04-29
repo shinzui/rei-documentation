@@ -376,7 +376,7 @@ For example, `'build !wip` keeps only titles that literally contain `build` and 
 
 - Matched characters are highlighted in yellow
 - Match count shows as `(3/15)` in the filter bar
-- Navigate with `j`/`k` while filtering
+- Navigate the filtered list with `Ctrl-J`/`Ctrl-K` (or arrow keys) — plain `j`/`k` type into the query
 - Press `Enter` to accept the filter and return to browse mode with filtered results
 - In filtered browse mode, all standard commands work: `Enter` (details), `a` (add child), `y` (yank ID), `/` (refine filter with previous query pre-filled)
 - Press `Esc` to clear the filter and restore the full tree
@@ -1140,6 +1140,7 @@ rei intention set-property -i intention_01h455vb4pex workflow done --force
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `intention show` output
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
+- If the property is flagged inheritable (`rei custom-property set-inheritable <key>`), the value is visible on descendants of this intention; see [`rei custom-property`](/docs/commands/custom-property#inheritance-in-the-intention-tree).
 
 ### clear-property
 
@@ -1166,6 +1167,9 @@ rei intention clear-property -i intention_01h455vb4pex priority
 # Let fzf pick the intention
 rei intention clear-property priority
 ```
+
+**Notes:**
+- For inheritable properties, clearing a local value reverts the intention to its inherited value from the nearest ancestor (if any). See [`rei custom-property`](/docs/commands/custom-property#inheritance-in-the-intention-tree). On `intention show`, inherited values are rendered with `(inherited from "<ancestor title>")` in dim style.
 
 ### set-addresses
 

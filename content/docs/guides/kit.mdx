@@ -20,6 +20,9 @@ rei kit install rei-bootstrap
 # Install to project scope (only this project)
 rei kit install rei-bootstrap --project
 
+# Pick interactively with fzf (no name argument)
+rei kit install
+
 # Check what is installed
 rei kit status
 
@@ -80,9 +83,11 @@ re-cloned on next use.
 Fetch (or update) the registry and show all available skills and
 agents with their descriptions.
 
-### `rei kit install <name> [--project]`
+### `rei kit install [<name>] [--project]`
 
-Install a skill or agent. By default installs to user scope. Use
+Install a skill or agent. If `<name>` is omitted, an interactive fzf
+picker is shown listing every skill and agent from rei-kit; select one
+with Enter or cancel with Esc. By default installs to user scope. Use
 `--project` to install to the current project directory instead.
 Re-installing overwrites existing files with the latest version.
 

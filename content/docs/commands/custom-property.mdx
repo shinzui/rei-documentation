@@ -4,7 +4,7 @@ description: Define and manage custom properties for entities
 icon: SlidersHorizontal
 ---
 
-Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries, collections, links). Custom properties allow you to extend entities with your own metadata fields.
+Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries, collections, links, actions, outcomes, blockers). Custom properties allow you to extend entities with your own metadata fields.
 
 ## Concepts
 
@@ -185,6 +185,7 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 - `-d, --description <desc>` — Property description
 - `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note, journal_entry, collection, link
 - `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
+- `--inheritable` — Mark the property as inheritable. When set on an intention, descendants in the intention tree see the value (nearest ancestor wins) unless they set their own local value. State-machine value types cannot be inheritable. See [Inheritance in the Intention Tree](#inheritance-in-the-intention-tree).
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
 **Type Flags (pick one):**
@@ -398,7 +399,7 @@ rei custom-property entities [KEY] [options]
 
 **Options:**
 - `-v, --value <value>` — Filter to entities with this specific value
-- `-e, --entity-type <type>` — Filter by entity type (intention, habit, disruption, note, collection, link)
+- `-e, --entity-type <type>` — Filter by entity type (intention, habit, disruption, note, collection, link, action, outcome, blocker)
 - `-c, --category <slug>` — Category scope for disambiguation when multiple properties have the same key
 - `--json` — Output as JSON
 
@@ -413,6 +414,9 @@ rei custom-property entities priority --value high
 
 # Show only intentions
 rei custom-property entities workflow --entity-type intention
+
+# Show only actions with the property set
+rei custom-property entities workflow --entity-type action
 
 # Disambiguate category-scoped property
 rei custom-property entities workflow --category work
@@ -484,6 +488,37 @@ rei custom-property relabel workflow "Work Workflow" --category work
 **Notes:**
 - Property keys are immutable; only the label can be changed
 - Use labels for human-readable display names
+
+### set-inheritable / unset-inheritable
+
+Toggle the `isInheritable` flag on an existing property.
+
+```bash
+rei custom-property set-inheritable KEY [--lookup-category SLUG] [--actor ACTOR]
+rei custom-property unset-inheritable KEY [--lookup-category SLUG] [--actor ACTOR]
+```
+
+**Arguments:**
+- `KEY` — Property key or `custom_property_…` KindID
+
+**Options:**
+- `--lookup-category <slug>` — Disambiguate when multiple properties share the same key
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+**Examples:**
+
+```bash
+# Let descendants inherit focus-area values from ancestor intentions
+rei custom-property set-inheritable focus-area
+
+# Stop propagating values (local values are preserved; only propagation stops)
+rei custom-property unset-inheritable focus-area
+```
+
+**Notes:**
+- State-machine value types cannot be inheritable; the command is rejected with `Error: State-machine properties cannot be inheritable`.
+- Toggling the flag takes effect immediately on subsequent `show`/list reads — there is no re-assignment required.
+- See [Inheritance in the Intention Tree](#inheritance-in-the-intention-tree) for full semantics.
 
 ### set-scope
 
@@ -984,7 +1019,7 @@ See [`rei intention list`](/docs/commands/intention), [`rei habit list`](/docs/c
 
 ### init-entities
 
-Retroactively initialize a state machine property for entities that have the matching category but don't have a value set.
+Retroactively initialize a state machine property for entities that have the matching category but don't have a value set. The backfill loop covers categorized intentions, habits, disruptions, notes, collections, links, actions, outcomes, and blockers.
 
 ```bash
 rei custom-property init-entities KEY_OR_ID [options]
@@ -1012,6 +1047,7 @@ rei custom-property init-entities task-state
 - Only initializes entities that belong to the property's scoped category
 - Skips entities that already have a value for this property
 - Sets the property to the state machine's `initialState`
+- Includes actions, outcomes, and blockers whose category carries the state machine property
 
 **Automatic Initialization:**
 
@@ -1044,7 +1080,7 @@ Intentions are the only entity type that inherits a resolution category from an 
 
 This means a category-scoped property defined on `work` is available to a child intention whose parent (or grandparent, etc.) is categorized as `work`, even if the child itself has no category set.
 
-**Important distinction:** what is inherited is the *category context* used to decide which property definition applies — **not** property values. Setting `priority=high` on a parent intention does NOT propagate that value to its children; each intention still holds its own property values.
+**Important distinction:** what is inherited by default is the *category context* used to decide which property definition applies — **not** property values. Setting `priority=high` on a parent intention does NOT propagate that value to its children unless the property definition is marked `--inheritable`. See [Inheritance in the Intention Tree](#inheritance-in-the-intention-tree) for how to opt in to value inheritance.
 
 ### Resolution Precedence
 
@@ -1066,6 +1102,68 @@ rei custom-property create client-code \
 ```
 
 The property then resolves for entities whose resolution category falls under *any* of the listed scopes.
+
+## Inheritance in the Intention Tree
+
+By default, a property value set on an intention is visible only on that exact intention. Flagging a property definition as **inheritable** changes this: descendants see the nearest ancestor's value, and a descendant can override it by setting its own local value.
+
+### Enabling inheritance
+
+Mark a property inheritable at creation time:
+
+```bash
+rei custom-property create focus-area --type-text --inheritable
+```
+
+Or toggle it on an existing property:
+
+```bash
+rei custom-property set-inheritable focus-area
+rei custom-property unset-inheritable focus-area
+```
+
+State-machine properties cannot be flagged inheritable (they represent per-entity lifecycle position, not a scalar attribute).
+
+### Observing inheritance
+
+```bash
+rei intention set-property --intention ROOT_ID focus-area Product
+rei intention show CHILD_ID --full
+# ... in the "Custom Properties" section:
+#     focus-area: Product (inherited from "Root Intention Title")
+```
+
+`rei intention show --json` returns the additional fields `inherited`, `inheritedFromId`, and `inheritedFromTitle` on inherited property rows.
+
+### Overriding and clearing
+
+A local assignment on a descendant shadows the inherited value:
+
+```bash
+rei intention set-property --intention CHILD_ID focus-area Research
+rei intention show CHILD_ID --full
+#     focus-area: Research          (no inheritance marker)
+```
+
+Clearing the local value restores the inherited one:
+
+```bash
+rei intention clear-property --intention CHILD_ID focus-area
+rei intention show CHILD_ID --full
+#     focus-area: Product (inherited from "Root Intention Title")
+```
+
+### How values are resolved
+
+- Resolution walks up the **intention parent chain** from the target intention.
+- The nearest ancestor with a value wins. A local value (depth 0) always wins over any ancestor.
+- Only properties flagged inheritable surface ancestor values. Non-inheritable properties show only local values, matching the historical behaviour.
+- Matching is by `property_id`, not `property_key`. When category-scoped property keys resolve to different `property_id`s across categories (see [Property Resolution and Inheritance](#property-resolution-and-inheritance)), the descendant only inherits values whose `property_id` matches its own resolved definition — values don't leak across categories.
+- Archived or completed ancestors still contribute values (their property assignments are not automatically cleared when they complete; use `clear-property` to remove).
+
+### Filter queries
+
+`rei intention list --where key=value` matches **local** property values only. Inherited values are not matched by the filter. To see which intentions inherit a value, use `rei intention show <id>` on the descendants in question. This limitation may be lifted in a future release.
 
 ## Category-Scoped Property Keys
 

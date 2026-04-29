@@ -29,7 +29,7 @@ rei link add <url> [options]
 - `-t, --title <title>` — Link title (optional)
 - `--actor <actor>` — Actor that created this link (optional)
 - `-p, --property KEY=VALUE` — Set a custom property on the new link (repeatable)
-- `--no-prompt-properties` — Skip the interactive property walk after creating the link
+- `--prompt-properties` — After creating the link, interactively walk each custom property applicable to links
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -67,21 +67,19 @@ rei link add https://example.com/article \
 
 A malformed `-p` argument (e.g. missing `=`) fails at parse time with `expected KEY=VALUE (non-empty KEY, '=' separator)`, and no link is created.
 
-**Interactive walk:** if `-p` is not supplied (or only partially supplied) and your shell is a TTY with `fzf` available, `rei link add` walks through every custom property that lists `link` in its allowed entity types after the link is created, prompting for each one. Constrained types (enum, state machine, label set, bool) use an FZF picker; free-form types (text, int, float, date, url, etc.) use a text prompt. Press Esc (or submit empty input) to skip a property.
+**Interactive walk:** pass `--prompt-properties` to have the CLI walk through every custom property that lists `link` in its allowed entity types after the link is created, prompting for each one. Constrained types (enum, state machine, label set, bool) use an FZF picker; free-form types (text, int, float, date, url, etc.) use a text prompt. Press Esc (or submit empty input) to skip a property. The walk is also automatically skipped when stdin is not a TTY or `fzf` is unavailable, so piped invocations never block on input.
 
 ```bash
-rei link add https://example.com/article -i intention_01h455vb4pex
+rei link add --prompt-properties https://example.com/article -i intention_01h455vb4pex
 # ... link is created, then:
 #   Found 2 custom properties for links. Press Esc on any to skip.
 #   status   > (FZF picker)
 #   priority > (FZF picker)
 ```
 
-To suppress the interactive walk entirely, pass `--no-prompt-properties`. The walk is also automatically skipped when stdin is not a TTY or `fzf` is unavailable, so piped invocations never block on input.
-
 ### list
 
-List links for an entity or across all entities.
+List links for an entity or across all entities. By default, attachments whose anchor is an archived note are hidden from output (every form: by-anchor, `--all`, `--tree`); pass `--include-archived` to bring them back tagged `[archived parent]`.
 
 ```bash
 rei link list [options]
@@ -97,6 +95,7 @@ rei link list [options]
 - `-d, --domain <domain>` — Filter by registrable domain (e.g., `x.com`, `github.com`; with `--all`)
 - `--tree` — Recursively include links from descendant intentions and their notes (with `-i`)
 - `--include-removed` — Include removed links (with `--all`)
+- `--include-archived` — Include attachments whose parent note is archived. Default behavior excludes them. Each row brought back by this flag is tagged `[archived parent]`. When combined with `--all`, links whose every attachment is archived re-appear in the listing (default behavior excludes such links entirely).
 - `--json` — Output as JSON (with `--all`)
 - `-w, --where FILTER` — Filter by custom property value (repeatable, AND semantics; see "Filter by custom property" below)
 
@@ -122,6 +121,20 @@ rei link list --all --query "haskell"
 
 # Recursively gather links from an intention and all its descendants
 rei link list --tree -i intention_01h455vb4pex
+```
+
+After archiving a note that owned a wikilink, that attachment disappears from the default listing and reappears (with the badge) under `--include-archived`:
+
+```text
+$ rei link list -i intention_01h455...
+# only attachments whose parent notes are active appear
+
+$ rei link list -i intention_01h455... --include-archived
+Links for intention_01h455... (3)
+
+  https://en.wikipedia.org/wiki/Foo [archived parent]
+    Wikipedia: Foo article
+    2026-04-29 14:00
 ```
 
 #### Filter by custom property
@@ -175,6 +188,8 @@ If an unqualified `key` matches properties in more than one category, `rei link 
 ### show
 
 Show link details including canonical URL, status, all attachments, and any custom properties assigned to the link. The `Custom Properties` section is omitted when the link has none.
+
+`rei link show` always lists every attachment of the link, including those whose parent note is archived. Attachments with an archived parent note are tagged `[archived parent]` so you can see why they are missing from default `list` output.
 
 ```bash
 rei link show [<link-id>]
@@ -314,7 +329,7 @@ rei link restore link_01h789abc
 Set a custom property on a link. The property must be defined with `rei custom-property create` and must allow the `link` entity type.
 
 ```bash
-rei link set-property [-l <link-id>] <property-key> <value> [--force]
+rei link set-property [-l <link-id>] [<property-key>] <value> [--force]
 ```
 
 **Options:**
@@ -322,10 +337,12 @@ rei link set-property [-l <link-id>] <property-key> <value> [--force]
 - `--force` — Bypass state machine transition rules
 
 **Arguments:**
-- `<property-key>` — The property key (required)
+- `<property-key>` — The property key (uses FZF if not provided)
 - `<value>` — The value to set (required)
 
 > **FZF Support:** If `-l` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select a link.
+
+> **FZF Support:** If `<property-key>` is not provided and `fzf` is available, an interactive picker will let you choose from active custom properties that allow the `link` entity type.
 
 **Examples:**
 
@@ -335,7 +352,12 @@ rei link set-property -l link_01h789abc read-status reading
 
 # Use FZF to pick the link
 rei link set-property read-status reading
+
+# Use FZF to pick the property key
+rei link set-property -l link_01h789abc reading
 ```
+
+> With a single positional argument, optparse-applicative assigns it to `PROPERTY_KEY` and reports that `VALUE` is missing. To drive the property-key FZF picker, supply `VALUE` as the sole positional and either `-l` or FZF-resolve the link.
 
 ### clear-property
 

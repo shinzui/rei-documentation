@@ -418,6 +418,45 @@ filters:
 limit: null
 ```
 
+### export-notes
+
+Copy every note belonging to a collection to a filesystem directory of your choice. Works for both manual and virtual collections; non-note members (links, docs) are skipped with a warning.
+
+```bash
+rei collection export-notes [NAME_OR_ID] [--path DIR]
+```
+
+**Arguments:**
+- `NAME_OR_ID` — Collection name or ID (opens an FZF picker if omitted)
+
+**Options:**
+- `-p, --path DIR` — Destination directory for exported note files. Required for the export to actually run; optional at the parser layer so the FZF picker can launch first.
+
+> **FZF Support:** If `NAME_OR_ID` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker lists every active collection. This happens whether or not `--path` is supplied, so running bare `rei collection export-notes` still shows the picker — but if you then have no `--path` set, the command prints an error reminding you to supply it and exits.
+
+**Examples:**
+
+```bash
+# Export a curated manual collection to the desktop
+rei collection export-notes "Onboarding Docs" --path ~/Desktop/onboarding
+
+# Snapshot a virtual collection into a scratch folder
+rei collection export-notes "Recent Research" --path /tmp/research-snapshot
+
+# Bare: pick the collection interactively, then get a reminder about --path
+rei collection export-notes
+```
+
+**Output:**
+
+```
+  wrote: /Users/you/Desktop/onboarding/welcome.md
+  wrote: /Users/you/Desktop/onboarding/runbook.md
+Exported 2 note(s) to /Users/you/Desktop/onboarding
+```
+
+The destination directory is created if it does not exist. Re-running the command overwrites previously exported files. Filenames are derived from the note title (slugified, lowercase, hyphen-separated); notes without a title fall back to their note id. `~` in `--path` is expanded to the home directory, and relative paths resolve against the current working directory.
+
 ## Agent Integration
 
 ### explore

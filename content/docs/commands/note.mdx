@@ -43,6 +43,7 @@ rei note new [options]
 - `--template <name>` — Template to use for initial content (default: `default`)
 - `--actor <name>` — Creator identifier (e.g., "user", "claude-code")
 - `--stdin` — Read content from stdin instead of opening editor
+- `--archive` — Archive the note immediately after creation. Useful for capturing reference material (web pages, transcripts, raw text) that should be reachable by ID and wikilink but should not appear in default listings. See the [Workflow: capture and summarize](#workflow-capture-and-summarize) example below.
 
 Notes require an anchor entity (intention or habit), and can optionally be attached to a sub-entity (action, outcome, or reflection) when anchored to an intention.
 
@@ -152,12 +153,14 @@ rei note list [options]
 - `-h, --habit <id>` — Filter by habit
 - `-t, --tag <tag>` — Filter by tag
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
+- `--title <substring>` — Filter by title substring (case-insensitive, matched in SQL)
 - `-d, --include-descendants` — Include notes from descendant categories (use with `-c`)
 - `--collection <name>` — Filter by collection membership (manual or virtual)
 - `-w, --where <filter>` — Filter by custom property value (see Property Filter Syntax below)
+- `--include-archived` — Include archived notes in the listing. Archived notes are hidden by default; passing this flag adds them back, with an `[archived]` tag in each line. Composes with all other filters (tag, category, anchor, property, collection).
 - `--json` — Output as JSON (for scripting)
 
-> **FZF Support:** If no filter option is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
+> **FZF Support:** If no anchor, tag, category, property, collection, or `--title` filter is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select an entity to filter by.
 
 **Intention Filter — Smart Aggregation:**
 
@@ -184,6 +187,12 @@ rei note list --habit habit_01h455vb4pex
 # List all notes with a specific tag
 rei note list --tag architecture
 
+# Find notes whose title contains "architecture" (case-insensitive, no anchor required)
+rei note list --title architecture
+
+# Combine --title with another filter
+rei note list -i intention_01h455vb4pex --title review
+
 # Use fzf to select an entity interactively
 rei note list
 
@@ -204,6 +213,9 @@ rei note list --where "topics any architecture,design"
 
 # Combine with anchor/tag/category filters
 rei note list -i intention_01h455vb4pex --where "status=reviewed"
+
+# Include archived notes (hidden by default); they appear with an [archived] tag
+rei note list -i intention_01h455vb4pex --include-archived
 
 # Output as JSON (for scripting)
 rei note list --json
@@ -244,7 +256,10 @@ rei note show [note-id]
 - Category (with name lookup if available)
 - Embedded files with existence status (`[+]` exists, `[-]` missing)
 - Attached documents with source indicator (`[cli]` explicit, `[embed]` auto-created)
+- A `Status: archived` line when the note is archived (omitted for active notes)
 - Creation and update timestamps
+
+`rei note show` accepts an archived note's ID directly — no flag is needed. The flag (`--include-archived`) is only required for *list-style* commands that default-exclude archived rows.
 
 **Example output:**
 
@@ -508,11 +523,14 @@ See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
 Show notes that link to a given note via wikilinks (`[[Note Title]]`).
 
 ```bash
-rei note backlinks [note-id]
+rei note backlinks [note-id] [--include-archived]
 ```
 
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `--include-archived` — Include backlinks whose source note is archived. Excluded by default.
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -529,6 +547,9 @@ rei note backlinks [note-id]
 # Show all notes linking to a specific note
 rei note backlinks note_01h455vb4pex
 
+# Include backlinks from archived sources
+rei note backlinks note_01h455vb4pex --include-archived
+
 # Use fzf to select note
 rei note backlinks
 ```
@@ -538,11 +559,14 @@ rei note backlinks
 Show unresolved wikilinks (references to notes that don't exist).
 
 ```bash
-rei note broken-links [note-id]
+rei note broken-links [note-id] [--include-archived]
 ```
 
 **Arguments:**
 - `[note-id]` — Optional: filter by source note
+
+**Options:**
+- `--include-archived` — Include broken links whose source note is archived. Excluded by default.
 
 **Behavior:**
 - Without argument: shows all broken links across all notes
@@ -562,6 +586,9 @@ rei note broken-links
 
 # Show broken links from a specific note
 rei note broken-links note_01h455vb4pex
+
+# Include broken links from archived source notes
+rei note broken-links --include-archived
 ```
 
 **Use Cases:**
@@ -753,11 +780,14 @@ rei note embeds
 Show notes that a given note links to via wikilinks. This is the inverse of `backlinks`.
 
 ```bash
-rei note outgoing-links [note-id]
+rei note outgoing-links [note-id] [--include-archived]
 ```
 
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `--include-archived` — Include outgoing links whose target note is archived. Excluded by default. Wikilinks themselves still resolve to archived targets — this flag controls only whether the listing displays them.
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -773,6 +803,9 @@ rei note outgoing-links [note-id]
 ```bash
 # Show all outgoing links from a specific note
 rei note outgoing-links note_01h455vb4pex
+
+# Include outgoing links to archived targets
+rei note outgoing-links note_01h455vb4pex --include-archived
 
 # Use fzf to select note
 rei note outgoing-links
@@ -807,6 +840,46 @@ rei note print note_01h455vb4pex | pbcopy
 rei note print note_01h455vb4pex | wc -l
 ```
 
+### export
+
+Copy a note's markdown file to a directory on disk. Useful for sharing a note with a colleague, seeding another vault, or snapshotting it into an unrelated git repo.
+
+```bash
+rei note export [note-id] [--path <dir>]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `--path <dir>`, `-p <dir>` — Destination directory for the exported `.md` file. Required for the file to actually be written; optional at the parser layer so the FZF picker can run first.
+
+> **FZF Support:** If the note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker launches to let you select from every note in the workspace. This happens whether or not `--path` is supplied, so running bare `rei note export` still shows the picker — but if you then have no `--path` set, the command prints an error reminding you to supply it and exits.
+
+**Behavior:**
+1. Resolves the note (argument or FZF selection).
+2. If `--path` was not supplied, prints a usage reminder and exits.
+3. Looks up the note's title (used to derive the destination filename).
+4. Copies `<workspaceRoot>/notes/<noteId>.md` into `<dir>/<slug-of-title>.md` (or `<dir>/<noteId>.md` when the note has no title).
+5. Creates `<dir>` if it does not exist. Overwrites existing files silently.
+6. Emits no events — this is a read-only, side-effecting operation.
+
+**Examples:**
+
+```bash
+# Export a specific note to a directory
+rei note export note_01h455vb4pex --path ~/Desktop/exports
+
+# Use fzf to select the note, relative path
+rei note export --path ./exported-notes
+
+# Bare: pick the note interactively, then get a reminder about --path
+rei note export
+
+# Tilde expansion works
+rei note export note_01h455vb4pex --path '~/share/onboarding'
+```
+
 ### delete
 
 Delete a note from the workspace.
@@ -836,6 +909,77 @@ rei note delete
 ```
 
 **Warning:** This action is permanent. The note file is removed from disk.
+
+### archive
+
+Move a note out of the default listings without deleting it. Archived notes are hidden by `rei note list` and cross-module surfaces (intention show, today/yesterday, day review, habit show, disruption show, FZF preview, agent context builders) but remain reachable by ID, can be opened, edited, and referenced by wikilinks. Use [`unarchive`](#unarchive) to restore.
+
+```bash
+rei note archive [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker opens with **active** notes only. To archive a note that is already archived, pass its ID directly; the picker does not offer archived notes.
+
+**Behavior:**
+1. Emits a `NoteArchived` event on the note's stream.
+2. The read-model row's `status` flips to `archived` and `archived_at` is set.
+3. The `.md` file stays put on disk — archive is a metadata transition, not a filesystem move.
+4. Idempotent: archiving an already-archived note is a no-op.
+5. Cannot archive a deleted note (returns an error).
+
+**Examples:**
+
+```bash
+# Archive a specific note
+rei note archive note_01abc123
+
+# Use fzf to pick from active notes
+rei note archive
+```
+
+**Example output:**
+
+```
+Archived note "Captured: example.com" (note_01abc123)
+```
+
+### unarchive
+
+Reverse `archive`. The note rejoins the default listings.
+
+```bash
+rei note unarchive [note-id]
+```
+
+**Arguments:**
+- `[note-id]` — Note ID (optional if fzf is available, but see note below)
+
+> **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker opens — but it shows only **active** notes, which means it is *not* useful for unarchive in practice. To find an archived note's ID, run `rei note list --include-archived` first, then pass the ID explicitly.
+
+**Behavior:**
+1. Emits a `NoteUnarchived` event on the note's stream.
+2. The read-model row's `status` flips to `active` and `archived_at` is cleared.
+3. Idempotent: unarchiving an active note is a no-op.
+4. Cannot unarchive a deleted note (returns an error).
+
+**Examples:**
+
+```bash
+# Find archived candidates first
+rei note list -i intention_01h455vb4pex --include-archived
+
+# Unarchive by ID
+rei note unarchive note_01abc123
+```
+
+**Example output:**
+
+```
+Unarchived note "Captured: example.com" (note_01abc123)
+```
 
 ## File Embeds
 
@@ -884,3 +1028,41 @@ Check [[Meeting Notes|the meeting notes]] from last week.
 Notes are stored as markdown files in your workspace directory (default: `.rei/notes/`).
 
 You can edit them directly with any text editor or use `rei note open`.
+
+## Workflow: capture and summarize
+
+A common pattern: capture a webpage, transcript, or document as raw markdown for reference, then write a clean summary that links back to the raw capture. The capture would otherwise pollute default listings; the summary is what you actually want to see day-to-day. Archive the capture so only the summary surfaces by default; the wikilink from the summary to the capture continues to resolve.
+
+Steps:
+
+```bash
+# 1. Capture the page as a raw archived note.
+rei note new -i intention_01h455vb4pex --archive
+# editor opens; paste the markdown rendering of the page; save the
+# title as e.g. "Wikipedia: Foo (raw)".
+
+# 2. Write a summary that wikilinks to the capture.
+rei note new -i intention_01h455vb4pex
+# editor opens; write the summary using [[Wikipedia: Foo (raw)]] as
+# the wikilink target.
+
+# 3. List notes — only the summary appears.
+rei note list -i intention_01h455vb4pex
+#   note_01summary
+#     Title: Foo summary
+#     ...
+
+# 4. The summary's outgoing links still resolve to the archived
+#    capture (the wikilink target is identified by title, not
+#    status). The default listing hides archived targets:
+rei note outgoing-links note_01summary
+
+# 5. To see the archived target in the listing too, opt in:
+rei note outgoing-links note_01summary --include-archived
+
+# 6. To revisit the captured page directly, fetch by ID:
+rei note show note_01raw     # works without --include-archived
+rei note open note_01raw
+```
+
+This workflow is the primary motivation for the `--archive` flag on `note new` — it captures and hides in one shot, so you don't have to remember a follow-up `rei note archive`. The captured note remains a first-class, editable, wikilink-resolvable note; it is only excluded from default listings and dashboards.

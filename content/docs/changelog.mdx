@@ -6,6 +6,79 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-04-28
+
+### Note Archive Lifecycle
+
+Notes now have a tri-state lifecycle (`active`, `archived`, `deleted`). Archive captures reference material that should remain reachable by ID and wikilink without polluting day-to-day listings.
+
+- `rei note archive [NOTE_ID]` / `rei note unarchive [NOTE_ID]` — Flip a note's lifecycle status. Idempotent; refuses to operate on deleted notes. The `.md` file stays put on disk.
+- `rei note new --archive` — Create and archive in one step. Useful for capturing web pages, transcripts, or raw text that should be reachable by ID and wikilink but not appear in default listings.
+- `rei note list --include-archived`, plus `--include-archived` on `backlinks`, `outgoing-links`, and `broken-links` — Bring archived notes back into the listing tagged `[archived]`. The default behavior is to hide them.
+- `rei note show <id>` — Prints `Status: archived` for archived notes and accepts archived IDs directly without any flag.
+- Archived notes are silently excluded from `rei intention show`, `rei habit show`, `rei today`, `rei yesterday`, `rei review day`, the disruption show output, the FZF intention preview, the collection query engine, and the agent context builders.
+
+### Attachment Awareness for Archived Notes
+
+Archiving a note also hides its attached docs and link attachments from default listings.
+
+- `rei doc list --include-archived` — Bring back docs whose parent note is archived. Each row is tagged `[archived parent]`. `rei doc open <doc-id>` continues to resolve regardless of parent status.
+- `rei link list --include-archived` — Works with the by-anchor form, `--all`, and `--tree`. With `--all`, links whose every attachment is archived re-appear (default behavior excludes them entirely).
+- `rei link show <id>` — Always lists every attachment of the link, including those whose parent note is archived (tagged `[archived parent]`).
+
+### Custom Properties on Sub-Entities
+
+Actions, outcomes, and intention blockers now support categories and custom properties on the same surface as intentions.
+
+- **`rei action set-property` / `rei action clear-property`** — Manage custom property values on individual actions; FZF picks the action when `-a` is omitted. Works alongside the existing `set-category`/`clear-category`.
+- **`rei outcome set-category` / `clear-category` / `set-property` / `clear-property`** — Outcomes gain category and custom property support. Setting a category auto-initializes any category-scoped state-machine properties.
+- **`rei blocker set-category` / `clear-category` / `set-property` / `clear-property`** — Intention blockers gain category and custom property support (habit blockers are not affected).
+- **`rei custom-property entities --entity-type`** — Now accepts `action`, `outcome`, and `blocker`.
+- **`rei custom-property init-entities`** — Backfills categorized actions, outcomes, and blockers in the same pass as intentions and other property-bearing entities.
+
+### Inherit Custom Property Values in the Intention Tree
+
+Custom property definitions gain an opt-in `isInheritable` flag. When set, a value assigned on an intention is visible on all descendants in the intention tree (nearest ancestor wins). Descendants can override locally; clearing reverts to the inherited value.
+
+- **`rei custom-property create --inheritable`** — Mark a new property as inheritable at creation time. State-machine value types cannot be flagged inheritable.
+- **`rei custom-property set-inheritable <key>` / `unset-inheritable <key>`** — Toggle the flag on an existing property. Local values are preserved when toggling off; only propagation stops.
+- **`rei intention show --full`** — Inherited rows are rendered with ` (inherited from "<ancestor title>")` in dim style, matching the existing focus-inheritance marker.
+- **`rei intention show --json`** — Adds `inherited`, `inheritedFromId`, and `inheritedFromTitle` on property rows.
+- **Known limitation** — `rei intention list --where key=value` matches local values only.
+
+### `rei note export` and `rei collection export-notes`
+
+Two new commands for snapshotting markdown notes into a directory on disk.
+
+- **`rei note export [NOTE_ID] --path DIR`** — Copies a note's markdown file into the given directory. Filenames are derived from the note title (slugified), falling back to `<noteId>.md`. `~` and relative paths are expanded; the directory is created if missing; existing files are overwritten. Bare invocation opens the FZF picker first; `--path` is enforced after the picker.
+- **`rei collection export-notes [NAME_OR_ID] --path DIR`** — Copies every note belonging to a collection (manual or virtual) as `.md` files. Non-note members (links, docs) are reported and counted as "skipped". Same path semantics as `note export`.
+
+### Filter Notes by Title
+
+- **`rei note list --title <substring>`** — Case-insensitive substring filter, evaluated in SQL via Postgres `ILIKE`. Composes with every existing filter; runs as a global title search when no anchor or category filter is provided.
+
+### `rei link add`: Opt-In Property Walk and Property-Key FZF Picker
+
+- **Breaking:** `rei link add --no-prompt-properties` is removed. The walk is now opt-in via `--prompt-properties` instead. Pipelines and scripts that piped URLs without setting properties no longer block on prompts by default.
+- **`rei link set-property [<property-key>]`** — `<property-key>` is now optional. When omitted with `fzf` available, an interactive picker lists every active custom property whose allowed entity types include `link`.
+
+### Dashboard Root-Context Inheritance Fix
+
+- **`rei today -c <context>`**, plus the sibling `yesterday`, `tomorrow`, `review day`, `review week` commands — Now correctly include non-dormant descendants of a dormant root intention. Previously, marking a root dormant silently dropped every descendant from the `-c` filter in those dashboards. The SQL-based `rei intention list -c` and `rei intention tree -c` were already correct.
+
+### Show Action Scriber in Today / Yesterday / Review Day
+
+- **`rei today` / `rei yesterday` / `rei review day`** — Actions an agent recorded on a human's behalf now show a dim `·via <agent-id>` suffix. Agent-performed actions keep the 🤖 prefix; the suffix is suppressed when both performer and scriber are agents.
+
+### Tree TUI Filter: `j`/`k` Type, Ctrl-J/K Navigate
+
+- **`rei intention tree --tui`** — In filter mode (entered with `/`), typing `j` or `k` now inserts those letters into the filter query. List navigation while filtering moves to `Ctrl-J` (down) and `Ctrl-K` (up); arrow keys still work. The footer advertises the new bindings.
+- Stray prefix/suffix markers (`'`, `^`, `$`) at the filter prompt no longer drop the list to `(0/N)` — they're treated as incomplete input and ignored.
+
+### `rei kit install` FZF Picker
+
+- **`rei kit install`** — Run with no name argument to launch an interactive fzf picker listing every skill and agent from rei-kit. Select with Enter or cancel with Esc.
+
 ## 2026-04-17
 
 ### New Command: `rei intention reopen`

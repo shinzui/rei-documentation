@@ -85,7 +85,7 @@ rei doc attach ~/Downloads/report.pdf -i intention_01h455vb4pex --copy
 
 ### list
 
-List attached documents.
+List attached documents. By default, docs whose anchor is an archived note are hidden from output; pass `--include-archived` to bring them back.
 
 ```bash
 rei doc list [options]
@@ -97,6 +97,7 @@ rei doc list [options]
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
 - `-n, --note <id>` — Filter by note
+- `--include-archived` — Include docs whose parent note is archived. Default behavior excludes them (they remain reachable by ID via `rei doc open`). Each row brought back by this flag is tagged `[archived parent]`.
 
 **Examples:**
 
@@ -107,6 +108,21 @@ rei doc list -i intention_01h455vb4pex
 # List docs for a note
 rei doc list -n note_01h455vb4pex
 ```
+
+After archiving the note, the same listing is empty by default:
+
+```text
+$ rei doc list --note note_01h455vb4pex
+No documents for note: note_01h455vb4pex
+
+$ rei doc list --note note_01h455vb4pex --include-archived
+Documents for note: note_01h455vb4pex
+  doc_01abc... [archived parent]
+    Path: workspace/docs/example.pdf
+    Attached: 2026-04-29 14:00
+```
+
+`rei doc open <doc-id>` continues to work without any flag because `open` resolves by ID regardless of parent-note status.
 
 ### open
 
