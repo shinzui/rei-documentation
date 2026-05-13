@@ -335,6 +335,7 @@ rei link set-property [-l <link-id>] [<property-key>] <value> [--force]
 **Options:**
 - `-l, --link <link-id>` — The link ID (uses FZF if not provided)
 - `--force` — Bypass state machine transition rules
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
 
 **Arguments:**
 - `<property-key>` — The property key (uses FZF if not provided)
@@ -355,7 +356,13 @@ rei link set-property read-status reading
 
 # Use FZF to pick the property key
 rei link set-property -l link_01h789abc reading
+
+# Backdate a state transition
+rei link set-property -l link_01h789abc read-status read --at "yesterday"
 ```
+
+**Notes:**
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
 
 > With a single positional argument, optparse-applicative assigns it to `PROPERTY_KEY` and reports that `VALUE` is missing. To drive the property-key FZF picker, supply `VALUE` as the sole positional and either `-l` or FZF-resolve the link.
 
@@ -379,6 +386,24 @@ rei link clear-property [-l <link-id>] <property-key>
 
 ```bash
 rei link clear-property -l link_01h789abc read-status
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei link append-property [-l LINK_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei link remove-property-value [-l LINK_ID] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ## Key Concepts

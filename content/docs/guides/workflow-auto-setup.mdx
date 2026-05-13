@@ -1,0 +1,601 @@
+---
+title: Workflow Auto-Setup
+description: Combine category child defaults and state machines so new intentions land on a kanban board automatically
+icon: Workflow
+---
+
+This guide shows how to combine two Rei features so that **creating a child intention automatically gives it a category and a workflow state**, with no manual classification step:
+
+1. **Category `childDefault`** — when a child intention is created under a parent whose category has a configured child default, the child automatically receives that category (after a 5-minute grace period).
+2. **State machine custom properties scoped to a category** — when a category is assigned to an entity, every state machine property scoped to that category is auto-initialized to its `initialState`.
+
+Composed together, you get: *create a child intention → category auto-inherited → workflow state machine auto-initialized*. Every new intention shows up on a kanban-style board automatically.
+
+The result is a low-friction workflow that scales from solo software development to reading lists, writing pipelines, health experiments, and any other domain where you want "things should fall into a queue when I create them."
+
+## The two mechanisms
+
+### 1. Category child defaults
+
+A category can declare a `childDefault`: the category that should be assigned to children of intentions that hold this category.
+
+```bash
+# When an intention has category `engineering`, its children get `feature` automatically
+rei category set-child-default engineering feature
+
+# Self-reference: children of `feature` intentions also get `feature`
+rei category set-child-default feature feature
+```
+
+The auto-assignment is **event-driven and delayed**. When a child intention is created, a delayed message is enqueued. After 5 minutes, the system checks whether the child still has no category and assigns the default. If you set a category manually within those 5 minutes, the auto-set becomes a no-op. Root intentions (no parent) are skipped.
+
+See [`rei category`](/docs/commands/category) for details.
+
+### 2. Category-scoped state machine properties
+
+A custom property can be scoped to a leaf category. When that property is a state machine, it gets **auto-initialized** to its `initialState` whenever the category is assigned to a matching entity — whether the assignment was manual (`set-category`) or system-driven (the `childDefault` reactor above).
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file feature-kanban.yaml \
+  -e intention -c feature \
+  --label "Feature workflow"
+```
+
+After this:
+- Any **new** intention placed in the `feature` category gets `workflow = backlog` (or whatever the YAML's `initialState` is).
+- **Existing** intentions can be initialized retroactively with `rei custom-property init-entities workflow`.
+
+See [`rei custom-property`](/docs/commands/custom-property) and the [State Machine Properties Guide](/docs/guides/state-machines) for full details.
+
+### What the combination buys you
+
+Without the combination:
+- You create a child intention.
+- You remember to classify it (`set-category`).
+- You remember to set its workflow state.
+
+With the combination:
+- You create a child intention.
+- Five minutes later it has a category and an initial workflow state.
+- You just transition it: `rei intention set-property <id> workflow in-progress`.
+
+Three steps shrink to one. Classification stops being a chore and becomes a default. Your kanban board fills itself.
+
+## Walkthrough: software development feature kanban
+
+This is the canonical use case. We'll set up a workflow where every feature intention you create under your engineering tree shows up automatically on a kanban board.
+
+### Step 1: define the category tree
+
+```bash
+# A top-level engineering category, then a leaf for individual features
+rei category create engineering --description "Software engineering work"
+rei category create feature --parent engineering \
+  --description "Individual feature, bug, or task"
+```
+
+Why a leaf category for `feature`? Because state machine properties can only be scoped to **leaf categories** (those with no children). Keep the leaf where the actual work lives.
+
+### Step 2: wire up child-default inheritance
+
+You probably want every child of an engineering intention to land in `feature`, and every child of a feature intention to also land in `feature`:
+
+```bash
+# Children of engineering intentions become features
+rei category set-child-default engineering feature
+
+# Children of features stay features (self-reference)
+rei category set-child-default feature feature
+```
+
+The self-reference is the trick that makes inheritance "stick" all the way down a subtree without you needing to set a default on every category.
+
+### Step 3: define the state machine
+
+Save this as `feature-kanban.yaml`:
+
+```yaml
+initialState: backlog
+states:
+  - stateId: backlog
+    stateLabel: "Backlog"
+    stateOrder: 1
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: ready
+    stateLabel: "Ready"
+    stateOrder: 2
+    stateDescription: "Spec is clear; ready to start"
+    stateTags:
+      - systemTag: TagQueue
+  - stateId: in-progress
+    stateLabel: "In Progress"
+    stateOrder: 3
+    stateLimit: 3              # Advisory WIP limit
+    stateTags:
+      - systemTag: TagActive
+  - stateId: review
+    stateLabel: "In Review"
+    stateOrder: 4
+    stateLimit: 5
+    stateTags:
+      - systemTag: TagActive
+      - userTag: needs-review
+  - stateId: done
+    stateLabel: "Done"
+    stateOrder: 5
+    stateTags:
+      - systemTag: TagDone
+      - systemTag: TagTerminal
+  - stateId: cancelled
+    stateLabel: "Cancelled"
+    stateOrder: 6
+    stateTags:
+      - systemTag: TagTerminal
+transitions:
+  - { transitionFrom: backlog,     transitionTo: ready,       transitionLabel: "Groom" }
+  - { transitionFrom: ready,       transitionTo: in-progress, transitionLabel: "Start" }
+  - { transitionFrom: in-progress, transitionTo: review,      transitionLabel: "Submit for review" }
+  - { transitionFrom: review,      transitionTo: in-progress, transitionLabel: "Request changes" }
+  - { transitionFrom: review,      transitionTo: done,        transitionLabel: "Approve" }
+  - { transitionFrom: backlog,     transitionTo: cancelled,   transitionLabel: "Cancel" }
+  - { transitionFrom: ready,       transitionTo: cancelled,   transitionLabel: "Cancel" }
+  - { transitionFrom: in-progress, transitionTo: cancelled,   transitionLabel: "Cancel" }
+```
+
+A few design notes:
+- **`stateOrder`** controls how states display on `--with-counts` and in metrics.
+- **`stateLimit`** is *advisory* — it shows up in counts and metrics but doesn't block transitions.
+- **`TagTerminal`** is what enables [lifecycle auto-complete](#lifecycle-auto-complete-optional) later.
+- The `cancelled` state has `TagTerminal` but not `TagDone`, so it's excluded from "completed" counts in metrics.
+
+### Step 4: create the property scoped to `feature`
+
+```bash
+rei custom-property create workflow \
+  --type-state-machine --from-file feature-kanban.yaml \
+  -e intention -c feature \
+  --label "Feature workflow" \
+  --description "Kanban-style state for individual features"
+```
+
+Now the system has everything it needs.
+
+### Step 5: see it work
+
+```bash
+# Create the engineering tree root (or use one you already have)
+rei intention create "Build payment system" --horizon weeks
+# (manually) put it in engineering — once
+rei intention set-category -i <root-id> engineering
+
+# Create child intentions; categories will auto-set after 5 minutes
+rei intention create "Implement Stripe webhook handler"
+rei intention create "Add idempotency keys to charge API"
+rei intention create "Refactor payment retry logic"
+
+# Five minutes later (or after `rei subscription run` if configured manually):
+rei intention show -i <child-id> --full
+```
+
+You should see:
+
+```
+Category: feature
+Properties:
+  workflow: backlog
+```
+
+If you don't want to wait 5 minutes during a demo, set the category manually:
+
+```bash
+rei intention set-category -i <child-id> feature
+# `workflow` is auto-initialized synchronously on category set
+```
+
+### Step 6: drive the workflow
+
+```bash
+# Take the FZF picker route (lists allowed transitions and any [force] entries)
+rei intention set-property workflow
+
+# Or be explicit
+rei intention set-property -i intention_… workflow ready
+rei intention set-property -i intention_… workflow in-progress
+
+# Backdate a transition you forgot to record live
+rei intention set-property -i intention_… workflow done --at "yesterday 6pm"
+```
+
+`set-property` is idempotent — setting `workflow = in-progress` when the value is already `in-progress` is a no-op and writes no event. Safe to call from automation.
+
+### Step 7: read the board
+
+```bash
+# Counts per state across the whole property
+rei custom-property show workflow --with-counts
+
+# Filter intentions by current state
+rei intention list --state-tag active        # in-progress + review
+rei intention list --state-tag queue         # backlog + ready
+rei intention list --state-tag done
+
+# Filter by exact state
+rei intention list --where workflow=in-progress
+
+# Cycle/lead time, time-in-state, recent transitions
+rei custom-property metrics workflow
+rei custom-property metrics workflow --detailed
+```
+
+### Step 8 (optional): lifecycle auto-complete
+
+If you want intentions to auto-complete a few days after entering a terminal state:
+
+```bash
+# After 3 days in `done` (or `cancelled`), auto-complete the intention
+rei custom-property set-lifecycle workflow --days 3
+```
+
+This is a quality-of-life flag for the kind of work where you want a buffer to revert mistakes. Minimum is `--days 1`; use a regular `intention complete` if you want immediate completion.
+
+### Backfill existing intentions
+
+If you've already accumulated intentions in the `feature` category before defining the property (or before fixing a bug — see [Troubleshooting](#troubleshooting)):
+
+```bash
+# Preview
+rei custom-property init-entities workflow --dry-run
+
+# Apply
+rei custom-property init-entities workflow
+```
+
+Every `feature`-categorized intention without a `workflow` value gets set to `backlog`.
+
+## Walkthrough: reading list
+
+The same pattern works for tracking books and articles. Here you don't need a deep tree — just one parent intention to capture all reading.
+
+```bash
+# Tree
+rei category create reading --description "Books and long-form articles"
+rei category set-child-default reading reading
+
+# State machine: queued → reading → reflecting → finished/abandoned
+cat > reading.yaml <<'YAML'
+initialState: queued
+states:
+  - { stateId: queued,      stateLabel: "Queued",      stateOrder: 1, stateTags: [{ systemTag: TagQueue }] }
+  - { stateId: reading,     stateLabel: "Reading",     stateOrder: 2, stateLimit: 3, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: reflecting,  stateLabel: "Reflecting",  stateOrder: 3, stateTags: [{ systemTag: TagActive }, { userTag: needs-notes }] }
+  - { stateId: finished,    stateLabel: "Finished",    stateOrder: 4, stateTags: [{ systemTag: TagDone }, { systemTag: TagTerminal }] }
+  - { stateId: abandoned,   stateLabel: "Abandoned",   stateOrder: 5, stateTags: [{ systemTag: TagTerminal }] }
+transitions:
+  - { transitionFrom: queued,     transitionTo: reading,    transitionLabel: "Pick up" }
+  - { transitionFrom: reading,    transitionTo: reflecting, transitionLabel: "Finish reading" }
+  - { transitionFrom: reflecting, transitionTo: finished,   transitionLabel: "Wrap up notes" }
+  - { transitionFrom: queued,     transitionTo: abandoned,  transitionLabel: "Skip" }
+  - { transitionFrom: reading,    transitionTo: abandoned,  transitionLabel: "Drop" }
+YAML
+
+rei custom-property create reading-state \
+  --type-state-machine --from-file reading.yaml \
+  -e intention -c reading \
+  --label "Reading state"
+
+# Optional: parent intention to hang the queue off
+rei intention create "Reading list" --horizon years
+rei intention set-category -i <id> reading
+
+# Add a book
+rei intention create "Designing Data-Intensive Applications"
+# 5 minutes later: category=reading, reading-state=queued
+```
+
+Why state machines for books? You get cycle time per book, average time queued, current "in-flight" titles, and a record of every abandonment with reasons (via `--at` and edges/notes for context). It makes a passive list into a measurable practice.
+
+## Walkthrough: writing pipeline
+
+Useful for blog posts, essays, longer pieces of writing — anything that goes through drafting, revision, and publishing.
+
+```bash
+rei category create writing
+rei category set-child-default writing writing
+
+cat > writing.yaml <<'YAML'
+initialState: idea
+states:
+  - { stateId: idea,        stateLabel: "Idea",       stateOrder: 1, stateTags: [{ systemTag: TagQueue }] }
+  - { stateId: outlining,   stateLabel: "Outlining",  stateOrder: 2, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: drafting,    stateLabel: "Drafting",   stateOrder: 3, stateLimit: 2, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: revising,    stateLabel: "Revising",   stateOrder: 4, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: editing,     stateLabel: "Editing",    stateOrder: 5, stateTags: [{ systemTag: TagActive }, { userTag: needs-eyes }] }
+  - { stateId: published,   stateLabel: "Published",  stateOrder: 6, stateTags: [{ systemTag: TagDone }, { systemTag: TagTerminal }] }
+  - { stateId: shelved,     stateLabel: "Shelved",    stateOrder: 7, stateTags: [{ systemTag: TagTerminal }] }
+transitions:
+  - { transitionFrom: idea,      transitionTo: outlining, transitionLabel: "Start outline" }
+  - { transitionFrom: outlining, transitionTo: drafting,  transitionLabel: "Begin draft" }
+  - { transitionFrom: drafting,  transitionTo: revising,  transitionLabel: "Finish first draft" }
+  - { transitionFrom: revising,  transitionTo: editing,   transitionLabel: "Hand to editor" }
+  - { transitionFrom: editing,   transitionTo: revising,  transitionLabel: "Take notes back" }
+  - { transitionFrom: editing,   transitionTo: published, transitionLabel: "Ship" }
+  - { transitionFrom: idea,      transitionTo: shelved,   transitionLabel: "Park" }
+  - { transitionFrom: drafting,  transitionTo: shelved,   transitionLabel: "Park" }
+YAML
+
+rei custom-property create writing-state \
+  --type-state-machine --from-file writing.yaml \
+  -e intention -c writing
+```
+
+The `stateLimit: 2` on `drafting` is a soft signal that you should not be drafting more than two pieces at once. `metrics --detailed` will surface average time-in-state, useful for noticing when a piece has been "revising" for three months.
+
+## Walkthrough: health protocol experiments
+
+For tracking medical/health interventions or biohacking experiments — anywhere you want a "study a hypothesis, run a protocol, evaluate, decide to keep or drop" rhythm.
+
+```bash
+rei category create health-experiment
+rei category set-child-default health-experiment health-experiment
+
+cat > health-experiment.yaml <<'YAML'
+initialState: planning
+states:
+  - { stateId: planning,    stateLabel: "Planning",    stateOrder: 1, stateTags: [{ systemTag: TagQueue }] }
+  - { stateId: active,      stateLabel: "Active",      stateOrder: 2, stateLimit: 3, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: evaluating,  stateLabel: "Evaluating",  stateOrder: 3, stateTags: [{ systemTag: TagActive }, { userTag: needs-data-review }] }
+  - { stateId: adopted,     stateLabel: "Adopted",     stateOrder: 4, stateTags: [{ systemTag: TagDone }, { systemTag: TagTerminal }] }
+  - { stateId: dropped,     stateLabel: "Dropped",     stateOrder: 5, stateTags: [{ systemTag: TagTerminal }] }
+  - { stateId: paused,      stateLabel: "Paused",      stateOrder: 6, stateTags: [{ userTag: paused }] }
+transitions:
+  - { transitionFrom: planning,   transitionTo: active,     transitionLabel: "Start protocol" }
+  - { transitionFrom: active,     transitionTo: evaluating, transitionLabel: "End trial period" }
+  - { transitionFrom: active,     transitionTo: paused,     transitionLabel: "Pause" }
+  - { transitionFrom: paused,     transitionTo: active,     transitionLabel: "Resume" }
+  - { transitionFrom: evaluating, transitionTo: adopted,    transitionLabel: "Adopt" }
+  - { transitionFrom: evaluating, transitionTo: dropped,    transitionLabel: "Drop" }
+  - { transitionFrom: planning,   transitionTo: dropped,    transitionLabel: "Cancel before start" }
+YAML
+
+rei custom-property create protocol-state \
+  --type-state-machine --from-file health-experiment.yaml \
+  -e intention -c health-experiment
+```
+
+Pair this with notes anchored to each intention to record symptoms, measurements, and outcomes. The state history (queryable via `metrics --detailed` or by reading the intention's events) becomes a record of when each protocol started and ended in real time.
+
+## Walkthrough: research / paper review
+
+For academic reading or research where each paper goes through skim → close-read → notes → outcome.
+
+```bash
+rei category create papers
+rei category set-child-default papers papers
+
+cat > paper-review.yaml <<'YAML'
+initialState: queued
+states:
+  - { stateId: queued,         stateLabel: "Queued",        stateOrder: 1, stateTags: [{ systemTag: TagQueue }] }
+  - { stateId: skimming,       stateLabel: "Skimming",      stateOrder: 2, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: close-reading,  stateLabel: "Close Reading", stateOrder: 3, stateLimit: 2, stateTags: [{ systemTag: TagActive }] }
+  - { stateId: synthesizing,   stateLabel: "Synthesizing",  stateOrder: 4, stateTags: [{ systemTag: TagActive }, { userTag: needs-notes }] }
+  - { stateId: integrated,     stateLabel: "Integrated",    stateOrder: 5, stateTags: [{ systemTag: TagDone }, { systemTag: TagTerminal }] }
+  - { stateId: discarded,      stateLabel: "Discarded",     stateOrder: 6, stateTags: [{ systemTag: TagTerminal }] }
+transitions:
+  - { transitionFrom: queued,        transitionTo: skimming,       transitionLabel: "Skim" }
+  - { transitionFrom: skimming,      transitionTo: close-reading,  transitionLabel: "Worth a deep read" }
+  - { transitionFrom: skimming,      transitionTo: discarded,      transitionLabel: "Not relevant" }
+  - { transitionFrom: close-reading, transitionTo: synthesizing,   transitionLabel: "Done reading" }
+  - { transitionFrom: synthesizing,  transitionTo: integrated,     transitionLabel: "Notes complete" }
+YAML
+
+rei custom-property create paper-state \
+  --type-state-machine --from-file paper-review.yaml \
+  -e intention -c papers
+```
+
+A `stateLimit: 2` on `close-reading` enforces (advisory) that you're not deep-reading more than two papers at once. `metrics --detailed` will tell you median time from queue → integrated, which is genuinely useful for tuning your reading practice.
+
+## Patterns and recipes
+
+### Self-reference for "everything in this subtree gets the same workflow"
+
+Setting `childDefault` to itself is the recipe for "the workflow propagates all the way down":
+
+```bash
+rei category set-child-default feature feature
+```
+
+Without self-reference, only direct children of categorized parents inherit. With self-reference, the inheritance is hereditary across arbitrary depth.
+
+### Different workflows for different subtrees
+
+Use sibling leaf categories under one parent. Each leaf can carry its own state machine.
+
+```bash
+rei category create engineering
+rei category create feature   --parent engineering
+rei category create bug-fix   --parent engineering
+rei category create incident  --parent engineering
+
+rei category set-child-default engineering feature   # default for new children
+
+rei custom-property create workflow --from-file feature.yaml      -e intention -c feature
+rei custom-property create workflow --from-file bugfix.yaml       -e intention -c bug-fix
+rei custom-property create workflow --from-file incident.yaml     -e intention -c incident
+```
+
+Note the **same property key** (`workflow`) can exist in multiple categories with different state machines. Resolution is automatic based on the entity's category — no flag needed at usage time. Use `--category` only when you're showing or managing the property definition itself.
+
+### Multiple state machines on the same entity
+
+A single entity can carry several state machine properties simultaneously, as long as each is scoped to (a different role of) its category — or unscoped:
+
+```bash
+# Workflow scoped to feature
+rei custom-property create workflow --from-file feature-kanban.yaml -e intention -c feature
+
+# Risk level — global, applies to any intention
+rei custom-property create risk \
+  --type-state-machine --from-file risk-levels.yaml \
+  -e intention
+```
+
+Both auto-initialize on category assignment if scoped; the global one auto-initializes when the property is first set.
+
+### Mixing scopes (state machine + non-state machine)
+
+Categories can carry mixed property types. State machine properties auto-initialize; everything else (int, enum, label-set, etc.) does not.
+
+```bash
+rei custom-property create workflow --type-state-machine -c feature ...
+rei custom-property create effort --type-int --min 1 --max 10 -c feature
+rei custom-property create areas --type-label-set --labels backend,frontend,infra -c feature
+```
+
+When a child intention auto-categorizes into `feature`, only `workflow` is auto-set. `effort` and `areas` stay empty until you fill them. This is usually what you want.
+
+### One-shot parent (no inheritance)
+
+If you want a category for a parent intention but don't want children to inherit:
+
+```bash
+rei category create initiative
+# No `set-child-default` call — children stay uncategorized
+```
+
+You can still manually `set-category` on individual children if needed.
+
+## Operational concerns
+
+### The 5-minute grace period
+
+Child auto-categorization is **not synchronous**. When a child intention is created, the system enqueues a delayed message that runs five minutes later. At that point, if the child still has no category, the default kicks in.
+
+Why the delay? It gives you (or an agent) a chance to override the default by calling `set-category` manually within the window. The auto-set then becomes a no-op.
+
+Implications:
+- During interactive demos, set the category manually to see auto-init immediately.
+- Long-running scripts that create many intentions should not assume properties are populated immediately.
+- Manual `set-category` overrides automatic inheritance — *and* triggers the same auto-init reactor for any state machine properties scoped to the new category.
+
+### Backfill via `init-entities`
+
+Whenever you create or change a category-scoped state machine property, existing entities in that category won't get the new property until you backfill:
+
+```bash
+rei custom-property init-entities <KEY> --dry-run   # preview
+rei custom-property init-entities <KEY>             # apply
+```
+
+This is also the recovery tool if anything ever falls behind (e.g., a subscription bug, a database restore).
+
+### Property scope must be a leaf category
+
+State machine properties can only be scoped to **leaf categories** — categories with no children. This is enforced at creation time. If you need to add child categories later, archive or move the property first.
+
+### State machine properties cannot be `--inheritable`
+
+The `--inheritable` flag (which lets descendants in the intention tree see an ancestor's value) is **not allowed** for state machine properties. Each entity has its own state machine value; there's no cascade through the intention hierarchy. (Categories already give you the cross-cutting "everything in this category has the same workflow" behavior.)
+
+### Lifecycle auto-complete (optional)
+
+If you want intentions to auto-complete some days after their workflow reaches a terminal state:
+
+```bash
+rei custom-property set-lifecycle workflow --days 3 --category feature
+```
+
+This is per-category. To configure for a global state machine property, omit `--category`. Use `revoke-lifecycle` to undo.
+
+### WIP limits are advisory
+
+`stateLimit` in the YAML config is a soft signal — it shows up in counts and metrics but doesn't block transitions. Treat it as a personal nudge, not an enforced rule. (For a hard enforcement, use Rei's blockers or an external check before transitioning.)
+
+### Force transitions when needed
+
+The state machine enforces declared transitions. If you need to bypass the rules (e.g., recovering from a misstate):
+
+```bash
+rei intention set-property -i <id> workflow done --force
+```
+
+`--force` cannot leave a terminal state — that's still blocked. It also writes a `force` flag into the event so it's auditable later via `metrics`.
+
+### Recording the real-world time
+
+Pair `--at` with `set-property` whenever you log a transition late:
+
+```bash
+rei intention set-property -i <id> workflow review --at "yesterday 4pm"
+```
+
+Metrics use the **effective time** (`--at`), not the recorded time, so backdating keeps cycle/lead times accurate.
+
+## Troubleshooting
+
+### "I created a child intention; the property never got set"
+
+Check, in order:
+
+1. **Is it a child?** Root intentions skip the auto-categorization reactor. Check `parent_id` is non-null.
+2. **Did the parent's category have a `childDefault`?**
+   ```bash
+   rei category show <parent-slug>
+   ```
+   Look for `Child Default:`. If empty, set one with `set-child-default`.
+3. **Did 5 minutes pass?** Auto-set is delayed. Check the intention's stream:
+   ```bash
+   # The event is `IntentionCategoryAutoSet`, not `IntentionCategorySet`
+   psql -c "SELECT type, time FROM message_store.messages \
+            WHERE stream_name = 'intention-<intention_id>' ORDER BY position;"
+   ```
+4. **Was the resulting category a leaf?** State machine properties scoped to non-leaf categories aren't possible to define — but if you converted a leaf to a non-leaf later, the scope might be stale.
+5. **Does the property exist with the right scope?**
+   ```bash
+   rei custom-property show <KEY>
+   ```
+   Look at `Allowed Entity Types` and `Categories`. The entity type must include `intention` and the category must match.
+6. **Backfill if needed:**
+   ```bash
+   rei custom-property init-entities <KEY> --dry-run
+   ```
+   If the dry run says "Would initialize N entities" with N > 0, the auto-init didn't run for those entities. The `init-entities` command will fix them.
+
+### "I changed the state machine YAML; existing entities still show old states"
+
+Updating a state machine via `update --from-file` does **not** retroactively change existing assignments. Each entity's state is a stored value that only changes via `set-property` or `clear-property`. Existing values that no longer correspond to a valid state become "orphaned" and need cleanup. Add transitions, don't rename states.
+
+### "My category-scoped property is not auto-initializing on category change"
+
+Confirm the category-set event reaches the reactor. Stream events to look for:
+- `IntentionCategorySet` — manual `set-category`
+- `IntentionCategoryAutoSet` — system-driven inheritance from parent's `childDefault`
+
+Both should trigger auto-init. If only one does, you may be on a Rei build that predates the fix that unified them; upgrade to the latest version.
+
+### "Setting a state to its current value is silently doing nothing"
+
+That's intentional. `set-property` is idempotent for state machines — repeating the current state writes no event. Useful for automation, but can be surprising if you expected a transition record. Use `--force` (with a different state) or `clear-property` and re-set if you really want a new event.
+
+## Related
+
+| Task | Command |
+|------|---------|
+| Create / configure category tree | [`rei category`](/docs/commands/category) |
+| Define state machine property | [`rei custom-property`](/docs/commands/custom-property) |
+| Backfill state machines | [`rei custom-property init-entities`](/docs/commands/custom-property) |
+| Lifecycle auto-complete | [`rei custom-property set-lifecycle`](/docs/commands/custom-property) |
+| Cycle time / metrics | [`rei custom-property metrics`](/docs/commands/custom-property) |
+| Set state on entity | [`rei intention set-property`](/docs/commands/intention) |
+| Filter intentions by state | [`rei intention list --state-tag`](/docs/commands/intention) |
+
+## See also
+
+- [Category Commands](/docs/commands/category)
+- [Custom Property Commands](/docs/commands/custom-property)
+- [Intention Commands](/docs/commands/intention)
+- [State Machine Properties Guide](/docs/guides/state-machines)
+- [Custom Properties Guide](/docs/guides/custom-properties)

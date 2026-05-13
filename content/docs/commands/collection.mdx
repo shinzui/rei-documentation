@@ -346,6 +346,9 @@ rei collection set-property [NAME_OR_ID] PROPERTY_KEY VALUE
 - `PROPERTY_KEY` — The property key to set
 - `VALUE` — The value to assign (validated against property definition)
 
+**Options:**
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
+
 > **FZF Support:** If the collection name is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select a collection.
 
 **Examples:**
@@ -356,7 +359,13 @@ rei collection set-property "Research Papers" review-status in-review
 
 # Advance a state machine property
 rei collection set-property "Iceland Photos" curation-status curating
+
+# Backdate a transition that actually happened earlier
+rei collection set-property "Iceland Photos" curation-status curating --at "2 hours ago"
 ```
+
+**Notes:**
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
 
 ### clear-property
 
@@ -374,6 +383,24 @@ rei collection clear-property [NAME_OR_ID] PROPERTY_KEY
 
 ```bash
 rei collection clear-property "Research Papers" review-status
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei collection append-property [NAME_OR_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei collection remove-property-value [NAME_OR_ID] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ### edit-query

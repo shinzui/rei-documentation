@@ -71,6 +71,7 @@ rei reminder list [options]
 - `-a, --action <id>` — List reminders for an action
 - `--habit <id>` — List reminders for a habit
 - `-n, --note <id>` — List reminders for a note
+- `--tui` — Open the filtered reminder list in an interactive TUI (see [TUI mode](#tui-mode))
 
 Note: `--system` and `--user` are mutually exclusive.
 
@@ -98,6 +99,47 @@ rei reminder list --system --triggered
 # List only user-created reminders
 rei reminder list --user
 ```
+
+#### TUI mode
+
+Adding `--tui` to any `rei reminder list` invocation drops you into a full-screen interactive terminal interface over the same filtered list. Use it to triage reminders without copying IDs back into separate `complete`/`snooze` shell commands.
+
+```bash
+# Open the TUI over all triggered reminders
+rei reminder list --triggered --tui
+
+# Open the TUI over reminders for one intention
+rei reminder list -i intention_01abc... --tui
+
+# Open the TUI over user-created reminders only
+rei reminder list --user --tui
+```
+
+The same filter flags (`--triggered`, `--pending`, `--all`, `--system`, `--user`, `-i`, `-a`, `--habit`, `-n`) apply; `--tui` simply chooses the TUI front-end over the printed list.
+
+**Key bindings (browse mode):**
+
+| Key | Action |
+|---|---|
+| `j` / `↓` | Move selection down |
+| `k` / `↑` | Move selection up |
+| `g` / `G` | Jump to top / bottom |
+| `Enter` | Open the detail pane for the selected reminder |
+| `c` | Mark the selected reminder Completed |
+| `s` | Snooze the selected reminder (opens duration prompt) |
+| `/` | Enter live filter mode (refines over description and anchor type) |
+| `Esc` | Clear the active filter, or quit if none is set |
+| `q` | Quit |
+
+**Detail pane.** Pressing `Enter` shows every reminder field alongside the title or summary of its anchor entity (intention, action, habit, or note). `j`/`k` scroll the pane; `Esc` or `q` returns to the list.
+
+**Live filter.** Pressing `/` opens a filter editor at the bottom of the list. Typing refines the visible rows in real time across the reminder description and anchor type. `Ctrl-J`/`Ctrl-K` (or `↑`/`↓`) navigate within filtered rows without leaving filter mode. `Enter` confirms the filter and returns to browse mode (the filter stays active); `Esc` cancels and clears it.
+
+**Complete (`c`).** Dispatches `Reminder.completeReminder` — the same code path the shell `rei reminder complete` command uses — and refreshes the visible list. A status line above the footer confirms the action (`Completed: <description>`).
+
+**Snooze (`s`).** Opens an inline duration prompt. Type either a relative duration (`30m`, `2h`, `1d`) or an absolute time (`2026-05-09T09:00:00`) — the same parser used by `rei reminder snooze --until <time>`. `Enter` dispatches `Reminder.snoozeReminder` and refreshes the list; `Esc` cancels. Snooze applies to any non-terminal reminder; pressing `s` on a completed or cancelled row surfaces `Cannot snooze a terminal reminder` in the status line without dispatching.
+
+Mutations from the TUI write the same events as the shell commands, so audit history and event-sourcing semantics are preserved.
 
 ### show
 
@@ -140,7 +182,7 @@ rei reminder complete
 
 ### snooze
 
-Snooze a triggered reminder to a later time.
+Snooze a non-terminal reminder to a later time.
 
 ```bash
 rei reminder snooze [reminder-id] --until <time>
@@ -152,7 +194,7 @@ rei reminder snooze [reminder-id] --until <time>
 **Options:**
 - `-u, --until <time>` — Snooze until this time (required)
 
-> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will show only triggered reminders.
+> **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will show all active reminders (pending, triggered, or snoozed).
 
 **Examples:**
 

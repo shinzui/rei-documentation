@@ -5,11 +5,39 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `36b51f86` (2026-04-28)
+**Last Source Commit Reviewed:** `cf75d3a3` (2026-05-13)
 
 ---
 
 ## Changelog
+
+### 2026-05-13
+
+**Reviewed commits:** `009347e3` through `cf75d3a3`
+
+**Updated help topic guides:**
+- `guides/custom-properties.mdx` — Documented set-property idempotency, added "Append and Remove (Multi-Value Properties)" section (`append-property` / `remove-property-value` for path-list/label-set/tag-set, idempotency, `MultiValueExpected` restriction), refreshed Supported Entity Types to cover the full set (intention/habit/disruption/note/day/collection/link/action/outcome/blocker)
+- `guides/state-machines.mdx` — Noted `set-property` idempotency for state machines and that `append-property`/`remove-property-value` fail with `MultiValueExpected` against scalar state values
+- `guides/collections.mdx` — Added `collection append-property` and `collection remove-property-value` to the multi-value examples and command summary
+- `guides/disruptions.mdx` — Added `disruption append-property` and `disruption remove-property-value` to the multi-value examples and command summary
+- `guides/journal-entries.mdx` — Added `day append-property` / `day remove-property-value` rows to the Day Commands table with idempotency note
+
+**New guide:**
+- `guides/workflow-auto-setup.mdx` — End-to-end walkthroughs (software-development kanban, reading list, writing pipeline, health-protocol experiments, paper review) combining category `childDefault` inheritance with category-scoped state-machine custom properties; covers operational concerns, patterns, and troubleshooting. Registered in `guides/meta.json`.
+
+**Updated command pages:**
+- `commands/intention.mdx` — `create --copy` flag, `list --json` shortcut with `--group-by` JSON wrapper output (`groupBy`/`groups`/`value`/`count`/`intentions`), `show --with-property-defs` flag (top-level `propertyDefinitions` object), `set-property --at` (effective time + cycle-time math note), new `append-property` and `remove-property-value` subcommands (path-list/label-set/tag-set, idempotency, `MultiValueExpected`), new `set-parent` subcommand (cycle refusal, Future parent deferral, root-context clearing)
+- `commands/custom-property.mdx` — Workflow Auto-Setup tip block; Concepts split out append/remove/idempotency for property assignment; `list --json`; `set-scope` clarification that it replaces the whole scope; new `add-scope-categories` and `remove-scope-categories` subcommands (lifecycle uniqueness note across all three scope commands); `metrics` note on effective-time-based duration math; new "Recording the Real-World Time of a Transition" section (recorded vs. effective time, `--at` availability across all entities, `day --date` vs. `--at` orthogonality, auto-init effective-time behavior); rewrote Filter queries section to document inheritable `--where` matching effective values
+- `commands/agent.mdx` — New `update-note` subcommand (LLM-driven note revision with `NoteContentUpdated`, optional intention action recording, category guidance); new `ask-note` subcommand (one-shot or interactive read-only Q&A, FocusAskNote session); `explore` defaults to interactive with `--no-interactive` opt-out; Modes Comparison footnote covering always-interactive and explore-defaults-interactive cases
+- `commands/note.mdx` — Added `set-property`, `clear-property`, `append-property`, `remove-property-value` subcommands (idempotent set, multi-value append/remove, `--at` for effective time)
+- `commands/action.mdx`, `commands/blocker.mdx`, `commands/habit.mdx`, `commands/outcome.mdx`, `commands/disruption.mdx`, `commands/collection.mdx`, `commands/link.mdx` — Added `--at` to `set-property` with effective-time-vs-recorded-time note; new `append-property` / `remove-property-value` subcommands cross-referenced to the intention reference
+- `commands/category.mdx` — Workflow Auto-Setup tip block; `list --json` flag with jq example
+- `commands/day.mdx` — `set-property --at` (orthogonal to `--date`); new `append-property` / `remove-property-value` subcommands for multi-value journal-entry properties
+- `commands/doc.mdx` — `doc add --title` flag, `set-title` subcommand (idempotent), `doc list` now renders `Title:` row when set
+- `commands/reminder.mdx` — `list --tui` flag with full TUI documentation (key bindings, browse mode, detail pane, live filter with Ctrl-J/Ctrl-K, complete and snooze actions); `snooze` reworded to accept any non-terminal reminder (was previously triggered-only); FZF picker for snooze now shows all active reminders
+
+**Updated website changelog:**
+- Added 2026-05-13 entry covering doc-title feature, intention `--copy` / `--json` / `--with-property-defs` / `set-parent`, the multi-value property append/remove story across all entities, set-property idempotency + `--at` effective-time semantics with cycle-time math, custom-property `add-scope-categories` / `remove-scope-categories`, the reminders TUI, agent `update-note` / `ask-note` / interactive-by-default `explore`, inheritance-aware `--where` filters, and the new workflow-auto-setup guide
 
 ### 2026-04-28
 

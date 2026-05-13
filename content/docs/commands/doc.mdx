@@ -26,6 +26,7 @@ rei doc add <file> [options]
 - `-r, --reflection <id>` — Attach to reflection (optional)
 - `-n, --note <id>` — Attach to note (optional)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+- `-t, --title <title>` — Human-readable title to attach to the document (optional)
 
 > **FZF Support:** If no entity is specified and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available entities.
 
@@ -34,6 +35,9 @@ rei doc add <file> [options]
 ```bash
 # Copy a file into workspace/docs and attach to an intention
 rei doc add ~/Downloads/architecture.pdf -i intention_01h455vb4pex
+
+# Attach with a human-readable title
+rei doc add ~/Downloads/q1-okr.pdf -i intention_01h455vb4pex --title "Q1 OKR review deck"
 
 # Let fzf pick the entity interactively
 rei doc add ~/Documents/spec.md
@@ -118,9 +122,12 @@ No documents for note: note_01h455vb4pex
 $ rei doc list --note note_01h455vb4pex --include-archived
 Documents for note: note_01h455vb4pex
   doc_01abc... [archived parent]
+    Title: Sample report
     Path: workspace/docs/example.pdf
     Attached: 2026-04-29 14:00
 ```
+
+The `Title:` line appears only when a title has been set (via `doc add --title` or `doc set-title`). Docs without a title omit the line entirely.
 
 `rei doc open <doc-id>` continues to work without any flag because `open` resolves by ID regardless of parent-note status.
 
@@ -164,4 +171,29 @@ rei doc remove doc_01h455vb4pex
 
 # Let fzf pick the document
 rei doc remove
+```
+
+### set-title
+
+Set or update the human-readable title of an attached document. The title is a free-form text label that helps you remember what the document contains. Calling `set-title` twice with the same title is a no-op (no new event is written).
+
+```bash
+rei doc set-title <doc-id> <title> [options]
+```
+
+**Arguments:**
+- `<doc-id>` — Document ID (required)
+- `<title>` — New title (required)
+
+**Options:**
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+**Examples:**
+
+```bash
+# Add a title to a doc that didn't have one
+rei doc set-title doc_01h455vb4pex "Q1 OKR review deck"
+
+# Update an existing title
+rei doc set-title doc_01h455vb4pex "Q1 OKR review deck (final)"
 ```

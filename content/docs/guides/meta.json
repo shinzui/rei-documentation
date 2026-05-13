@@ -12,6 +12,7 @@
 		"intention-filtering",
 		"custom-properties",
 		"state-machines",
+		"workflow-auto-setup",
 		"cycles",
 		"journal-entries",
 		"dashboard",

@@ -145,8 +145,10 @@ The default property scope does not include `journal_entry`. You must always pas
 
 | Command | Description |
 |---------|-------------|
-| `day set-property KEY VALUE [-d DATE]` | Set a property on a journal entry |
+| `day set-property KEY VALUE [-d DATE]` | Set a property on a journal entry (idempotent; same value twice writes one event) |
 | `day clear-property KEY [-d DATE]` | Clear a property from a journal entry |
+| `day append-property KEY VALUE... [-d DATE]` | Append elements to a multi-value property (path-list, label-set, tag-set). Idempotent. |
+| `day remove-property-value KEY VALUE... [-d DATE]` | Remove elements from a multi-value property. Idempotent. |
 | `day show [-d DATE]` | Show all properties for a day |
 
 ## Related

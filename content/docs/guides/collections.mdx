@@ -140,11 +140,17 @@ When a collection is assigned a category, any state machine properties scoped to
 Collections support custom properties (state machines, enums, text, etc.) scoped by category. Properties are defined with `rei custom-property create` using `--entity collection`.
 
 ```bash
-# Set a property
+# Set a property (idempotent: same value twice writes one event)
 rei collection set-property "Reading List" review-status in-review
 
 # Clear a property
 rei collection clear-property "Reading List" review-status
+
+# Append to a multi-value property (path-list, label-set, tag-set)
+rei collection append-property "Reading List" tags fiction biography
+
+# Remove from a multi-value property
+rei collection remove-property-value "Reading List" tags biography
 ```
 
 Interactive selection (FZF) is used when the collection name is omitted.
@@ -203,6 +209,8 @@ This works for both manual and virtual collections. For virtual collections, the
 | `collection clear-category` | Clear collection category |
 | `collection set-property` | Set a custom property on a collection |
 | `collection clear-property` | Clear a custom property from a collection |
+| `collection append-property` | Append values to a multi-value property |
+| `collection remove-property-value` | Remove values from a multi-value property |
 | `agent explore` | Explore collection contents with AI |
 
 See [`rei collection`](/docs/commands/collection) for full command reference.

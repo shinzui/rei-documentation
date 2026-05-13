@@ -6,6 +6,8 @@ icon: Tags
 
 Categories provide a flexible way to classify and organize actions, notes, and intentions. Categories form a hierarchical tree structure and can be linked to focus areas for time tracking.
 
+> **Tip:** Categories combine powerfully with state machine custom properties — set a category's [child default](#set-child-default) and scope a state machine property to that category, and every newly created child intention auto-lands on a kanban board. See the [Workflow Auto-Setup guide](/docs/guides/workflow-auto-setup).
+
 ## Overview
 
 Categories are created with a name and optional parent. The system automatically generates a slug (e.g., `work/meeting` for a "meeting" category under "work").
@@ -77,6 +79,7 @@ rei category list [options]
 - `-d, --descriptions` — Show category descriptions
 - `-c, --context CONTEXT` — Filter by context (e.g., "work")
 - `--flat` — Show flat list instead of hierarchy
+- `--json` — Output as JSON (one array, one object per category; ignores `--flat` and `--descriptions`)
 
 **Examples:**
 
@@ -95,6 +98,9 @@ rei category list --flat --descriptions
 
 # Filter by context
 rei category list --context work
+
+# Emit JSON for scripting / agents
+rei category list --json | jq '.[] | {slug, name, status}'
 ```
 
 **Output:**

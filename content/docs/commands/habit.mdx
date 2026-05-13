@@ -812,6 +812,7 @@ rei habit set-property [habit-id] PROPERTY_KEY VALUE [--force]
 
 **Options:**
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
 
 > **FZF Support:** If the habit ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active habits.
 
@@ -829,6 +830,9 @@ rei habit set-property habit_01abc... effort 5
 
 # Skip intermediate states on a state machine property
 rei habit set-property habit_01abc... workflow done --force
+
+# Backdate a state transition that actually happened earlier
+rei habit set-property habit_01abc... workflow done --at "yesterday"
 ```
 
 **Notes:**
@@ -837,6 +841,7 @@ rei habit set-property habit_01abc... workflow done --force
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `habit show` output
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math; backfilling the right `--at` keeps metrics accurate even when you log states late.
 
 ### clear-property
 
@@ -860,6 +865,24 @@ rei habit clear-property habit_01abc... priority
 
 # Let fzf pick the habit
 rei habit clear-property priority
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei habit append-property [-h HABIT_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas inside a value are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description and examples.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei habit remove-property-value [-h HABIT_ID] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ## Categories

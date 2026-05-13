@@ -136,6 +136,10 @@ rei intention set-property <id> workflow in-progress
 rei intention clear-property <id> workflow
 ```
 
+Setting a state to its current value is a no-op — `set-property` is idempotent and writes no event when the new state equals the current one. Safe to call repeatedly from automation.
+
+`append-property` and `remove-property-value` do not apply to state-machine properties (they are scalars). Calling either against a state-machine value fails with `MultiValueExpected`.
+
 When multiple properties share the same key (category-scoped), resolution is automatic based on the entity's category.
 
 ## WIP Limits

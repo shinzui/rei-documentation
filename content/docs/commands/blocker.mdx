@@ -192,6 +192,7 @@ rei blocker set-property [-b BLOCKER_ID] PROPERTY_KEY VALUE [--force]
 **Options:**
 - `-b, --blocker <id>` — Blocker ID (optional if fzf is available)
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
 
 > **FZF Support:** If `-b` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intention blockers.
 
@@ -209,6 +210,9 @@ rei blocker set-property -b blocker_01h455vb4pex triage-status investigating
 
 # Skip intermediate states on a state machine property
 rei blocker set-property -b blocker_01h455vb4pex triage-status resolved --force
+
+# Backdate a state transition
+rei blocker set-property -b blocker_01h455vb4pex triage-status resolved --at "yesterday"
 ```
 
 **Notes:**
@@ -217,6 +221,7 @@ rei blocker set-property -b blocker_01h455vb4pex triage-status resolved --force
 - The property must be configured to apply to blockers (`--entity-type blocker`)
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states.
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
 
 ### clear-property
 
@@ -242,6 +247,24 @@ rei blocker clear-property -b blocker_01h455vb4pex severity
 
 # Let fzf pick the blocker
 rei blocker clear-property severity
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei blocker append-property [-b BLOCKER_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei blocker remove-property-value [-b BLOCKER_ID] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ## Habit Blocker Behavior

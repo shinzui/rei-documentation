@@ -46,6 +46,7 @@ rei intention create <title> [options]
 - `--category <slug>` — Assign a category at creation (e.g., `Work`, `Personal/Health`)
 - `--started-at <time>` — When work actually started (e.g., `yesterday`, `2 hours ago`, `2024-01-15`)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+- `--copy` — Copy the new intention's ID to the system clipboard (requires `pbcopy`, `wl-copy`, or `xclip`)
 
 **Examples:**
 
@@ -85,6 +86,10 @@ rei intention create "Plan health routine" --category "Personal/Health" --horizo
 
 # Backdate when work actually started
 rei intention create "Migrate database" --started-at "3 days ago"
+
+# Create and copy the new ID to the clipboard for use as a parent
+rei intention create "Plan release" --copy
+rei intention create "Cut RC build" --parent "$(pbpaste)"
 ```
 
 **Notes:**
@@ -93,6 +98,7 @@ rei intention create "Migrate database" --started-at "3 days ago"
 - Use `--future` to create intentions you want to plan now but activate later
 - `--category` requires a database connection; if the category slug is not found, a warning is shown and the intention is still created without a category
 - `--started-at` records when work began, separate from the system creation timestamp. This affects dormancy baseline calculations. Accepts natural language time expressions.
+- `--copy` requires a clipboard utility on `$PATH` (`pbcopy` on macOS, `wl-copy` on Wayland, or `xclip` on X11). If none is found, the intention is still created and a warning is printed.
 
 ### list
 
@@ -104,6 +110,7 @@ rei intention list [options]
 
 **Options:**
 - `-f, --format <format>` — Output format: `default`, `fzf`, or `json`
+- `--json` — Shortcut for `--format=json`; overrides `--format` when both are given
 - `-c, --context <context>` — Filter by context (includes child intentions of matching roots)
 - `--category <slug>` — Filter by category slug
 - `-w, --where <filter>` — Filter by custom property value; repeatable for AND logic (see examples below)
@@ -140,6 +147,12 @@ rei intention list --format=fzf
 
 # JSON output
 rei intention list --format=json
+
+# JSON output (short form)
+rei intention list --json
+
+# JSON output grouped by a property (for automation)
+rei intention list --json --group-by priority
 
 # Filter by custom property (exact match)
 rei intention list --where priority=high
@@ -234,8 +247,42 @@ priority: (none) (4)
 - Numeric values are sorted descending (highest first)
 - Text values are sorted alphabetically
 - Intentions without the property are grouped under "(none)" at the end
-- Only works with the default output format (ignored for `fzf` and `json`)
+- Works with `--format=default` (the human-readable view) and with `--format=json` / `--json` (a wrapper object — see the JSON Output section below). The `fzf` output format ignores `--group-by` because it is line-oriented.
 - Compatible with all other filters (`--where`, `--context`, `--category`, `--state-tag`)
+
+**JSON Output:**
+
+Without `--group-by`, `--json` (or `--format=json`) returns a top-level array of intention objects:
+
+```
+[
+  {"id": "intention_01...", "title": "…", "horizon": "…"}
+]
+```
+
+With `--group-by <property>`, the shape changes to a wrapper object so the property key and the group order survive the round-trip:
+
+```
+{
+  "groupBy": "priority",
+  "groups": [
+    {
+      "value": "5",
+      "count": 3,
+      "intentions": [
+        {"id": "intention_01...", "title": "…", "horizon": "…"}
+      ]
+    },
+    {
+      "value": "(none)",
+      "count": 4,
+      "intentions": [ ... ]
+    }
+  ]
+}
+```
+
+Group ordering matches the default human-readable view (state-machine display order when applicable; numeric values descending; text values ascending; `(none)` last). When no intentions match the filter, the output is `{"groupBy":"<key>","groups":[]}` rather than `[]`.
 
 **Notes:**
 - Default behavior shows only Active intentions
@@ -258,8 +305,21 @@ rei intention show [id] [options]
 **Options:**
 - `--full` — Show full details including actions, outcomes, blockers, notes
 - `--json` — Output as JSON
+- `--with-property-defs` — Include schemas of associated custom properties (requires `--json`)
 
 > **FZF Support:** If ID is not provided, an interactive picker will let you select from active intentions.
+
+**Examples:**
+
+```bash
+# Include property definitions alongside values, for scripting / agents
+rei intention show intention_01h455vb4pex --json --with-property-defs \
+    | jq '.propertyDefinitions'
+
+# Same, with --full so action/outcome/blocker property defs are also included
+rei intention show intention_01h455vb4pex --full --json --with-property-defs \
+    | jq '.propertyDefinitions | keys'
+```
 
 **Full view includes:**
 - Intention details (title, horizon, context, category, status)
@@ -278,6 +338,7 @@ rei intention show [id] [options]
 - Reminders (active and past, with status icons and scheduled times)
 - Custom properties (any properties assigned to this intention)
 - Child intentions (both Active and Future; excludes Completed/Abandoned)
+- When `--with-property-defs` is set, a top-level `propertyDefinitions` JSON object keyed by property key, whose values are full `CustomPropertyView` records (the same shape returned by `rei custom-property show --json`).
 
 ### tree
 
@@ -1115,6 +1176,7 @@ rei intention set-property [-i ID] PROPERTY_KEY VALUE [--force]
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -1132,6 +1194,9 @@ rei intention set-property -i intention_01h455vb4pex effort 5
 
 # Skip intermediate states on a state machine property
 rei intention set-property -i intention_01h455vb4pex workflow done --force
+
+# Backdate a state transition that actually happened earlier
+rei intention set-property -i intention_01h455vb4pex workflow done --at "2 hours ago"
 ```
 
 **Notes:**
@@ -1140,6 +1205,7 @@ rei intention set-property -i intention_01h455vb4pex workflow done --force
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `intention show` output
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math; backfilling the right `--at` keeps metrics accurate even when you log states late.
 - If the property is flagged inheritable (`rei custom-property set-inheritable <key>`), the value is visible on descendants of this intention; see [`rei custom-property`](/docs/commands/custom-property#inheritance-in-the-intention-tree).
 
 ### clear-property
@@ -1170,6 +1236,70 @@ rei intention clear-property priority
 
 **Notes:**
 - For inheritable properties, clearing a local value reverts the intention to its inherited value from the nearest ancestor (if any). See [`rei custom-property`](/docs/commands/custom-property#inheritance-in-the-intention-tree). On `intention show`, inherited values are rendered with `(inherited from "<ancestor title>")` in dim style.
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, or tag-set). Idempotent: appending a value that is already present writes no event.
+
+```bash
+rei intention append-property [-i ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to append to
+- `VALUE` — One or more elements to add. Each `VALUE` is a separate shell argument; commas inside a value are preserved literally (no comma-splitting).
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+**Examples:**
+
+```bash
+# Append a path
+rei intention append-property -i intention_01h455vb4pex master-plans /abs/path/plan.md
+
+# Append multiple values at once
+rei intention append-property -i intention_01h455vb4pex services backend frontend
+
+# Tag with a value containing commas (single element)
+rei intention append-property -i intention_01h455vb4pex tags 'comma,inside,one-tag'
+```
+
+**Notes:**
+- Only works on `path-list`, `label-set`, and `tag-set` value types. Other value types fail with a `MultiValueExpected` error — use `set-property` instead.
+- Re-appending an existing value writes no `PropertySet` event and prints `(no change)`.
+- Both changed and no-change cases exit 0; only errors exit non-zero.
+- Pairs cleanly with automation: a single shell-out replaces a read-modify-write loop, and the operation is safe to retry.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent: removing a value that is already absent writes no event.
+
+```bash
+rei intention remove-property-value [-i ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to remove from
+- `VALUE` — One or more elements to remove (each a separate shell argument)
+
+**Options:**
+- `-i, --intention <id>` — Intention ID (optional if fzf is available)
+
+**Examples:**
+
+```bash
+# Remove a single tag
+rei intention remove-property-value -i intention_01h455vb4pex tags deprecated
+
+# Remove multiple paths
+rei intention remove-property-value -i intention_01h455vb4pex master-plans /old/plan.md /old/plan2.md
+```
+
+**Notes:**
+- Only works on `path-list`, `label-set`, and `tag-set` value types.
+- Re-removing an absent value writes no event.
+- See `append-property` for the inverse operation.
 
 ### set-addresses
 
@@ -1303,6 +1433,40 @@ rei intention detach
 - The intention's children remain attached to it (hierarchy is preserved)
 - After detaching, you can optionally set a context using `rei intention set-context`
 - Useful when reorganizing your intention hierarchy
+
+### set-parent
+
+Attach an intention to a new parent. The opposite of `detach`.
+
+```bash
+rei intention set-parent [-i ID] [-p PARENT_ID]
+```
+
+**Options:**
+- `-i, --intention ID` — Child intention ID (optional if fzf is available)
+- `-p, --parent PARENT_ID` — New parent intention ID (optional if fzf is available)
+
+> **FZF Support:** If either ID is omitted and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker prompts for the missing one.
+
+**Examples:**
+
+```bash
+# Both IDs supplied
+rei intention set-parent -i intention_01... -p intention_02...
+
+# Pick the child via fzf, parent explicit
+rei intention set-parent -p intention_02...
+
+# Pick both via fzf
+rei intention set-parent
+```
+
+**Notes:**
+- Only Active and Future intentions can be re-parented
+- Refuses self-references and would-be cycles (an ancestor cannot become a descendant)
+- If the new parent is in `Future` status, the child is automatically deferred to keep the tree coherent
+- If the child was a root with a context, the context is cleared (it is replaced by the inherited context from the new ancestor chain)
+- To make an intention a root again, use `rei intention detach`
 
 ### note list
 

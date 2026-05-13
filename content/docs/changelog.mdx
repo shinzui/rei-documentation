@@ -6,6 +6,89 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-05-13
+
+### Multi-Value Property Append and Remove
+
+`path-list`, `label-set`, and `tag-set` properties get dedicated append and remove commands across every entity that supports custom properties. The new commands are idempotent, take values as separate shell arguments (so commas inside a value round-trip unchanged), and are designed to replace read-modify-write loops in automation.
+
+- **`rei <entity> append-property KEY VALUE [VALUE...]`** — Add one or more elements to a multi-value property. Re-appending an existing element writes no event.
+- **`rei <entity> remove-property-value KEY VALUE [VALUE...]`** — Remove one or more elements. Removing an absent element writes no event.
+- Supported on `intention`, `habit`, `disruption`, `note`, `day`, `collection`, `link`, `action`, `outcome`, and `blocker`.
+- Calling either against a scalar property type fails with `MultiValueExpected` — use `set-property` for scalars.
+
+`set-property` is also now idempotent everywhere: setting a property to its current value (or a state machine to its current state) writes no event and exits 0. Safe to call repeatedly from automation.
+
+### Recording the Real-World Time of a Transition (`--at`)
+
+`set-property` now accepts an `--at <time>` flag for recording the *effective time* of a change — the real-world moment it happened, as opposed to the system clock when the command ran. Available on every entity (`intention`, `habit`, `disruption`, `note`, `day`, `collection`, `link`, `action`, `outcome`, `blocker`).
+
+- Accepts the same expressions as `rei action record --at` (relative phrases like `"2 hours ago"`, short offsets like `-30m`, or absolute ISO 8601 timestamps).
+- `rei custom-property metrics` computes cycle time, lead time, and time-in-state from the effective time, so back-filling the right `--at` keeps your metrics accurate even when you log states late.
+- On `rei day set-property`, `--at` is orthogonal to `--date`: `--date` chooses *which day's* journal entry to mutate; `--at` records the *effective time* of that mutation.
+
+### Inheritance-Aware `--where` Filters
+
+`rei intention list --where key=value` now matches against the **effective** value of each intention for inheritable properties — including descendants that inherit the value from an ancestor. All operators are supported (`=`, `:exists`, `:missing`, `>=`, `<`, `>`, `<=`, `any`, `all`, and `key:tag=value`). Non-inheritable properties continue to filter on local values only.
+
+### `rei intention list --json` Shortcut and Grouped JSON Output
+
+- **`rei intention list --json`** — Shortcut for `--format=json`. Overrides `--format` when both are supplied.
+- **`rei intention list --json --group-by <property>`** — Returns a wrapper object so the property key and group order survive the round-trip: `{"groupBy": "<key>", "groups": [{"value": "...", "count": N, "intentions": [...]}, ...]}`. Group ordering matches the default human-readable view; `(none)` is last; empty results yield `{"groupBy":"<key>","groups":[]}` rather than `[]`.
+
+### Intention Scope and Re-parenting
+
+- **`rei intention create --copy`** — Copies the new intention's ID to the system clipboard (`pbcopy`, `wl-copy`, or `xclip`) so you can paste it as the parent of a follow-up `intention create`.
+- **`rei intention set-parent`** — The inverse of `detach`. Attach an intention to a new parent, with FZF pickers for both IDs when omitted. Refuses self-references and cycles; defers the child if the new parent is `Future`; clears root context when re-parenting a root.
+
+### `rei intention show --with-property-defs`
+
+`rei intention show --json --with-property-defs` adds a top-level `propertyDefinitions` object keyed by property key whose values are full `CustomPropertyView` records — the same shape returned by `rei custom-property show --json`. With `--full`, action/outcome/blocker property defs are also included. Useful for scripting and agents that need the schema alongside the values.
+
+### Workflow Auto-Setup Guide
+
+A new [Workflow Auto-Setup guide](/docs/guides/workflow-auto-setup) walks through combining category `childDefault` inheritance with category-scoped state-machine custom properties so that creating a child intention automatically gives it a category *and* an initial workflow state — every new intention lands on a kanban board with no manual classification. Includes worked examples for software-development feature kanban, reading lists, writing pipelines, health protocol experiments, and paper review.
+
+### Reminders TUI
+
+`rei reminder list` now accepts a `--tui` flag that opens an interactive terminal interface over the same filtered list. Triage reminders without copying IDs back into separate shell commands.
+
+- All existing filter flags (`--triggered`, `--pending`, `--all`, `--system`, `--user`, `-i`, `-a`, `--habit`, `-n`) compose with `--tui`.
+- Browse with `j`/`k`, jump with `g`/`G`, page with `Ctrl-d`/`Ctrl-u`.
+- Press `Enter` for a detail pane that shows every reminder field alongside the title or summary of its anchor entity (intention, action, habit, or note).
+- Press `/` for live filter mode (refines across reminder description and anchor type, with `Ctrl-J`/`Ctrl-K` navigation that stays in filter mode).
+- Press `c` to complete the selected reminder, `s` to snooze (inline duration prompt accepting relative durations like `30m`, `2h`, `1d` or absolute timestamps).
+- Mutations write the same events as the shell commands, preserving audit history.
+
+Snooze itself is also broadened: `rei reminder snooze` now accepts any non-terminal reminder (previously triggered-only), and the FZF picker shows all active reminders (pending, triggered, or snoozed).
+
+### Agent: `update-note`, `ask-note`, Interactive `explore`
+
+- **`rei agent update-note [NOTE_ID] -I "<instructions>"`** — Revise a note from natural-language instructions. Loads the current markdown, prompts the LLM with the body and the note's category guidance (if any), writes the revised body back, and fires `NoteContentUpdated`. Records an `Agent updated note: ...` action on the anchored intention when applicable.
+- **`rei agent ask-note [NOTE_ID] -q "<question>"`** — Read-only Q&A over a single note. One-shot mode prints an answer; `-i` launches an interactive Claude Code session with the note pre-loaded as context. Records an `AgentSession` with focus type `ask_note` either way.
+- **`rei agent explore`** — Now defaults to interactive. Pass `--no-interactive` to get a one-shot summary instead (useful for scripting and piping).
+
+### Custom Property Scope: Additive `add-scope-categories` and `remove-scope-categories`
+
+- **`rei custom-property add-scope-categories KEY -c SLUG [-c SLUG...]`** — Add categories to a property's scope without replacing the existing set (unioned with current `scopedToCategories`). No-op if every slug is already in scope.
+- **`rei custom-property remove-scope-categories KEY -c SLUG [-c SLUG...]`** — Remove categories without replacing the existing set. Draining the last category prints "Scope cleared to global" and the property becomes global.
+- All three scope commands (`set-scope`, `add-scope-categories`, `remove-scope-categories`) enforce **lifecycle uniqueness**: a change that would place two lifecycle-enabled properties at overlapping category scopes fails with `LifecyclePropertyAlreadyExists "<other-key>"`, leaving the existing property untouched.
+
+### Document Titles
+
+Attached documents can carry an optional human-readable title independent of the file path.
+
+- **`rei doc add --title <title>`** — Attach a document with a title in one shot.
+- **`rei doc set-title <doc-id> <title>`** — Set or update the title of an existing doc. Idempotent.
+- **`rei doc list`** — Renders a `Title:` row for docs that have one (omitted for untitled docs).
+
+### `rei category list --json` and `rei custom-property list --json`
+
+Both list commands now emit JSON for scripting and agents.
+
+- **`rei category list --json`** — One array, one object per category. Ignores `--flat` and `--descriptions`.
+- **`rei custom-property list --json`** — One array, one object per property.
+
 ## 2026-04-28
 
 ### Note Archive Lifecycle

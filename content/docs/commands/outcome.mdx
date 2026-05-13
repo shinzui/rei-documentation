@@ -113,6 +113,7 @@ rei outcome set-property OUTCOME_ID KEY VALUE [--force]
 
 **Options:**
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
 
 **Examples:**
 
@@ -125,6 +126,9 @@ rei outcome set-property outcome_01h455vb4pex confidence 4
 
 # Skip intermediate states on a state machine property
 rei outcome set-property outcome_01h455vb4pex review-state accepted --force
+
+# Backdate a state transition
+rei outcome set-property outcome_01h455vb4pex review-state accepted --at "yesterday 3pm"
 ```
 
 **Notes:**
@@ -132,6 +136,7 @@ rei outcome set-property outcome_01h455vb4pex review-state accepted --force
 - The property must be configured to apply to outcomes (`--entity-type outcome`)
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states.
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
 
 ### clear-property
 
@@ -150,6 +155,24 @@ rei outcome clear-property OUTCOME_ID KEY
 ```bash
 # Clear a property from an outcome
 rei outcome clear-property outcome_01h455vb4pex impact
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei outcome append-property OUTCOME_ID KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei outcome remove-property-value OUTCOME_ID KEY VALUE [VALUE...]
 ```
 
 ## Actions vs Outcomes

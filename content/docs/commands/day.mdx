@@ -27,7 +27,8 @@ rei day set-property KEY VALUE [options]
 - `VALUE` — Property value (validated against property definition)
 
 **Options:**
-- `-d, --date YYYY-MM-DD` — Target date (defaults to today)
+- `-d, --date YYYY-MM-DD` — Target date (defaults to today). Selects *which day's* journal entry to mutate.
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now. Sets the *effective time* of the property change.
 
 **Examples:**
 
@@ -40,7 +41,14 @@ rei day set-property --date 2026-02-12 sleep-hours 7.5
 
 # Set energy level
 rei day set-property energy high
+
+# Backdate yesterday's mood to when you actually felt it
+rei day set-property mood neutral --date 2026-05-07 --at "yesterday 9pm"
 ```
+
+**Notes:**
+- `--date` and `--at` are orthogonal: `--date` selects which day's journal entry to mutate, `--at` records the effective time of that mutation.
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
 
 ### clear-property
 
@@ -64,6 +72,29 @@ rei day clear-property mood
 
 # Clear a property for a specific date
 rei day clear-property --date 2026-02-12 mood
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set) on the day's journal entry. Idempotent: re-appending an existing value writes no event.
+
+```bash
+rei day append-property KEY VALUE [VALUE...] [-d YYYY-MM-DD]
+```
+
+**Arguments:**
+- `KEY` — Property key
+- `VALUE` — One or more elements to add (each a separate shell argument; commas preserved literally)
+
+**Options:**
+- `-d, --date YYYY-MM-DD` — Target date (defaults to today)
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei day remove-property-value KEY VALUE [VALUE...] [-d YYYY-MM-DD]
 ```
 
 ### show

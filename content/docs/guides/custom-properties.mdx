@@ -203,6 +203,33 @@ rei habit set-property <id> effort 5
 rei intention clear-property <id> priority
 ```
 
+**Idempotency:** `set-property` writes no event when the new value equals the current value. Setting a state-machine value to its current state is also a no-op. This is safe to call repeatedly from automation.
+
+## Append and Remove (Multi-Value Properties)
+
+For path-list, label-set, and tag-set properties you can grow or shrink the value one element at a time, without read-modify-write. Each value is a separate shell argument, so commas inside a value are preserved literally (no comma-splitting).
+
+```bash
+# Append a single element
+rei intention append-property <id> master-plans /abs/path/plan.md
+
+# Append multiple elements at once
+rei intention append-property <id> services backend frontend
+
+# Append a value containing commas (treated as one element)
+rei intention append-property <id> tags 'comma,inside,one-tag'
+
+# Remove a single element
+rei intention remove-property-value <id> tags deprecated
+
+# Remove multiple elements
+rei intention remove-property-value <id> master-plans /old/a.md /old/b.md
+```
+
+**Idempotency:** `append-property` and `remove-property-value` are idempotent — appending an already-present value or removing an absent value writes no event and exits 0. Re-running the same command against the same target is safe.
+
+**Restrictions:** Only path-list, label-set, and tag-set value types are supported. Other types fail with `MultiValueExpected` — use `set-property` for scalar values.
+
 ## Filtering by Properties
 
 ```bash
@@ -518,15 +545,37 @@ The same key CAN exist in different categories.
 
 ## Supported Entity Types
 
-| Entity | Set Command | Clear Command |
-|--------|-------------|---------------|
-| Intention | `intention set-property` | `intention clear-property` |
-| Habit | `habit set-property` | `habit clear-property` |
-| Disruption | `disruption set-property` | `disruption clear-property` |
-| Note | `note set-property` | `note clear-property` |
-| Journal Entry | `day set-property` | `day clear-property` |
+Each entity supports the same four-command shape:
 
-Journal entries only support global properties (not category-scoped) and require `-e journal_entry` when creating the property definition. Use `day show` to view all properties for a day. See the [Journal Entries Guide](/docs/guides/journal-entries) for details.
+| Command | Description |
+|---------|-------------|
+| `set-property` | Set or replace a value (idempotent) |
+| `clear-property` | Remove the local value |
+| `append-property` | Add elements to a multi-value property |
+| `remove-property-value` | Remove elements from a multi-value property |
+
+Entities with custom-property support:
+
+| Entity | Command prefix |
+|--------|----------------|
+| Intention | `rei intention …` |
+| Habit | `rei habit …` |
+| Disruption | `rei disruption …` |
+| Note | `rei note …` |
+| Day (journal entry) | `rei day …` (today or `--date`) |
+| Collection | `rei collection …` |
+| Link | `rei link …` |
+| Action | `rei action …` |
+| Outcome | `rei outcome …` |
+| Blocker | `rei blocker …` |
+
+Additional viewers:
+
+| Command | Description |
+|---------|-------------|
+| `day show` | View all properties for a day |
+
+Journal entries only support global properties (not category-scoped) and require `-e journal_entry` when creating the property definition. See the [Journal Entries Guide](/docs/guides/journal-entries) for details.
 
 ## Related
 

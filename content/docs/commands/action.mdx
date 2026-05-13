@@ -364,6 +364,7 @@ rei action set-property [-a ACTION_ID] PROPERTY_KEY VALUE [--force]
 **Options:**
 - `-a, --action <id>` — Action ID (optional if fzf is available)
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now. Distinct from `record --at`, which sets the action's completion time.
 
 > **FZF Support:** If `-a` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from recent actions.
 
@@ -381,6 +382,9 @@ rei action set-property -a action_01h455vb4pex effort 5
 
 # Skip intermediate states on a state machine property
 rei action set-property -a action_01h455vb4pex debug-state resolved --force
+
+# Backdate a state transition
+rei action set-property -a action_01h455vb4pex debug-state resolved --at "1 hour ago"
 ```
 
 **Notes:**
@@ -388,6 +392,7 @@ rei action set-property -a action_01h455vb4pex debug-state resolved --force
 - The property must be configured to apply to actions (`--entity-type action`)
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - `--force` only affects state machine properties — it bypasses transition rules but cannot leave terminal states
+- `--at` records the **effective time** of the property change. It is independent of the action's `occurredAt` (set via `record --at`). `rei custom-property metrics` uses the property's effective time for cycle-time and lead-time math.
 - See [`rei custom-property`](/docs/commands/custom-property) for how to define properties and how category-scoped state machine properties are auto-initialized when an action is categorized.
 
 ### clear-property
@@ -414,6 +419,24 @@ rei action clear-property -a action_01h455vb4pex mood
 
 # Let fzf pick the action
 rei action clear-property mood
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei action append-property [-a ACTION_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description and examples.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei action remove-property-value [-a ACTION_ID] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ### delete

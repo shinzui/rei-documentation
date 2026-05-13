@@ -6,6 +6,8 @@ icon: SlidersHorizontal
 
 Define and manage custom properties that can be attached to entities (intentions, habits, disruptions, notes, journal entries, collections, links, actions, outcomes, blockers). Custom properties allow you to extend entities with your own metadata fields.
 
+> **Tip:** State machine properties scoped to a category auto-initialize when an entity gets that category — including via category [`childDefault` inheritance](/docs/commands/category#set-child-default). See the [Workflow Auto-Setup guide](/docs/guides/workflow-auto-setup) for end-to-end walkthroughs that combine these features.
+
 ## Concepts
 
 **Custom Property** — A user-defined property definition with:
@@ -15,7 +17,13 @@ Define and manage custom properties that can be attached to entities (intentions
 - **Entity scope** — Which entity types can have this property
 - **Category scope** — Optional restriction to a specific category
 
-**Property Assignment** — Once a property is defined, you can assign values to entities using `rei <entity> set-property` commands.
+**Property Assignment** — Once a property is defined, you can assign values to entities using:
+- `rei <entity> set-property` — set or replace a value (idempotent: writing the same value twice writes one event).
+- `rei <entity> clear-property` — remove a value.
+- `rei <entity> append-property` — add elements to a multi-value property (`path-list`, `label-set`, `tag-set`). Idempotent: appending an already-present element writes no event.
+- `rei <entity> remove-property-value` — remove elements from a multi-value property. Idempotent: removing an absent element writes no event.
+
+Append/remove are designed for automation: each VALUE is a separate shell argument (no comma-splitting), so values containing commas round-trip unchanged. See per-entity CLI docs ([`rei intention`](/docs/commands/intention), [`rei habit`](/docs/commands/habit), etc.) for the full command surface.
 
 ## Value Types
 
@@ -332,6 +340,7 @@ rei custom-property list [options]
 - `-a, --all` — Include archived properties
 - `-c, --category <slug>` — Filter by category scope
 - `-e, --entity-type <type>` — Filter by entity type
+- `--json` — Output as JSON (one array, one object per property)
 
 **Examples:**
 
@@ -347,6 +356,9 @@ rei custom-property list --all
 
 # Filter by category scope
 rei custom-property list -c work
+
+# Emit JSON for scripting / agents
+rei custom-property list --json | jq '.[] | {key, label}'
 ```
 
 ### show
@@ -522,7 +534,7 @@ rei custom-property unset-inheritable focus-area
 
 ### set-scope
 
-Update property scope (entity types and category).
+Update property scope (entity types and category). `set-scope` **replaces** the entire category scope: every `-c` flag passed becomes the new scope, and any category not named is dropped. To add or remove individual categories without restating the whole set, see [`add-scope-categories`](#add-scope-categories) and [`remove-scope-categories`](#remove-scope-categories) below.
 
 ```bash
 rei custom-property set-scope KEY_OR_ID [options]
@@ -551,6 +563,64 @@ rei custom-property set-scope client-notes --clear-category
 
 # Disambiguate when key exists in multiple categories
 rei custom-property set-scope workflow -c personal --lookup-category work
+```
+
+> **Lifecycle uniqueness.** All scope-changing commands (`set-scope`, `add-scope-categories`, `remove-scope-categories`) refuse changes that would place two lifecycle-enabled properties at overlapping category scopes. The command fails with `LifecyclePropertyAlreadyExists "<other-key>"` and the existing property is left untouched. Non-lifecycle properties are unaffected. The same uniqueness rule was already enforced at `set-lifecycle` time; it now applies symmetrically when a property's scope is changed afterwards.
+
+### add-scope-categories
+
+Add categories to a property's scope without replacing the existing set. The supplied slugs are unioned with the property's current `scopedToCategories`, so existing categories are preserved.
+
+```bash
+rei custom-property add-scope-categories KEY_OR_ID -c SLUG [-c SLUG ...]
+```
+
+**Arguments:**
+- `KEY_OR_ID` — Property key or `custom_property_…` KindID
+
+**Options:**
+- `-c, --category <slug>` — Category slug to add (can be repeated; at least one required)
+- `--lookup-category <slug>` — Disambiguate property lookup when multiple properties share the same key (has no effect when a KindID is given)
+
+If every supplied category is already in the scope the command is a no-op and prints `No changes to scope for property: <key>`.
+
+**Examples:**
+
+```bash
+# Extend an existing scope without restating the rest
+rei custom-property add-scope-categories local-repo -c 個人/制作 -c 個人/研究
+
+# Re-running with the same slug is a no-op
+rei custom-property add-scope-categories local-repo -c 個人/制作
+# No changes to scope for property: local-repo
+```
+
+### remove-scope-categories
+
+Remove categories from a property's scope without replacing the existing set. The supplied slugs are subtracted from the property's current `scopedToCategories`. If the resulting set is empty the property becomes **global** (applies to all categories) and the command prints a distinct "Scope cleared to global" message.
+
+```bash
+rei custom-property remove-scope-categories KEY_OR_ID -c SLUG [-c SLUG ...]
+```
+
+**Arguments:**
+- `KEY_OR_ID` — Property key or `custom_property_…` KindID
+
+**Options:**
+- `-c, --category <slug>` — Category slug to remove (can be repeated; at least one required)
+- `--lookup-category <slug>` — Disambiguate property lookup when multiple properties share the same key (has no effect when a KindID is given)
+
+If every supplied category is already absent from the scope the command is a no-op and prints `No changes to scope for property: <key>`.
+
+**Examples:**
+
+```bash
+# Shrink the scope by one category
+rei custom-property remove-scope-categories local-repo -c 個人/研究
+
+# Drain the last category — property becomes global
+rei custom-property remove-scope-categories local-repo -c corpus
+# Scope cleared to global for property: local-repo
 ```
 
 ## State Machine Evolution
@@ -771,6 +841,7 @@ rei custom-property metrics workflow --category work
 - Metrics show current state distribution with entity counts
 - Average time in each state
 - Recent transitions (last 7 days)
+- Durations are computed from each transition's **effective time** — the real-world moment the transition happened, as supplied by `--at` on `set-property`. The recorded time (when the system received the change) is also stored on each row but is not used for duration math. See [Recording the Real-World Time of a Transition](#recording-the-real-world-time-of-a-transition).
 
 ## Lifecycle Property
 
@@ -980,6 +1051,34 @@ rei habit set-property habit_01abc... workflow done --force
 
 The `--force` flag bypasses transition rule validation but still enforces terminal state restrictions — you cannot leave a terminal state even with `--force`. The `--force` flag has no effect on non-state-machine properties.
 
+### Recording the Real-World Time of a Transition
+
+By default, `set-property` records the current system clock as the moment of transition. To capture a transition that actually happened earlier, pass `--at <time>`:
+
+```bash
+# Mark a state transition that happened two hours ago
+rei intention set-property intention_01abc... workflow done --at "2 hours ago"
+
+# Use an absolute ISO 8601 timestamp
+rei intention set-property intention_01abc... workflow done --at 2026-05-08T14:30:00Z
+
+# Short relative offset
+rei intention set-property intention_01abc... workflow done --at -30m
+```
+
+The flag accepts the same time expressions as `rei action record --at`: relative phrases (`"2 hours ago"`, `"yesterday"`, `-30m`, `-1h`) and absolute ISO 8601 timestamps. Future times are rejected.
+
+**Recorded time vs. effective time.** The system stores two timestamps on every property change:
+
+- **Recorded time** (`set_at`, `transitioned_at`) — the system clock at the moment the event was written. Always set automatically.
+- **Effective time** (`effective_at`) — when the change actually happened in the world, as supplied by `--at`. Defaults to the recorded time when `--at` is omitted.
+
+`rei custom-property metrics` computes cycle time, lead time, and time-in-state from the **effective time**, so back-filling the right `--at` keeps your metrics accurate even when you log states late. Audit-style queries can still inspect the recorded time.
+
+`--at` is available on `set-property` for every entity that supports custom properties: `intention`, `habit`, `disruption`, `note`, `day`, `collection`, `link`, `action`, `outcome`, `blocker`. On `rei day set-property` the new `--at` is orthogonal to the existing `--date` flag — `--date` chooses *which day's* journal entry to mutate, `--at` records the *effective time* of that mutation.
+
+Auto-initialized state machine values (set by the category reactor when an entity is created or by `rei custom-property init-entities`) record `effective_at = initialized_at`; there is no user-supplied override at auto-init time.
+
 ## Filtering by Properties
 
 Use the `--where` flag to filter entity lists by property values:
@@ -1163,7 +1262,13 @@ rei intention show CHILD_ID --full
 
 ### Filter queries
 
-`rei intention list --where key=value` matches **local** property values only. Inherited values are not matched by the filter. To see which intentions inherit a value, use `rei intention show <id>` on the descendants in question. This limitation may be lifted in a future release.
+For properties flagged `--inheritable`, `rei intention list --where key=value` matches against the **effective** value of each intention — the local value if set, otherwise the value inherited from the nearest ancestor. This includes every operator (`=`, `:exists`, `:missing`, `>=`, `<`, `>`, `<=`, `any`, `all`, and the state-tag form `key:tag=value`).
+
+Concretely: if a parent intention has `local-repo=/foo` set and the property is inheritable, then `rei intention list --where local-repo=/foo` returns both the parent and every descendant that inherits the value (i.e., descendants without their own `local-repo` row). A descendant whose own row overrides the parent — say `local-repo=/bar` — is not returned by `--where local-repo=/foo`; it appears under `--where local-repo=/bar` instead.
+
+For non-inheritable properties, filter behaviour is unchanged: only intentions with a local row matching the predicate are returned. Non-intention entities (links, habits, notes, disruptions) have no parent chain among themselves and so always behave as local-only.
+
+Filter inheritance mirrors the resolver behind `rei intention show <id>`, so `--where` and `show` agree on which intentions have which effective value.
 
 ## Category-Scoped Property Keys
 

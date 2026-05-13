@@ -687,6 +687,75 @@ rei note clear-category -n note_01h455vb4pex
 rei note clear-category
 ```
 
+### set-property
+
+Set a custom property on a note. Idempotent: setting the same value twice writes one event.
+
+```bash
+rei note set-property [-n NOTE_ID] PROPERTY_KEY VALUE [--force]
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to set
+- `VALUE` — The value to assign (validated against property definition)
+
+**Options:**
+- `-n, --note <id>` — Note ID (optional if fzf is available)
+- `--force` — Bypass state machine transition rules (still blocked from terminal states)
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+**Examples:**
+
+```bash
+# Set property with explicit ID
+rei note set-property -n note_01h455vb4pex status reviewed
+
+# Let fzf pick the note
+rei note set-property priority high
+
+# Backdate a state transition
+rei note set-property -n note_01h455vb4pex review-state accepted --at "yesterday 5pm"
+```
+
+**Notes:**
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math.
+
+### clear-property
+
+Remove a custom property from a note.
+
+```bash
+rei note clear-property [-n NOTE_ID] PROPERTY_KEY
+```
+
+**Arguments:**
+- `PROPERTY_KEY` — The key of the custom property to clear
+
+**Options:**
+- `-n, --note <id>` — Note ID (optional if fzf is available)
+
+> **FZF Support:** If `-n` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei note append-property [-n NOTE_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas inside a value are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description and examples.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei note remove-property-value [-n NOTE_ID] PROPERTY_KEY VALUE [VALUE...]
+```
+
 ### set-title
 
 Set an explicit title for a note. This overrides automatic H1 extraction — subsequent edits will not change the title back. Useful for stabilizing wikilinks (`[[Note Title]]`) that other notes reference.

@@ -278,9 +278,87 @@ rei agent create-note -i "New project kickoff"
 3. Creates the note file in the workspace
 4. Attaches it to the specified anchor (intention/habit) if provided
 
+### update-note
+
+Revise an existing note from natural-language instructions. Loads the current markdown body, asks the language model to produce a revised full body that incorporates the user's instructions while respecting the note's category guidance (if any), and writes the result back to the same file with a `NoteContentUpdated` event.
+
+```bash
+rei agent update-note [NOTE_ID] -I "<instructions>"
+```
+
+**Arguments:**
+- `[NOTE_ID]` — Note to update (uses FZF if omitted).
+
+**Options:**
+- `-I, --instructions <text>` — Revision instructions. May also be supplied on stdin (pipe it in) instead of as an argument.
+
+**Examples:**
+
+```bash
+# Edit a note by ID, instructions inline
+rei agent update-note note_01k... -I "Add a rollback plan"
+
+# Pick a note via FZF, instructions piped from stdin
+cat instructions.md | rei agent update-note
+
+# Inspect the prompt without invoking the LLM
+rei agent --debug update-note note_01k... -I "Tighten the wording"
+```
+
+**How it works:**
+1. Resolves the note ID (explicit argument or interactive FZF picker).
+2. Reads the current markdown body from disk (using the note row's recorded path).
+3. Looks up the note's category and reads its note guidance file (if one is set via `rei category set-note-guidance`).
+4. Prompts the language model with the existing body, the category guidance, and the user's instructions, asking for the revised full body.
+5. Writes the revised body to the note's file path and fires a `NoteContentUpdated` event. Downstream subscriptions (`GitCommitHandler`, `ContentProcessor`) update git, tasks, references, and links from the new body.
+6. If the note is anchored to an intention, records an `Agent updated note: ...` action against that intention.
+
+### ask-note
+
+Ask a question about a single note, either as a one-shot answer or in an interactive Claude Code session loaded with the note as context. Unlike `update-note`, this is read-only — the note is never modified.
+
+```bash
+rei agent ask-note [NOTE_ID] -q "<question>"
+rei agent ask-note [NOTE_ID] -i
+```
+
+**Arguments:**
+- `[NOTE_ID]` — Note to query (uses FZF if omitted).
+
+**Options:**
+- `-q, --question <text>` — Question to ask. May also be piped on stdin instead of passed as a flag. Required for one-shot mode; ignored in interactive mode.
+- `-i, --interactive` — Start an interactive Claude Code session with the note pre-loaded as context.
+
+**Examples:**
+
+```bash
+# One-shot question via flag
+rei agent ask-note note_01k... -q "What does this note imply for next week?"
+
+# One-shot question via stdin
+echo "Summarise this in three bullets" | rei agent ask-note note_01k...
+
+# FZF picker + question via flag
+rei agent ask-note -q "What's the next action here?"
+
+# Interactive chat about a note
+rei agent ask-note note_01k... -i
+
+# Inspect the rendered prompt without invoking the LLM
+rei agent --debug ask-note note_01k... -q "What's the gist?"
+```
+
+**How it works:**
+1. Resolves the note ID (explicit argument or interactive FZF picker).
+2. Reads the current markdown body from disk (using the note row's recorded path).
+3. **One-shot mode:** substitutes the body and the question into an embedded prompt template, calls `claude --print`, prints the answer, and records an `AgentSession` with focus type `ask_note` and the note id as the focus target.
+4. **Interactive mode (`-i`):** prepends the note (id, title, path, full body) to the standard Rei system context and launches Claude Code as a child process. Records an interactive session with focus type `ask_note` before launching. The user chats freely in the TUI; on exit, the shell prompt returns.
+
+In both modes the note file is read-only — the command never writes to it. To edit a note, use `rei agent update-note` instead.
+
 ### explore
 
-Explore a collection's contents with AI analysis. Gathers all collection members (note content, link metadata, doc paths) and sends them to Claude for thematic analysis.
+Explore a collection's contents in an interactive Claude Code session pre-loaded with the collection's notes. Ask follow-up questions, drill into individual notes, or have Claude record actions on your behalf — all with the collection's context already loaded.
 
 ```bash
 rei agent explore [COLLECTION] [options]
@@ -291,6 +369,7 @@ rei agent explore [COLLECTION] [options]
 
 **Options:**
 - `-n, --limit N` — Maximum number of notes with content (default 20)
+- `--no-interactive` — Run one-shot instead of starting an interactive session (useful for scripting and piping)
 - `--debug` — Show the prompt without calling the agent
 
 > **FZF Support:** If the collection is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing collections.
@@ -298,17 +377,17 @@ rei agent explore [COLLECTION] [options]
 **Examples:**
 
 ```bash
-# Explore a collection by name
+# Explore a collection by name (interactive by default)
 rei agent explore "Research Papers"
 
 # Let FZF pick the collection
 rei agent explore
 
+# One-shot summary instead of interactive session
+rei agent explore "research" --no-interactive
+
 # Limit notes for large collections
 rei agent explore "Category Notes" --limit 5
-
-# Interactive exploration session
-rei agent explore "Research Papers" -i
 
 # Debug: see the prompt
 rei agent --debug explore "Category Notes"
@@ -330,8 +409,10 @@ rei agent schedule <subcommand>
 
 | Mode | Behavior | Use Case |
 |------|----------|----------|
-| Non-interactive (default) | Returns a single response, read-only | Quick advice, suggestions |
+| Non-interactive (default for most commands) | Returns a single response, read-only | Quick advice, suggestions |
 | Interactive (`-i`) | Multi-turn Claude Code session | Getting unstuck, making changes |
+
+Some subcommands always run interactively (`assist`, `intention-assist`) and have no flag. `explore` defaults to interactive — pass `--no-interactive` to get a one-shot response instead.
 
 ## Important Notes
 

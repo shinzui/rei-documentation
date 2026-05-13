@@ -202,6 +202,9 @@ rei disruption set-property [source] PROPERTY_KEY VALUE
 - `PROPERTY_KEY` — The key of the custom property to set
 - `VALUE` — The value to assign (validated against property definition)
 
+**Options:**
+- `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
+
 > **FZF Support:** If the source is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from all disruptions.
 
 **Examples:**
@@ -215,6 +218,9 @@ rei disruption set-property severity high
 
 # Set a numeric property
 rei disruption set-property redis-timeouts impact 8
+
+# Backdate a transition that actually happened earlier
+rei disruption set-property redis-timeouts triage-status resolved --at "1 hour ago"
 ```
 
 **Notes:**
@@ -222,6 +228,7 @@ rei disruption set-property redis-timeouts impact 8
 - The property must be configured to apply to disruptions
 - Values are validated against the property definition (enum options, numeric ranges, etc.)
 - Properties are displayed in `disruption show` output
+- `--at` records the **effective time** of the change. `rei custom-property metrics` uses this for cycle-time and lead-time math; backfilling the right `--at` keeps metrics accurate even when you log states late.
 
 ### clear-property
 
@@ -245,6 +252,24 @@ rei disruption clear-property redis-timeouts severity
 
 # Let fzf pick the disruption
 rei disruption clear-property severity
+```
+
+### append-property
+
+Append one or more values to a multi-value custom property (path-list, label-set, tag-set). Idempotent.
+
+```bash
+rei disruption append-property [-s SOURCE] PROPERTY_KEY VALUE [VALUE...]
+```
+
+Each `VALUE` is a separate shell argument; commas inside a value are preserved literally. See [`rei intention append-property`](/docs/commands/intention) for the full description.
+
+### remove-property-value
+
+Remove one or more values from a multi-value custom property. Idempotent.
+
+```bash
+rei disruption remove-property-value [-s SOURCE] PROPERTY_KEY VALUE [VALUE...]
 ```
 
 ### set-context
