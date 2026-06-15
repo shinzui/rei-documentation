@@ -1,14 +1,14 @@
 ---
 title: rei worker
-description: Run background job workers for queue-based processing
+description: Run background workers for event-stream and queue-based processing
 icon: Cog
 ---
 
-Run background job workers for queue-based processing.
+Run background job workers for event-stream and queue-based processing.
 
 ## Overview
 
-The worker command runs background processors that consume messages from PGMQ queues. Workers handle tasks like git commits, dormancy evaluation, and reminder triggering.
+The worker command runs background processors. `rei worker kiroku` hosts the keiro reactive layer that maintains read models, runs reactors, and enqueues async work. Queue workers consume PGMQ jobs for tasks like git commits, dormancy evaluation, and reminder triggering.
 
 ## Subcommands
 
@@ -25,6 +25,33 @@ This is the recommended way to run workers in production. It starts:
 - `intention-dormancy` — Evaluates dormancy for intentions (triggered by pg_cron)
 - `reminder-trigger` — Triggers due reminders (triggered by pg_cron)
 
+### kiroku
+
+Run the keiro reactive layer against the kiroku event store.
+
+```bash
+rei worker kiroku
+```
+
+This keeps read models current, runs event-triggered reactors, and schedules queue work such as workspace git sync jobs. Run it alongside `rei worker all` in production.
+
+The kiroku worker also starts a **kiroku-metrics HTTP server** that exposes live subscription status (the `/subscriptions` endpoint). Query it from another process with [`rei kiroku subscriptions status --remote-url`](/docs/commands/kiroku).
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_KIROKU_METRICS_PORT` | Port for the kiroku-metrics server. Set to a non-negative integer to choose a port (`0` picks a free OS-assigned port), or one of `disabled`, `off`, `false`, `no` to turn the server off entirely. | `9091` |
+
+```bash
+# Default: metrics server on port 9091
+rei worker kiroku
+
+# Custom port
+REI_KIROKU_METRICS_PORT=9200 rei worker kiroku
+
+# Disable the metrics server
+REI_KIROKU_METRICS_PORT=disabled rei worker kiroku
+```
+
 ### git-sync
 
 Run only the git sync worker.
@@ -37,14 +64,14 @@ Useful for testing or when you only need git commit functionality.
 
 ## Usage
 
-Workers should be run as a background process alongside the subscription workers:
+Workers should be run as background processes:
 
 ```bash
-# Run all workers (recommended for production)
-rei worker all &
+# Host event-sourced read models and reactors
+rei worker kiroku &
 
-# Also run subscriptions (enqueues messages)
-rei subscription run all &
+# Run queue workers
+rei worker all &
 ```
 
 Or with a process manager like systemd:
@@ -55,7 +82,7 @@ Description=Rei Worker
 After=network.target
 
 [Service]
-ExecStart=/path/to/rei worker all
+ExecStart=/path/to/rei worker kiroku
 Restart=always
 
 [Install]
@@ -64,13 +91,14 @@ WantedBy=multi-user.target
 
 ## How It Works
 
-1. **Subscriptions** listen to event streams and enqueue messages to PGMQ queues
-2. **Workers** poll the queues and process messages
-3. Messages are batched with configurable delays for efficiency
+1. **Kiroku worker** listens to event streams, updates read models, and runs reactors
+2. **Reactors** enqueue delayed or asynchronous work to PGMQ queues when needed
+3. **Queue workers** poll the queues and process messages
+4. Messages are batched with configurable delays for efficiency
 
 For example, the git sync flow:
-- `git-commit` subscription sees a `NoteCreated` event
-- It enqueues a message to the `workspace_git_sync` queue (with 30s delay)
+- The keiro git sync reactor sees a `NoteCreated` event
+- It enqueues a message to the `workspace_git_sync` queue with a short delay
 - The `git-sync` worker picks up the message and commits the file
 
 ## Requirements
@@ -81,6 +109,6 @@ For example, the git sync flow:
 
 ## See Also
 
-- [`rei subscription`](/docs/commands/subscription) — Event stream subscriptions that enqueue work
+- [`rei kiroku`](/docs/commands/kiroku) — Inspect live subscription status (incl. `--remote-url` against this worker)
 - [`rei periodic-check`](/docs/commands/periodic-check) — Manual triggering of periodic checks
 - [`rei workspace`](/docs/commands/workspace) — Git integration configuration

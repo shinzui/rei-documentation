@@ -310,7 +310,7 @@ rei agent --debug update-note note_01k... -I "Tighten the wording"
 2. Reads the current markdown body from disk (using the note row's recorded path).
 3. Looks up the note's category and reads its note guidance file (if one is set via `rei category set-note-guidance`).
 4. Prompts the language model with the existing body, the category guidance, and the user's instructions, asking for the revised full body.
-5. Writes the revised body to the note's file path and fires a `NoteContentUpdated` event. Downstream subscriptions (`GitCommitHandler`, `ContentProcessor`) update git, tasks, references, and links from the new body.
+5. Writes the revised body to the note's file path and fires a `NoteContentUpdated` event. Downstream `rei worker kiroku` reactors update git, tasks, references, and links from the new body.
 6. If the note is anchored to an intention, records an `Agent updated note: ...` action against that intention.
 
 ### ask-note
@@ -351,7 +351,7 @@ rei agent --debug ask-note note_01k... -q "What's the gist?"
 **How it works:**
 1. Resolves the note ID (explicit argument or interactive FZF picker).
 2. Reads the current markdown body from disk (using the note row's recorded path).
-3. **One-shot mode:** substitutes the body and the question into an embedded prompt template, calls `claude --print`, prints the answer, and records an `AgentSession` with focus type `ask_note` and the note id as the focus target.
+3. **One-shot mode:** substitutes the body and the question into an embedded prompt template, calls the configured LLM (by default `claude -p`; see [configuration](/docs/configuration#optional-ai-agent)), prints the answer, and records an `AgentSession` with focus type `ask_note` and the note id as the focus target.
 4. **Interactive mode (`-i`):** prepends the note (id, title, path, full body) to the standard Rei system context and launches Claude Code as a child process. Records an interactive session with focus type `ask_note` before launching. The user chats freely in the TUI; on exit, the shell prompt returns.
 
 In both modes the note file is read-only — the command never writes to it. To edit a note, use `rei agent update-note` instead.

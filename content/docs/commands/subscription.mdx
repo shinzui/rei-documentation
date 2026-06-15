@@ -1,175 +1,49 @@
 ---
 title: rei subscription
-description: Run subscription workers that maintain read models from the event stream
+description: Migration notes from the removed rei subscription command
 icon: BellRing
 ---
 
-Run subscription workers that maintain read models from the event stream.
+`rei subscription` has been removed.
 
-## Overview
-
-Rei uses event sourcing. Subscriptions process events and update read models (denormalized views) for efficient querying.
-
-## Subcommands
-
-### run
-
-Run subscription workers.
+Event-stream processing now runs through the kiroku-backed keiro worker:
 
 ```bash
-rei subscription run <worker>
+rei worker kiroku
 ```
 
-**Workers:**
-- `all` — Run all subscription workers
-- `intention-read-model` — Process intention events
-- `habit-read-model` — Process habit events
-- `reflection-read-model` — Process reflection events
-- `focus-read-model` — Process focus events
-- `cycle-read-model` — Process cycle events
-- `journal-entry-read-model` — Process journal entry and task events (for daily notes)
-- `note-read-model` — Process note events to update notes table
-- `reference-read-model` — Project wikilink references to the database
-- `note-content-processor` — Extract titles, tasks, and wikilinks from note content
-- `task-propagation` — Propagate note tasks to parent entity streams
-- `daily-task-due-date` — Auto-set due dates for tasks in daily notes
-- `task-due-date-reminder` — Create reminders from task due dates
-- `health-reactor` — Awaken dormant intentions on note activity
-- `reminder-read-model` — Process reminder events
-- `git-commit` — Commit note files to git with meaningful messages
-- `embed-propagation` — Propagate note embeds to entities
-- `link-extraction` — Propagate note links to Link aggregates
-- `habit-action` — Update habit active days count from action events
-- `cycle-report` — Generate reports when cycles end
-- `category-read-model` — Process category events
-- `disruption-read-model` — Process disruption events
-- `disruption-intention-reactor` — Auto-resolve/revert disruptions on intention lifecycle
-- `custom-property-read-model` — Process custom property definition events
-- `entity-property-read-model` — Process property assignment events
-- `intention-view-read-model` — Process intention view events
-- `task-completion-reactor` — Auto-set boolean properties when all linked tasks complete
-- `collection-read-model` — Process collection events
-- `terminal-state-completion` — Auto-complete intentions when lifecycle properties reach terminal state
-- `agent-memory-filesystem` — Write agent memory files to workspace (markdown with YAML frontmatter)
-- `agent-schedule-read-model` — Process agent schedule events
-- `agent-schedule-event-reactor` — Match domain events (blockers, delegations, reviews) to event-triggered schedules
-
-**Examples:**
+Run the PGMQ queue workers separately when you need asynchronous jobs such as workspace git sync, reminder triggering, dormancy checks, or agent work:
 
 ```bash
-# Run all subscriptions (recommended for production)
-rei subscription run all
-
-# Run only intention read model updates
-rei subscription run intention-read-model
+rei worker all
 ```
 
-## Usage
+## Migration
 
-Subscriptions should be run as a background process:
+| Previous command | Current command |
+|------------------|-----------------|
+| `rei subscription run all` | `rei worker kiroku` |
+| `rei subscription run <read-model>` | `rei worker kiroku` |
+| `rei subscription run git-commit` | `rei worker kiroku` plus `rei worker all` |
+| `rei subscription run agent-schedule-event-reactor` | `rei worker kiroku` |
+
+Most read models update inline on command writes. The worker is still required for event-triggered reactors, asynchronous projections, delayed work, and queue handoffs.
+
+## Inspecting subscriptions
+
+To check that subscriptions are keeping up, use the Kiroku operator command:
 
 ```bash
-# Run in background
-rei subscription run all &
-
-# Or with a process manager like systemd
+rei kiroku subscriptions status
+# or against a running worker's metrics endpoint:
+rei kiroku subscriptions status --remote-url http://localhost:9091
 ```
 
-## Note Processing Pipeline
+See [`rei kiroku`](/docs/commands/kiroku) for details.
 
-Notes use a multi-stage async processing model:
+## See Also
 
-```
-note-{noteId} stream
-        │
-        ├──▶ note-content-processor
-        │         │
-        │         ├─ Extract title → NoteTitleExtracted
-        │         ├─ Discover tasks → NoteTaskDiscovered, NoteTaskCompleted, etc.
-        │         └─ Discover wikilinks → NoteReferenceDiscovered
-        │
-        ├──▶ note-read-model
-        │         ├─ Update PostgreSQL notes table
-        │         └─ Auto-resolve wikilinks when titles match
-        │
-        ├──▶ reference-read-model
-        │         └─ Project wikilink references to note_references table
-        │
-        └──▶ task-propagation
-                  └─ Route NoteTask* events to entity streams
-                     (intention-{id}, journal_entry-{id}, etc.)
-                              │
-                              ▼
-journal_entry-{id} stream ───▶ daily-task-due-date
-                                      │
-                                      └─ TaskDiscovered → TaskDueDateSet
-                                         (due date = journal entry's day)
-```
-
-This separation allows the CLI to return immediately while subscriptions handle content parsing, wikilink extraction, task propagation, and auto due date setting in the background.
-
-## Daily Note Task Flow
-
-When you add a task to a daily note:
-
-1. `note-content-processor` discovers the task and emits `NoteTaskDiscovered`
-2. `task-propagation` routes it to the journal entry stream as `TaskDiscovered`
-3. `daily-task-due-date` sees the task and emits `TaskDueDateSet` with the day
-4. `journal-entry-read-model` updates the tasks table with the due date
-
-Tasks in daily notes automatically become due on that day.
-
-## Git Commit Integration
-
-The `git-commit` worker automatically commits workspace files to Git when they are created, updated, or deleted. It runs three concurrent handlers:
-
-### Notes
-
-```
-note-{noteId} stream
-        │
-        └──▶ git-commit (note handler)
-                  │
-                  ├─ NoteCreated → git add + commit "Add note: ..."
-                  ├─ NoteContentUpdated → git add + commit "Update note: ..."
-                  └─ NoteDeleted → git rm + commit "Delete note: ..."
-```
-
-### Reflections
-
-```
-reflection-{reflectionId} stream
-        │
-        └──▶ git-commit (reflection handler)
-                  │
-                  ├─ ReflectionScheduled → git add + commit "Add reflection: ..."
-                  └─ ReflectionCompleted → git add + commit "Complete reflection: ..."
-```
-
-### Documents and Guidance
-
-```
-intention-{intentionId} stream
-        │
-        └──▶ git-commit (intention handler)
-                  │
-                  ├─ DocAttached → git add + commit "Add doc (intention: ...)"
-                  ├─ GuidanceSet → git add + commit "Set guidance for ..."
-                  └─ GuidanceRemoved → git rm + commit "Remove guidance from ..."
-```
-
-### Commit Message Format
-
-Commit messages include entity metadata:
-- Note/reflection title (extracted from content)
-- Anchor type (intention, action, habit, etc.)
-- Anchor entity title (resolved from read models)
-- Tags and actor in commit body (for notes)
-
-See [`rei workspace`](/docs/commands/workspace) for configuration and CLI commands.
-
-## Notes
-
-- Subscriptions are idempotent — running them multiple times is safe
-- They track their position in the event stream
-- If interrupted, they resume from the last processed position
+- [`rei kiroku`](/docs/commands/kiroku) — Inspect live subscription status
+- [`rei worker`](/docs/commands/worker) — Background event-stream and queue workers
+- [`rei workspace`](/docs/commands/workspace) — Git integration configuration
+- [`rei agent schedule`](/docs/commands/agent-schedule) — Agent schedule workers

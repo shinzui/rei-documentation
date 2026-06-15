@@ -6,6 +6,44 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-06-14
+
+### Event Store Migration: `rei subscription` → `rei worker kiroku`
+
+Rei's event-sourcing layer moved from MessageDB to the **kiroku/keiro** PostgreSQL event store. Read models now update **inline on write**, so most data is queryable immediately without a polling worker. Event-triggered work (reactors, async projections, delayed jobs) runs in the new kiroku worker.
+
+- **`rei subscription` has been removed.** Run `rei worker kiroku` to host read models and reactors, and `rei worker all` for queued jobs (git sync, reminders, dormancy, agent work).
+- **New command: `rei kiroku`** — Operator tooling for the event store. `rei kiroku subscriptions status` lists live subscription phases and cursor positions; add `--remote-url http://localhost:9091` to inspect a running worker, and `--format json` for scripting.
+- **`rei worker kiroku`** — New subcommand running the keiro reactive layer. It also exposes a kiroku-metrics HTTP server (`REI_KIROKU_METRICS_PORT`, default `9091`; set to `disabled` to turn it off).
+
+### Provider-Neutral LLM Configuration
+
+Rei's AI access is now provider-neutral (built on the in-house **baikai** library) and configurable by **provider**, **transport**, and **model** — via environment variables or a YAML `llm:` config section.
+
+- `REI_LLM_PROVIDER` (`anthropic` | `openai`), `REI_LLM_TRANSPORT` (`cli` | `api`), `REI_LLM_MODEL`, `REI_LLM_API_KEY`.
+- **CLI transport** runs the vendor CLI (`claude -p` / `codex exec`) — billed against your subscription, no API key. **API transport** calls the HTTP API — billed per token, needs a key.
+- Set defaults in `./rei.yaml` (project) or `~/.config/rei/config.yaml` (global) under an `llm:` section. Precedence: `REI_LLM_*` env > config file > built-in default.
+- The default is unchanged (Anthropic over the `claude -p` CLI). Legacy `REI_LLM_BACKEND` is still honored when the new variables are unset.
+
+### OpenTelemetry Observability
+
+Rei now emits OpenTelemetry traces for CLI commands, store writes, reactor work, database statements, and outbound HTTP calls. The SDK is **off by default** and auto-enables when you point Rei at an OTLP collector (`OTEL_EXPORTER_OTLP_ENDPOINT`) or set `REI_TELEMETRY_ENABLED=true`. See the new [Observability](/docs/observability) page for spans, log correlation, and a local Jaeger setup.
+
+### Category Property Bindings
+
+- **`rei category bind-property SLUG KEY VALUE`** — Bind a custom property value to a category so assigning that category to an eligible entity auto-sets the property. Bindings are entity-type aware, set-only-if-missing, kept when the category is cleared/changed, and resolve nearest-ancestor-wins.
+- **`rei category unbind-property [SLUG] KEY`** — Remove a binding (existing values are left untouched).
+
+### JSON Output Additions
+
+- **`rei collection list --json`** — Emits a `{collections, warnings}` envelope.
+- **`rei doc list --json`** — Emits `{docs, warnings}`; requires an explicit anchor (no FZF picker).
+- **`rei note backlinks --json`**, **`rei note outgoing-links --json`**, **`rei note embeds --json`** — Emit reference/embed rows with a `warnings` array.
+
+### Codex Support for `rei kit`
+
+`rei kit` now installs **both** Claude Code and Codex provider layouts on every install. Claude Code reads skills/agents from `.claude/`; Codex discovers skills from `.agents/skills/` and custom agents from `.codex/agents/*.toml`. `rei kit status` shows which providers each item covers; `update` repairs a missing provider copy.
+
 ## 2026-05-13
 
 ### Multi-Value Property Append and Remove

@@ -206,20 +206,19 @@ Schedules are processed by the background worker system:
 1. **Periodic check** (`rei periodic-check enqueue agent-schedule`) evaluates which schedules are due
 2. Due schedules are enqueued as work items in the PGMQ `agent_work` queue
 3. **Worker** (`rei worker all`) picks up work items and executes agent tasks
-4. **Event reactor** subscription watches for domain events that match event-triggered schedules
+4. **Event reactor** in `rei worker kiroku` watches for domain events that match event-triggered schedules
 
-### Required subscriptions
+### Required workers
 
 ```bash
-rei subscription run agent-schedule-read-model
-rei subscription run agent-schedule-event-reactor
+rei worker kiroku
+rei worker all
 ```
 
-Or include them in `rei subscription run all`.
+`rei worker kiroku` keeps the schedule read model current and runs the event-triggered schedule reactor. `rei worker all` processes queued agent work.
 
 ## See Also
 
 - [`rei agent`](/docs/commands/agent) — AI-assisted coaching and review
-- [`rei worker`](/docs/commands/worker) — Background job workers
+- [`rei worker`](/docs/commands/worker) — Event-stream and queue workers
 - [`rei periodic-check`](/docs/commands/periodic-check) — Periodic check scheduling
-- [`rei subscription`](/docs/commands/subscription) — Subscription workers

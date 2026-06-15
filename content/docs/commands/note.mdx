@@ -10,7 +10,7 @@ Create and manage markdown notes attached to entities, including daily notes.
 
 ### Automatic Title Extraction
 
-Notes automatically extract their title from the first `# ` (H1) heading in the markdown content. This processing happens asynchronously via the content processor subscription after note events are emitted. The title is displayed in note listings and stored in the database for querying.
+Notes automatically extract their title from the first `# ` (H1) heading in the markdown content. This processing happens asynchronously via the content processor reactor hosted by `rei worker kiroku` after note events are emitted. The title is displayed in note listings and stored in the database for querying.
 
 You can override automatic extraction with `rei note set-title` to set a stable title that won't change when the note content is edited. This is useful for wikilinks — other notes linking to `[[My Note]]` won't break if you edit the H1 heading. Use `rei note clear-title` to revert to automatic extraction.
 
@@ -523,7 +523,7 @@ See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
 Show notes that link to a given note via wikilinks (`[[Note Title]]`).
 
 ```bash
-rei note backlinks [note-id] [--include-archived]
+rei note backlinks [note-id] [--include-archived] [--json]
 ```
 
 **Arguments:**
@@ -531,6 +531,7 @@ rei note backlinks [note-id] [--include-archived]
 
 **Options:**
 - `--include-archived` — Include backlinks whose source note is archived. Excluded by default.
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"backlinks": [<NoteReferenceRow>, ...], "warnings": [...]}` over the wikilink reference rows (fields: `referenceId`, `sourceNoteId`, `targetNoteId`, `targetTitle`, `displayText`, `referenceHash`, `lineNumber`, `discoveredAt`, `resolvedAt`). Non-fatal diagnostics ride in `warnings`; the command exits zero on the JSON path.
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -820,11 +821,14 @@ rei note clear-title
 Show embedded files discovered in a note. Notes can embed files using the `![[file.pdf]]` syntax, and this command shows which files are embedded.
 
 ```bash
-rei note embeds [note-id]
+rei note embeds [note-id] [--json]
 ```
 
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
+
+**Options:**
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"embeds": [<NoteEmbedState>, ...], "warnings": [...]}` over the existing `NoteEmbedState` ToJSON instance (fields: `embedId`, `embedHash`, `relativePath`, `resolvedPath`, `contentHash`, `lineNumber`, `fileExists`, `discoveredAt`, `verifiedAt`).
 
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -849,7 +853,7 @@ rei note embeds
 Show notes that a given note links to via wikilinks. This is the inverse of `backlinks`.
 
 ```bash
-rei note outgoing-links [note-id] [--include-archived]
+rei note outgoing-links [note-id] [--include-archived] [--json]
 ```
 
 **Arguments:**
@@ -857,6 +861,7 @@ rei note outgoing-links [note-id] [--include-archived]
 
 **Options:**
 - `--include-archived` — Include outgoing links whose target note is archived. Excluded by default. Wikilinks themselves still resolve to archived targets — this flag controls only whether the listing displays them.
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"outgoingLinks": [<NoteReferenceRow>, ...], "warnings": [...]}` over the wikilink reference rows (fields as for `backlinks` above).
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -965,7 +970,7 @@ rei note delete [note-id]
 **Behavior:**
 1. Removes the note file from the workspace
 2. Emits a `NoteDeleted` event
-3. Git subscription handler commits the file removal (if git integration enabled)
+3. Git commit reactor commits the file removal (if git integration is enabled and `rei worker kiroku` is running)
 
 **Examples:**
 
@@ -1085,6 +1090,8 @@ Check [[Meeting Notes|the meeting notes]] from last week.
 
 **Processing:**
 - Wikilinks are discovered when notes are created or updated
+- The note content processor reactor extracts references
+- The reference inline read model projects them to the database
 - References are automatically resolved when a matching note title exists
 - If a note is deleted or renamed, references may become "broken"
 

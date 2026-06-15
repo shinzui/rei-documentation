@@ -7,7 +7,7 @@ icon: Settings
 Rei uses two configuration sources:
 
 1. **YAML config file** — User preferences (workspace path, editor, display settings)
-2. **Environment variables** — Infrastructure settings (database, LLM backend)
+2. **Environment variables** — Infrastructure settings (database, LLM provider/transport/model, observability)
 
 ## Config File
 
@@ -133,7 +133,7 @@ For full details and examples, see the [Dashboard Panels Guide](/docs/guides/das
 
 ### Required: Database
 
-Rei requires MessageDB for event storage.
+Rei stores events in PostgreSQL through the kiroku/keiro event store.
 
 | Variable | Description | Required |
 |----------|-------------|----------|
@@ -152,30 +152,64 @@ export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
 
 ### Optional: AI Agent
 
+Rei's LLM access is **provider-neutral and configurable** by provider, transport, and model. It is built on the in-house **baikai** library, which speaks to Anthropic, OpenAI, and the `claude -p` / `codex exec` command-line tools. You can configure it two ways — **environment variables** or an **`llm:` section in the YAML config file** (per-project or global). Environment variables take precedence over the file.
+
+<Callout type="info">
+**Precedence:** `REI_LLM_*` environment variables **>** the `llm:` section of your config file **>** the built-in default (Anthropic + CLI). Within the file layer, a project `./rei.yaml` overrides the global `~/.config/rei/config.yaml`.
+</Callout>
+
+#### Environment Variables
+
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `REI_LLM_BACKEND` | LLM backend (`claude-cli` or `anthropic-api`) | `claude-cli` |
-| `REI_ANTHROPIC_API_KEY` | Anthropic API key (required for `anthropic-api`) | - |
-| `REI_LLM_MODEL` | Model override | - |
+| `REI_LLM_PROVIDER` | `anthropic` or `openai` | `anthropic` |
+| `REI_LLM_TRANSPORT` | `cli` (subscription, no key) or `api` (per-token, needs a key) | `cli` |
+| `REI_LLM_MODEL` | Model id forwarded to the provider/CLI (e.g. `sonnet`, `gpt-5-codex`) | provider/CLI default |
+| `REI_LLM_API_KEY` | Explicit API key for the `api` transport | - |
+| `ANTHROPIC_API_KEY` | Anthropic key, read by baikai when `REI_LLM_API_KEY` is unset | - |
+| `OPENAI_API_KEY` | OpenAI key, read by baikai when `REI_LLM_API_KEY` is unset | - |
 
-### LLM Backend Options
+#### Provider / Transport Options
 
-**claude-cli** (default)
+The default — `anthropic` + `cli` — preserves the original behavior exactly: it calls the local `claude -p` CLI, billed against your Claude subscription, with **no API key**.
 
-Uses the Claude CLI (`claude`) installed on your system. No API key required.
-
-```bash
-export REI_LLM_BACKEND=claude-cli
-```
-
-**anthropic-api**
-
-Uses the Anthropic API directly. Requires an API key.
+**CLI transport vs API transport.** The `cli` transport runs the vendor's command-line tool (`claude -p` for Anthropic, `codex exec` for OpenAI), so it is billed against your **subscription**, needs no API key, and reports **zero token usage**. The `api` transport calls the vendor's HTTP API (Anthropic Messages / OpenAI Chat Completions), so it is **billed per token** and **requires an API key**.
 
 ```bash
-export REI_LLM_BACKEND=anthropic-api
-export REI_ANTHROPIC_API_KEY=sk-ant-...
+# Default: Anthropic over the claude -p CLI (subscription, no key)
+# (nothing to set)
+
+# Anthropic Messages API with an explicit model
+export REI_LLM_TRANSPORT=api
+export ANTHROPIC_API_KEY=sk-ant-...
+export REI_LLM_MODEL=sonnet
+
+# OpenAI Chat Completions API
+export REI_LLM_PROVIDER=openai
+export REI_LLM_TRANSPORT=api
+export OPENAI_API_KEY=sk-...
+export REI_LLM_MODEL=gpt-5
+
+# OpenAI over the codex exec CLI (subscription)
+export REI_LLM_PROVIDER=openai
+export REI_LLM_TRANSPORT=cli
 ```
+
+#### YAML Config File (`llm:` section)
+
+Instead of (or in addition to) environment variables, set the provider/model in the config file so it sticks per-project or globally without exporting variables. The file is resolved in this order: `$REI_CONFIG` → `./rei.yaml` (**project**) → `~/.config/rei/config.yaml` (**global**) → `~/.rei/config.yaml`. Add an `llm:` section:
+
+```yaml title="./rei.yaml (project-local) or ~/.config/rei/config.yaml (global)"
+llm:
+  provider: openai      # anthropic | openai   (optional)
+  transport: api        # cli | api            (optional)
+  model: gpt-5-codex    # model id             (optional)
+  # api_key: sk-...     # discouraged in a committed file — prefer the env key below
+```
+
+Every field is optional; an omitted field falls back to the env var, then the built-in default. **Prefer the environment** (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`) for the API key rather than committing `api_key` to a shared/checked-in file. A typical split is a global `~/.config/rei/config.yaml` choosing your usual provider/model, with a project `./rei.yaml` overriding it for a specific repo, and `REI_LLM_*` for one-off overrides in a shell.
+
+**Legacy compatibility.** The old `REI_LLM_BACKEND` variable is still honored when `REI_LLM_PROVIDER` and `REI_LLM_TRANSPORT` are both unset: `claude-cli` maps to Anthropic + CLI and `anthropic-api` maps to Anthropic + API (with the key taken from `REI_LLM_API_KEY`, else the legacy `REI_ANTHROPIC_API_KEY`). Prefer the new variables.
 
 ### Optional: Connection Pool
 
@@ -186,15 +220,37 @@ export REI_ANTHROPIC_API_KEY=sk-ant-...
 | `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time (seconds) | 600 |
 | `PG_POOL_MAX_CONNECTION_LIFETIME` | Max connection lifetime (seconds) | 1800 |
 
+### Optional: Observability
+
+Rei is instrumented with OpenTelemetry tracing. **The SDK is disabled by default** — no spans are exported unless you explicitly opt in. Telemetry turns on automatically when you point Rei at an OTLP collector (set `OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, or a non-empty `OTEL_TRACES_EXPORTER`), or explicitly via `REI_TELEMETRY_ENABLED=true`.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_TELEMETRY_ENABLED` | Enable Rei telemetry when `true` | unset (off) |
+| `OTEL_SDK_DISABLED` | Disable the OpenTelemetry SDK when `true` (overrides auto-enable) | unset |
+| `OTEL_TRACES_EXPORTER` | OpenTelemetry traces exporter (a non-empty, non-`none` value enables telemetry) | unset |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | OTLP collector endpoint (enables telemetry when set) | unset |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | OTLP traces-specific endpoint (enables telemetry when set) | unset |
+| `OTEL_SERVICE_NAME` | `service.name` reported in spans | `rei` |
+| `REI_DEPLOYMENT_ENVIRONMENT` | `deployment.environment` reported in spans | unset |
+
+```bash
+# Export traces to a local collector (e.g. Jaeger)
+export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4318"
+export REI_DEPLOYMENT_ENVIRONMENT=dev
+```
+
+The `rei worker kiroku` process additionally exposes a kiroku-metrics HTTP server for live subscription status. See the [Observability](/docs/observability) page for the full span families, metrics guidance, and collector setup.
+
 ## Complete Example
 
 ```bash title=".envrc"
 # Database (required)
 export REI_PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
 
-# AI (optional - uses claude-cli by default)
-export REI_LLM_BACKEND=anthropic-api
-export REI_ANTHROPIC_API_KEY=sk-ant-your-key-here
+# AI (optional - defaults to Anthropic over the claude -p CLI, no key)
+export REI_LLM_TRANSPORT=api
+export ANTHROPIC_API_KEY=sk-ant-your-key-here
 
 # Pool tuning (optional)
 export PG_POOL_SIZE=20

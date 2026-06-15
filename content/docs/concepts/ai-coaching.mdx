@@ -180,30 +180,23 @@ Every piece of agent work in rei is fully observable:
 
 ## Configuration
 
-### LLM Backend
+### LLM Provider, Transport, and Model
 
-Rei supports two backends:
+Rei's LLM access is provider-neutral, built on the in-house **baikai** library and selected by **provider** (`anthropic` or `openai`), **transport** (`cli` or `api`), and **model**. The `cli` transport runs the vendor's command-line tool (`claude -p` / `codex exec`), billed against your subscription with no API key; the `api` transport calls the vendor's HTTP API, billed per token and requiring a key.
 
-**claude-cli** (default), uses the Claude CLI if installed:
-
-```bash
-export REI_LLM_BACKEND=claude-cli
-```
-
-**anthropic-api**, direct API access:
+Configure it with `REI_LLM_*` environment variables or an `llm:` section in your YAML config (`./rei.yaml` per-project or `~/.config/rei/config.yaml` global):
 
 ```bash
-export REI_LLM_BACKEND=anthropic-api
-export REI_ANTHROPIC_API_KEY=sk-ant-...
+# Default: Anthropic over the claude -p CLI (subscription, no key)
+# (nothing to set)
+
+# Anthropic Messages API with an explicit model
+export REI_LLM_TRANSPORT=api
+export ANTHROPIC_API_KEY=sk-ant-...
+export REI_LLM_MODEL=sonnet
 ```
 
-### Model Override
-
-Override the default model:
-
-```bash
-export REI_LLM_MODEL=claude-sonnet-4-6-20250514
-```
+Precedence is `REI_LLM_*` env vars over the file's `llm:` section over the built-in default. The legacy `REI_LLM_BACKEND` variable is still honored when the new variables are unset. See [Configuration](/docs/configuration#optional-ai-agent) for the full provider/transport matrix and the subscription-vs-API tradeoff.
 
 ## Choosing the Right Level
 

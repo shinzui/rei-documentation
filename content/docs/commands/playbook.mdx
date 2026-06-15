@@ -166,8 +166,9 @@ rei playbook history [--playbook <name>]
 ```
 
 Shows recent playbook executions with status, step counts, and timestamps.
-Every playbook run writes execution events to the message store; the subscription
-handler materializes them into the `playbook_executions` read model.
+Every playbook run writes execution events through the kiroku store path; the inline
+projection materializes them into the `playbook_executions` read model in the same
+transaction.
 
 ## Execution Behavior
 

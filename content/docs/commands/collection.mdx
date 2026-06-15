@@ -87,6 +87,7 @@ rei collection list [options]
 **Options:**
 - `-a, --all` — Include archived collections
 - `--category <slug>` — Filter by category (e.g., `work`, `personal`)
+- `--json` — Emit JSON output instead of the human-readable listing
 
 **Output:**
 ```
@@ -97,6 +98,32 @@ Research Papers   | manual  |       3 | Academic papers to review
 ```
 
 Virtual collections show `--` for member count since membership is dynamic.
+
+**JSON output** (`--json`): emits an envelope of the form
+
+```json
+{
+  "collections": [
+    {
+      "collection": {
+        "collectionId": "collection_01abc...",
+        "name": "Research Papers",
+        "description": "Academic papers to review",
+        "kind": {"tag": "manual"},
+        "status": {"tag": "active"},
+        "categoryId": null,
+        "createdAt": "2026-02-15T10:30:00Z",
+        "updatedAt": "2026-02-15T10:30:00Z",
+        "streamPosition": 12
+      },
+      "memberCount": 3
+    }
+  ],
+  "warnings": []
+}
+```
+
+Non-fatal diagnostics (e.g., "Category not found") are surfaced in the `warnings` array rather than printed as errors, and the command still exits zero. The shape of the inner `collection` object follows the `CollectionView` ToJSON instance.
 
 ### show
 

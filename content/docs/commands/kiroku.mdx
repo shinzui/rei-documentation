@@ -1,0 +1,51 @@
+---
+title: rei kiroku
+description: Operator commands for the Kiroku event store that backs Rei
+icon: Database
+---
+
+Operator commands for the Kiroku event store that backs Rei. These are low-level inspection tools for diagnosing the keiro reactive layer, not part of the day-to-day coaching workflow.
+
+## Subcommands
+
+### subscriptions status
+
+List live subscription phases and global cursor positions.
+
+```bash
+rei kiroku subscriptions status
+```
+
+Use this to confirm that the keiro worker is keeping up with the event stream: each subscription reports its current phase (e.g. catching up vs. live) and how far its cursor has advanced through the global event log.
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--format table\|json` | Render as a human-readable table or script-friendly JSON | `table` |
+| `--remote-url URL` | Query a running worker's kiroku-metrics `/subscriptions` endpoint instead of this process's local registry | (local registry) |
+
+**Querying a running worker.** By default, `subscriptions status` inspects the KirokuStore registry *of the current process*. To inspect a live `rei worker kiroku` process, point it at that worker's metrics endpoint:
+
+```bash
+# The worker exposes the kiroku-metrics server on port 9091 by default
+rei kiroku subscriptions status --remote-url http://localhost:9091
+
+# Script-friendly output
+rei kiroku subscriptions status --remote-url http://localhost:9091 --format json
+```
+
+See [`rei worker`](/docs/commands/worker) for how to enable, move, or disable the metrics server on the worker side (`REI_KIROKU_METRICS_PORT`).
+
+## Requirements
+
+Kiroku operator commands require the Kiroku store runner. Rei opens it automatically when the database connection is configured; if it is unavailable the command prints:
+
+```
+Error: Kiroku operator commands require the Kiroku store runner
+```
+
+## See Also
+
+- [`rei worker`](/docs/commands/worker) — Run the keiro reactive layer and the kiroku-metrics server
+- [`rei subscription`](/docs/commands/subscription) — Migration notes from the removed `rei subscription` command

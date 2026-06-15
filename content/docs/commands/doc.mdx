@@ -102,6 +102,7 @@ rei doc list [options]
 - `-r, --reflection <id>` — Filter by reflection
 - `-n, --note <id>` — Filter by note
 - `--include-archived` — Include docs whose parent note is archived. Default behavior excludes them (they remain reachable by ID via `rei doc open`). Each row brought back by this flag is tagged `[archived parent]`.
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"docs": [<DocRow>, ...], "warnings": [...]}`. Each `DocRow` carries `docId`, `anchorType`, `anchorId`, `intentionId` (nullable), `relativePath`, `contentHash` (nullable), `title` (nullable), `attachedAt`, and `archivedParent`. Without an explicit anchor flag, `--json` does *not* launch the FZF picker — it short-circuits with `{"docs":[],"warnings":["--json requires an explicit anchor: -i, -a, -o, -r, or -n"]}` on stdout (exit code 0).
 
 **Examples:**
 

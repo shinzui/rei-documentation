@@ -175,7 +175,7 @@ rei intention create "Implement Stripe webhook handler"
 rei intention create "Add idempotency keys to charge API"
 rei intention create "Refactor payment retry logic"
 
-# Five minutes later (or after `rei subscription run` if configured manually):
+# Five minutes later (or after `rei worker kiroku` has caught up):
 rei intention show -i <child-id> --full
 ```
 
@@ -490,7 +490,7 @@ rei custom-property init-entities <KEY> --dry-run   # preview
 rei custom-property init-entities <KEY>             # apply
 ```
 
-This is also the recovery tool if anything ever falls behind (e.g., a subscription bug, a database restore).
+This is also the recovery tool if anything ever falls behind (e.g., a reactor bug, a database restore).
 
 ### Property scope must be a leaf category
 
@@ -549,8 +549,12 @@ Check, in order:
 3. **Did 5 minutes pass?** Auto-set is delayed. Check the intention's stream:
    ```bash
    # The event is `IntentionCategoryAutoSet`, not `IntentionCategorySet`
-   psql -c "SELECT type, time FROM message_store.messages \
-            WHERE stream_name = 'intention-<intention_id>' ORDER BY position;"
+   psql -c "SELECT e.event_type, e.created_at \
+            FROM streams s \
+            JOIN stream_events se ON se.stream_id = s.stream_id \
+            JOIN events e ON e.event_id = se.event_id \
+            WHERE s.stream_name = 'intention-<intention_id>' \
+            ORDER BY se.stream_version;"
    ```
 4. **Was the resulting category a leaf?** State machine properties scoped to non-leaf categories aren't possible to define — but if you converted a leaf to a non-leaf later, the scope might be stale.
 5. **Does the property exist with the right scope?**

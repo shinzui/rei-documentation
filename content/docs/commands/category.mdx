@@ -512,6 +512,65 @@ rei category clear-child-default [SLUG]
 rei category clear-child-default initiative
 ```
 
+### bind-property
+
+Bind a custom property value to a category. Once bound, assigning that category to an **eligible** entity automatically sets the property — no separate `set-property` command needed.
+
+```bash
+rei category bind-property SLUG PROPERTY-KEY VALUE
+```
+
+**Arguments:**
+- `SLUG` — Category slug to bind the value to
+- `PROPERTY-KEY` — Custom property key (e.g., `language`)
+- `VALUE` — Value to bind (validated against the property's type at bind time)
+
+**Worked example:**
+
+```bash
+# Define a note-only enum property
+rei custom-property create language \
+  --type-enum --values japanese,english --entity-type note
+
+# Bind values per category
+rei category bind-property 日本語 language japanese
+# -> Bound 日本語: language = japanese (applies to: note)
+rei category bind-property 英語 language english
+
+# Create a note and assign the 日本語 category
+rei note new -i <intention> -c 日本語 --stdin
+# the note now has language=japanese automatically:
+rei note list --where language=japanese   # the note appears
+```
+
+**Semantics:**
+
+- **Entity-type aware.** A binding only fires for entities whose type the property allows (its `--entity-type` set). In the example above `language` is note-only, so assigning `日本語` to an *intention* sets nothing. The confirmation line shows the gate, e.g. `(applies to: note)`.
+- **Set only if missing.** The binding fills in a value only when the entity has none for that property; it never overwrites a value set manually or by an earlier binding.
+- **Kept on category clear/change.** Once a binding has set a value, that value belongs to the entity. Removing or changing the entity's category does **not** remove it.
+- **Nearest-ancestor-wins.** If both a category and one of its ancestors bind the same property, the more specific (nearest) category's value is used. For example, with `仕事 → work-kind=research` and `仕事/開発 → work-kind=build`, assigning `仕事/開発` sets `work-kind=build`.
+
+Bound values are shown in `rei category show` under a **Property Bindings** section.
+
+### unbind-property
+
+Remove a custom property binding from a category. Existing values that the binding already set on entities are left untouched.
+
+```bash
+rei category unbind-property [SLUG] PROPERTY-KEY
+```
+
+**Arguments:**
+- `[SLUG]` — Category slug (optional if fzf is available)
+- `PROPERTY-KEY` — Custom property key to unbind
+
+**Example:**
+
+```bash
+rei category unbind-property 日本語 language
+# -> Unbound 日本語: language
+```
+
 ### reparent
 
 Move a category under a different parent or promote it to a root category.

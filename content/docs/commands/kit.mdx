@@ -1,10 +1,15 @@
 ---
 title: rei kit
-description: Manage distributable Claude Code skills and subagents from the rei-kit registry
+description: Manage distributable skills and subagents (Claude Code and Codex) from the rei-kit registry
 icon: Package
 ---
 
-Manage distributable Claude Code skills and subagents from the rei-kit registry. Skills and agents can be installed, updated, and removed independently of Rei binary releases.
+Manage distributable skills and subagents from the rei-kit registry, for both **Claude Code** and **Codex**. Skills and agents can be installed, updated, and removed independently of Rei binary releases.
+
+Every install writes **both** provider layouts so the content is discoverable whichever provider an interactive session runs under (selected by `REI_LLM_PROVIDER`):
+
+- **Claude Code** reads skills/agents from Rei's agent base directory (`.claude/skills/`, `.claude/agents/`), which Rei passes to the session.
+- **Codex** discovers skills from `.agents/skills/` and custom agents from `.codex/agents/*.toml` in its own native roots (the working tree for project scope, `$HOME` for user scope). Kit agent Markdown is wrapped into a Codex custom-agent TOML (`developer_instructions`).
 
 ## Subcommands
 
@@ -69,26 +74,30 @@ rei kit uninstall <name> [--project]
 
 ### status
 
-Show all installed items with their type (skill or agent) and scope (user or project).
+Show all installed items with their type (skill or agent), scope (user or project), and the providers they cover (`claude`, `codex`, or `claude,codex`).
 
 ```bash
 rei kit status
 ```
 
-## Scopes
+`uninstall` removes every provider copy for the item+scope, and `update` repairs a missing provider copy (e.g. if only the Claude copy is present, the Codex copy is restored).
 
-Kit supports two installation scopes:
+## Scopes and provider layouts
+
+Kit supports two installation scopes, each writing both provider layouts:
 
 **User scope** (default):
-- Installed to `~/.config/rei/agents/.claude/skills/<name>/`
-- Available in every project when using `rei agent`
+- Claude Code: `~/.config/rei/agents/.claude/skills/<name>/` and `.../.claude/agents/<name>.md`
+- Codex: `~/.agents/skills/<name>/` (skills) and `~/.codex/agents/<name>.toml` (agents)
+- Available in every project
 
 **Project scope** (`--project` flag):
-- Installed to `.rei/agents/.claude/skills/<name>/`
+- Claude Code: `.rei/agents/.claude/skills/<name>/` and `.rei/agents/.claude/agents/<name>.md`
+- Codex: `.agents/skills/<name>/` (skills) and `.codex/agents/<name>.toml` (agents), at the working-tree root
 - Available only in the current project directory
-- Can be version-controlled by committing the `.rei/agents/` directory
+- Can be version-controlled by committing the `.rei/agents/`, `.agents/`, and `.codex/` directories
 
-Both scopes are checked automatically when starting any agent session.
+Claude Code sessions are given both scopes automatically when started by Rei; Codex discovers project-scope content from the working tree and user-scope content from `$HOME`.
 
 ## Offline Use
 

@@ -5,11 +5,50 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `cf75d3a3` (2026-05-13)
+**Last Source Commit Reviewed:** `19a0d271` (2026-06-14)
 
 ---
 
 ## Changelog
+
+### 2026-06-14
+
+**Reviewed commits:** `cf75d3a3` through `19a0d271`
+
+**Theme:** Event-sourcing migration from MessageDB to the kiroku/keiro PostgreSQL event store, removal of `rei subscription`, provider-neutral LLM config (baikai), OpenTelemetry observability, category property bindings, new `--json` outputs, and Codex support for `rei kit`. Help topics (`custom-properties.md`, `intention-filtering.md`, `time.md`) were unchanged — all guides remain 1:1.
+
+**New command pages:**
+- `commands/kiroku.mdx` — New `rei kiroku` operator command (`subscriptions status` with `--format` and `--remote-url`). Registered in `commands/meta.json` after `worker`.
+
+**New top-level page:**
+- `observability.mdx` — OpenTelemetry tracing guide (env vars, span families, metrics via collector spanmetrics, log correlation, local Jaeger/collector setup, troubleshooting). Registered in root `meta.json` under Setup, after `configuration`.
+
+**Rewritten pages:**
+- `commands/subscription.mdx` — `rei subscription` removed; page is now a migration guide mapping old commands to `rei worker kiroku` / `rei worker all`, plus an "Inspecting subscriptions" section pointing at `rei kiroku subscriptions status`.
+
+**Updated command pages:**
+- `commands/worker.mdx` — New `kiroku` subcommand (keiro reactive layer + kiroku-metrics HTTP server, `REI_KIROKU_METRICS_PORT`, default 9091); Overview/Usage/How-It-Works rewritten to the kiroku + queue-worker model.
+- `commands/workspace.mdx` — "Git Commit Subscription" → "Git Commit Worker"; reactor-driven via `rei worker kiroku` + `rei worker all`.
+- `commands/agent-schedule.mdx` — "Required subscriptions" → "Required workers" (`rei worker kiroku` + `rei worker all`); event reactor now hosted by the kiroku worker.
+- `commands/category.mdx` — New `bind-property` / `unbind-property` subcommands (entity-type-aware, set-only-if-missing, kept on category clear/change, nearest-ancestor-wins; bindings shown under "Property Bindings" in `category show`).
+- `commands/collection.mdx` — `list --json` (`{collections, warnings}` envelope).
+- `commands/doc.mdx` — `list --json` (`{docs, warnings}`; no FZF without an explicit anchor).
+- `commands/note.mdx` — `backlinks`/`outgoing-links`/`embeds` gain `--json`; subscription terminology updated to `rei worker kiroku` reactors / inline read models.
+- `commands/kit.mdx` — Dual-provider (Claude Code + Codex) install layouts; `status` shows provider coverage; uninstall/update provider-copy behavior; "Scopes and provider layouts".
+- `commands/agent.mdx` — update-note downstream work via kiroku reactors; ask-note calls the configured LLM (default `claude -p`).
+- `commands/configuration.mdx` (`configuration.mdx`) — Database now PostgreSQL via kiroku/keiro; "Optional: AI Agent" rewritten to the provider/transport/model model with the YAML `llm:` section and legacy `REI_LLM_BACKEND` compatibility; new "Optional: Observability" section.
+- `commands/agent-memory.mdx`, `commands/day.mdx`, `commands/intention.mdx`, `commands/playbook.mdx`, `commands/reminder.mdx` — MessageDB/subscription terminology aligned to the kiroku/inline-projection/reactor model.
+- `commands/index.mdx` — Dropped the `subscription` row, added a `kiroku` row, updated `worker` description.
+
+**Updated guides / concepts:**
+- `guides/workflow-auto-setup.mdx` — `rei subscription run` → `rei worker kiroku`; troubleshooting psql query updated to the new streams/stream_events/events schema.
+- `concepts/ai-coaching.mdx` — LLM backend section updated to the provider-neutral model; MessageDB → kiroku/keiro.
+- `installation.mdx` — Event storage described as PostgreSQL via kiroku/keiro.
+
+**Updated changelog:**
+- `changelog.mdx` — Added 2026-06-14 user-facing entry.
+
+**Intentionally left unchanged:** MessageDB/subscription mentions inside example narratives (`quickstart.mdx`'s fictional API project, `concepts/ai-coaching.mdx`'s sample guidance) and conceptual "subscription" wording in help-topic-derived guides whose source help topics did not change (`state-machines.mdx`, `agent-schedules.mdx`, `agent-memory-filesystem.mdx`).
 
 ### 2026-05-13
 

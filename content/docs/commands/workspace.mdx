@@ -8,7 +8,7 @@ Workspace management commands for git integration and repository status.
 
 ## Overview
 
-Rei can integrate with Git to automatically commit workspace files (notes, reflections, documents, guidance) with meaningful commit messages derived from entity metadata. This requires running the `git-commit` subscription worker.
+Rei can integrate with Git to automatically commit workspace files (notes, reflections, documents, guidance) with meaningful commit messages derived from entity metadata. This requires running the kiroku worker and the workspace git-sync queue worker.
 
 ## Commands
 
@@ -70,25 +70,22 @@ Git Status:
 
 Returns an error if the workspace is not a Git repository.
 
-## Git Commit Subscription
+## Git Commit Worker
 
-The automatic git commit feature works via a subscription worker that listens to workspace file events.
+The automatic git commit feature is driven by the keiro reactive layer. The reactor listens to workspace file events in the kiroku event store and enqueues PGMQ work for the queue worker to commit.
 
 ### Enabling Git Commits
 
-Run the `git-commit` subscription worker:
+Run the event-stream worker and the queue workers:
 
 ```bash
-# Run just the git-commit worker
-rei subscription run git-commit
-
-# Or run all subscription workers (recommended)
-rei subscription run all
+rei worker kiroku
+rei worker all
 ```
 
 ### How It Works
 
-When workspace files are created, updated, or deleted, the subscription:
+When workspace files are created, updated, or deleted, the reactor:
 
 1. Checks if the workspace is a Git repository (cached)
 2. Queries entity metadata from read models
@@ -201,7 +198,7 @@ workspace:
 
 ## Notes
 
-- Git commits happen in the background via subscription (non-blocking)
+- Git commits happen in the background via `rei worker kiroku` reactors (non-blocking)
 - Only local commits are made; pushing to remote is manual
 - Non-git workspaces work normally (git features silently disabled)
-- Subscription errors don't block other note processing
+- Reactor errors don't block other note processing

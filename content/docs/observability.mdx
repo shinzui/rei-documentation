@@ -1,0 +1,161 @@
+---
+title: Observability
+description: Trace Rei from the CLI through the database and worker surfaces with OpenTelemetry
+icon: Activity
+---
+
+Rei emits OpenTelemetry traces for CLI commands, store writes, reactor work, database statements, and outbound HTTP calls. Point Rei at an OTLP-compatible collector and you can follow one user action from the CLI through the database and worker surfaces in a single trace.
+
+<Callout type="info">
+The OpenTelemetry SDK is disabled by default. Telemetry turns on automatically when you point Rei at an OTLP collector (`OTEL_EXPORTER_OTLP_ENDPOINT`, `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, or a non-empty `OTEL_TRACES_EXPORTER`), or explicitly via `REI_TELEMETRY_ENABLED=true`. See [Configuration](/docs/configuration#optional-observability) for the env-var summary.
+</Callout>
+
+## Environment Variables
+
+Rei parses these variables directly:
+
+| Variable | Default | Example |
+|---|---|---|
+| `OTEL_SERVICE_NAME` | `rei` | `OTEL_SERVICE_NAME=rei-dev` |
+| `REI_DEPLOYMENT_ENVIRONMENT` | unset | `REI_DEPLOYMENT_ENVIRONMENT=local` |
+| `OTEL_SDK_DISABLED` | `false` | `OTEL_SDK_DISABLED=true` |
+
+The Haskell OpenTelemetry SDK also reads the standard OTLP exporter variables when Rei initializes its tracer provider:
+
+| Variable | Default | Example |
+|---|---|---|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | SDK default | `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | SDK default | `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf` |
+| `OTEL_EXPORTER_OTLP_HEADERS` | unset | `OTEL_EXPORTER_OTLP_HEADERS=authorization=Bearer%20token` |
+| `OTEL_RESOURCE_ATTRIBUTES` | unset | `OTEL_RESOURCE_ATTRIBUTES=service.namespace=rei` |
+| `OTEL_TRACES_SAMPLER` | SDK default | `OTEL_TRACES_SAMPLER=always_on` |
+
+## Spans
+
+Rei currently emits these span families:
+
+| Span | Attributes |
+|---|---|
+| `rei.cli.<command>` | `rei.cli.command`, `rei.command.name` |
+| `rei.command.<aggregate>.<verb>` | `rei.bounded_context`, `rei.aggregate.id`, `rei.command.name`, `rei.command.outcome`, `rei.command.rejection_reason` |
+| `rei.router.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.router.name`, `rei.event.id`, `rei.event.position`, `rei.reactor.ack`, `rei.reactor.outcome` |
+| `rei.process_manager.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.process_manager.name`, `rei.event.id`, `rei.event.position`, `rei.reactor.ack`, `rei.reactor.outcome` |
+| `rei.async_projection.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.async_projection.name`, `rei.event.id`, `rei.event.position`, `rei.reactor.ack`, `rei.reactor.outcome` |
+| `rei.side_effect.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.side_effect.kind`, `rei.event.id`, `rei.event.position`, `rei.reactor.ack`, `rei.reactor.outcome` |
+| `rei.timer.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.timer.name`, `rei.timer.scheduled_for`, `rei.reactor.ack`, `rei.reactor.outcome` |
+| Database statements | `db.system.name=postgresql`, `db.operation.name`, `db.collection.name`, `db.query.text` |
+| HTTP client requests | `http.request.method`, `url.full`, `server.address`, `server.port`, `http.response.status_code` |
+
+## Metrics
+
+The pinned `hs-opentelemetry-api` version Rei currently builds against does not ship the metrics modules that newer upstream docs describe. Rei therefore does not emit native OTel metric instruments yet.
+
+Use the OTel Collector `spanmetrics` connector when you need dashboards today. It can derive request counts and duration histograms from Rei's span stream. Useful derived series are:
+
+| Derived Metric | Source Spans |
+|---|---|
+| `rei.commands.total` | `rei.cli.<command>` and `rei.command.<aggregate>.<verb>` |
+| `rei.command.duration` | `rei.command.<aggregate>.<verb>` |
+| `rei.reactor.events.total` | `rei.router.<name>`, `rei.process_manager.<name>`, `rei.async_projection.<name>`, `rei.side_effect.<name>` |
+| `rei.timer.fires` | `rei.timer.<name>` |
+| `rei.http.client.duration` | HTTP client spans |
+
+## Log Correlation
+
+Operational log lines written through Rei's telemetry logger are prefixed like this:
+
+```text
+[trace=4bf92f3577b34da6a3ce929d0e0e4736 span=00f067aa0ba902b7] [ERROR] [worker] async projection note_link_extraction failed: ...
+```
+
+Copy the value after `trace=` into your trace backend's search UI. When no span is active, Rei writes `[trace=- span=-]` so the log format stays stable.
+
+## Run Jaeger Locally
+
+Prefer the local Jaeger executable when it is installed:
+
+```bash
+command -v jaeger
+jaeger --version
+jaeger --set receivers.otlp.protocols.http.endpoint=0.0.0.0:4318 \
+  --set receivers.otlp.protocols.grpc.endpoint=0.0.0.0:4317
+```
+
+For Jaeger v2, a successful start includes a line like:
+
+```text
+No '--config' flags detected, using default All-in-One configuration with memory storage
+```
+
+Then run Rei in another shell:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 cabal run rei -- intention list
+```
+
+Open `http://localhost:16686`, choose `service.name=rei`, and search for recent traces.
+
+## Docker Fallback
+
+Use Docker only when `command -v jaeger` fails:
+
+```bash
+docker run --rm -p 16686:16686 -p 4317:4317 -p 4318:4318 jaegertracing/jaeger:2.15.0
+```
+
+## OTel Collector
+
+Save this as `otel-collector-config.yaml`:
+
+```yaml title="otel-collector-config.yaml"
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug]
+```
+
+Run it with:
+
+```bash
+docker run --rm -p 4318:4318 -p 4317:4317 \
+  -v "$(pwd)/otel-collector-config.yaml:/etc/otelcol/config.yaml" \
+  otel/opentelemetry-collector-contrib:latest
+```
+
+## Verification
+
+Run the in-memory trace harness:
+
+```bash
+cabal test rei-core --test-options='--pattern "Rei.Telemetry.EndToEnd"'
+```
+
+Run the log-correlation test:
+
+```bash
+cabal test rei-core --test-options='--pattern "Rei.Telemetry.Log"'
+```
+
+Against a real collector, set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and run a CLI command such as `rei intention list`; the collector debug log should include spans with `service.name=rei`.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| No spans appear | Confirm `OTEL_SDK_DISABLED` is not `true` and `OTEL_EXPORTER_OTLP_ENDPOINT` points at the collector's OTLP HTTP endpoint. |
+| Jaeger runs but service `rei` is missing | Run a Rei command after Jaeger starts, then search a recent time window. |
+| Log prefix is `[trace=- span=-]` | The line was emitted outside an active span, commonly during boot or shutdown. |
+| Spans appear but no metrics appear | Use collector-side spanmetrics; native metrics are deferred until Rei pins an OpenTelemetry API version with metrics support. |
