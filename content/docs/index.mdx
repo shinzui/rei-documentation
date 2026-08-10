@@ -35,7 +35,7 @@ Most productivity tools treat you as a task-completion machine. Rei starts from 
 
 ## The Deliberate Foundation
 
-Agents amplify whatever system they're built on. Rei's foundation is *intentionality*: nine composable primitives designed for meaning, not throughput.
+Agents amplify whatever system they're built on. Rei's foundation is *intentionality*: ten composable primitives designed for meaning, not throughput.
 
 | | Primitive | What it captures |
 |---|-----------|-----------------|
@@ -48,10 +48,13 @@ Agents amplify whatever system they're built on. Rei's foundation is *intentiona
 | 💭 | **Reflection** | Deliberate interpretation of past work |
 | 🔍 | **Focus** | A category of activity for daily time allocation |
 | 📅 | **Cycle** | A bounded time period for tracking focus |
+| #️⃣ | **Topic** | A durable subject work is about, and the scope it belongs to |
 
 Every event, human and agent alike, is appended to an immutable log. State is always derived, never mutated. This means complete history, no data loss, and the ability to understand exactly what happened and why.
 
-On top of the primitives, **custom properties** let you attach typed metadata (paths, URLs, quantities, state machines) to any entity. These become shared context between you and your agents. A `project_path` tells the agent where your code lives. A `workflow` state machine with enforced transitions, WIP limits, and checklist-gated gates lets you manage complex work with full discipline. Properties make implicit knowledge explicit and queryable, for you and your agents alike.
+On top of the primitives, **custom properties** let you attach typed metadata (dates, URLs, quantities, state machines) to any entity. These become shared context between you and your agents. A `deploy-target` tells the agent which environment is in play. A `workflow` state machine with enforced transitions, WIP limits, and checklist-gated gates lets you manage complex work with full discipline. Properties make implicit knowledge explicit and queryable, for you and your agents alike.
+
+Where work *belongs* is a separate question, answered by **topics**: associate one root intention with a project and its whole tree is in scope, derived at query time rather than repeated on every child.
 
 ## Five Principles
 

@@ -94,6 +94,45 @@ documented commands which do not exist. Synced on top of the above.
 
 **Note:** the site's *command* pages were already ahead of the help topics on `collection export-notes`, `cycle reschedule`, `view edit`, the `today` flags, and the intention list filters — the drift was concentrated in the guides. `predeploy` appears in the source command table with no documentation page, so it is not represented here.
 
+#### Third pass — concept-level coverage for topics and projects
+
+A coverage audit against the installed binary (`rei 6.0.0.0`) confirmed the reference
+surface was complete: all 23 `rei topic` subcommands, all 9 `rei project` subcommands
+(including the three under `scope`), all 3 `rei ontology` subcommands, and every flag in
+their `--help` output appear on the command pages. The gap was conceptual — topics and
+projects existed nowhere outside the reference section, and four pages still taught the
+pattern project scope replaces.
+
+**New page (site-original, no source equivalent):**
+- `concepts/topics.mdx` — Subject versus operational scope and why one primitive covers
+  both; a project as a topic classified `instance-of project`, and why a separate project
+  aggregate was rejected; effective scope along ancestor/owner/anchor with its three
+  load-bearing properties (nothing stored, additive, only `scoped-to` derives); what
+  replaced the path property and the three ways it broke; external references and
+  unverified-by-default; storage versus assertion; the deliberate ontology ceiling; and
+  what scope gives an agent. Registered in `concepts/meta.json` after `intentions`.
+
+**Primitive count corrected to ten:**
+- `index.mdx` — Topic added to the primitives table; "nine composable primitives" → "ten".
+- `concepts/index.mdx` — New "Subject & Scope" section; "The Nine Primitives" → "The Ten
+  Primitives"; a Topics & Projects card added to the concept cards.
+
+**`project_path` guidance replaced** — a path-valued property used as project identity is
+the shape of the deprecated `local-repo`, deprecated because a path is a locator not a
+relationship, cannot be queried in reverse, and replaces rather than accumulates:
+- `index.mdx`, `vision.mdx`, `concepts/index.mdx`, `concepts/custom-properties.mdx` (two
+  passages plus the `path` type example) — reworked onto examples that are not superseded,
+  each followed by a pointer that membership is scope, not a property.
+
+**One stale enumeration found in passing:**
+- `concepts/custom-properties.mdx` — Its value-type table claimed "12 value types" and
+  listed 12; there are **19**. Added the seven missing (`label-set`, `tag-set`,
+  `path-list`, `note`, `topic`, `git-ref`, `uuid`) with a note on when a topic-valued
+  property is the wrong tool.
+
+**Not done:** `quickstart.mdx` still narrates a software project using intentions alone and
+never reaches for `rei project`. Reworking it is a larger editorial change than this sync.
+
 ### 2026-06-14
 
 **Reviewed commits:** `cf75d3a3` through `19a0d271`

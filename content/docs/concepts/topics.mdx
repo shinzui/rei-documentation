@@ -1,0 +1,124 @@
+---
+title: Topics & Projects
+description: Durable subjects and operational scopes — what work is about, and what it belongs to
+icon: Hash
+---
+
+Intentions capture *what you commit to*. Topics capture *what that commitment is about, and what larger effort it belongs to.*
+
+A topic is a durable subject with a stable key: `rdf`, `agent-memory`, `kitchen-renovation`, `haskell-packaging`. Before topics existed, holding a subject meant inventing a placeholder — a fake intention nobody intended to complete, or a note that existed only to be a parent. Topics remove that compromise. They are first-class, they own knowledge directly, and they never pretend to be work.
+
+## Two roles, one primitive
+
+A topic does two distinct jobs, and keeping them straight is the whole idea:
+
+| Role | Relation | Question it answers |
+|------|----------|---------------------|
+| **Subject** | `about` | What is this note, doc, or link *about*? |
+| **Operational scope** | `scoped-to` | What effort does this work *belong to*? |
+| **Classification** | `instance-of` | What kind of topic is this? |
+
+The same primitive covers both because they are the same shape of fact: a durable named thing that other things point at. What differs is what the pointing means — and rei keeps the three meanings separate rather than collapsing them into a generic "tag".
+
+**A project is a topic classified `instance-of project`.** There is no project aggregate, no `project_...` ID, no projects table. [`rei project`](/docs/commands/project) is a purpose-built facade over the topic commands — review state, work rollups, an attention queue — and everything you can do with `rei topic` still applies to a project.
+
+That is a deliberate design choice, not an implementation shortcut. A separate project entity would have needed its own attachments, its own graph edges, its own property support, and its own lifecycle — a second, parallel copy of what topics already do, guaranteed to drift. One primitive, one set of rules.
+
+It also means "project" is not restricted to software. A kitchen renovation, a research programme, a book, and a conference talk are all projects to rei. Only the software kind gains anything from [Mori federation](/docs/commands/project#sync).
+
+## Scope is inherited, not repeated
+
+The reason topics matter more than tagging is **effective scope**.
+
+You associate *one* root intention with a project. Everything structurally beneath it — child intentions, their actions, outcomes, blockers, and the notes, docs, links, and tasks anchored to any of them — is in that project's scope, without a second edge being written.
+
+Scope flows along three structural relationships:
+
+| Path | What inherits |
+|------|---------------|
+| **ancestor** | A child intention inherits from its parent, and above |
+| **owner** | An action, outcome, blocker, or reflection inherits from the intention that owns it |
+| **anchor** | A note, doc, link, or task inherits from whatever it is anchored to |
+
+Three properties of this are worth internalizing:
+
+**Nothing is stored.** Effective scope is computed at query time. Reparent an intention and the answer changes on the next read — there are no derived rows to rebuild and none to go stale. The cost is a slightly more expensive query; the benefit is that the graph cannot lie to you.
+
+**Scope is additive.** A child that carries its own project still belongs to its ancestors' projects too. Membership accumulates rather than overriding, so a shared component can legitimately belong to two efforts. This is the single most important difference from the path-property convention it replaced, where a nearer value silently shadowed the one above it.
+
+**Only `scoped-to` derives.** A note being *about* RDF says nothing about what its children are about, so asking for effective `about` is refused rather than answered with a misleading empty list. Relationships that organize without owning — a habit supporting an intention, a collection grouping notes — do not pass scope on either, though each can carry its own direct edge.
+
+Because the derivation is explained rather than assumed, you can always ask *why* something is in scope:
+
+```bash
+rei topic associations action_01kv... --effective --explain
+```
+
+## What replaced the path property
+
+Before scope existed, "which project is this intention part of?" was answered by a path-valued custom property on a root intention that descendants inherited — the `local-repo` convention. It worked until it didn't, and the three ways it broke are what the current model is shaped around:
+
+- **A path is a locator, not a relationship.** It says where a checkout sits, not what an intention is part of. Move the checkout and the answer becomes wrong.
+- **It could not be queried in reverse.** "What belongs to this project?" meant scanning every value. `rei project scope list` answers it directly.
+- **It replaced rather than accumulated.** A descendant's own value shadowed its ancestor's, so an intention could belong to exactly one repository.
+
+`local-repo` is [deprecated](/docs/commands/custom-property#local-repo-deprecated); existing values remain readable, and [`rei project migrate-local-repos`](/docs/commands/project#migrate-local-repos) converts them.
+
+Custom properties are still the right tool for typed metadata *about* an entity — a deadline, a deploy target, a state machine. They are the wrong tool for membership in something.
+
+## Identity that survives renaming
+
+A topic can carry **external references**: `mori://shinzui/rei`, `doi://10.1000/example`, `jira://TEAM/PROJECT-42`. A reference asserts "this topic is the same subject as that external thing."
+
+One *active* reference belongs to at most one topic. That constraint is what stops two topics being created for the same real-world project — the second attempt is refused and names the topic that already owns it, rather than silently forking your history.
+
+References start **unverified**, and no flag changes that. Verification means an integration actually resolved it; a claim nobody checked would be worth less than an honest `unverified`. For software projects, `rei project sync` resolves the identity from Mori and marks it verified — and rei stores *only the reference*. Paths, packages, and dependencies stay Mori's, fetched on request rather than copied into rei where they would rot.
+
+## Storage versus assertion
+
+One distinction trips people up, so rei keeps it explicit rather than convenient.
+
+**Filing a note under a topic is storage.** `rei note new --topic rdf` says where the note lives. It appears in `rei topic attachments rdf`.
+
+**An `about` edge is a semantic assertion.** `note_... -[about]-> topic_...` says what the note means.
+
+Rei does **not** silently create the second from the first. If it did, every filing decision would become a claim about meaning, and a later graph projection would double-count the same fact from two sources. You can have either, or both, and the JSON output keeps them in separate keys (`attachments` versus `graphEdges`) so a consumer never has to guess which it is looking at.
+
+## Lightweight ontology, deliberately
+
+Topics connect to each other through ordinary graph edges with predicates: `broader-than`, `narrower-than`, `related-to`. Predicates can carry semantics — transitive, symmetric, an inverse, domain and range constraints — and those semantics power two things: validation (`rei ontology validate`) and opt-in query-time inference (`rei topic related --include-inferred`).
+
+The ceiling here is intentional. There is no OWL reasoning, no SPARQL, and no materialized inference table. Inferred facts are computed when you ask and **never written back as edges**, so the stored graph stays exactly what someone asserted. You can always tell an assertion from a derivation, in both the human output and the JSON `provenance.kind`.
+
+## In practice
+
+```bash
+# Once per installation: seed the standard predicates and the system project topic
+rei ontology seed-system
+
+# A subject that owns knowledge
+rei topic create rdf "RDF" --description "Resource Description Framework"
+rei note new --topic rdf
+rei link add --topic rdf https://www.w3.org/TR/rdf11-concepts/ --title "RDF 1.1 Concepts"
+
+# An operational scope, with work in it
+rei project create kitchen-renovation --label "Kitchen renovation"
+rei project scope add kitchen-renovation intention_01kv...
+
+# What belongs here, and why
+rei project scope list kitchen-renovation
+rei project review --due
+```
+
+## Why this matters for agents
+
+Scope is what lets an agent answer "what is the state of this effort?" in one question instead of reconstructing it from a naming convention. `rei project show` returns the work rollup, the review state, and the knowledge count for a whole tree — derived from one association a human made, with provenance for every row.
+
+It also gives delegated work a boundary that means something. An agent scoped to a project can enumerate exactly what is in it, and the answer stays correct when the tree is reorganized underneath it.
+
+## Related
+
+- [Topics guide](/docs/guides/topics) — associations, effective scope, external references, properties
+- [Projects guide](/docs/guides/projects) — review cadence, the attention queue, Mori sync
+- [`rei topic`](/docs/commands/topic) / [`rei project`](/docs/commands/project) / [`rei ontology`](/docs/commands/ontology) — command reference
+- [Custom Properties](/docs/concepts/custom-properties) — typed metadata, including topic-valued properties

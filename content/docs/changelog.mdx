@@ -40,6 +40,20 @@ A project is a topic classified `instance-of project` — no separate record, no
 
 `rei-api` is a separate long-running process serving the same event-sourced domain over HTTP: paginated intention and category reads, intention write commands, health probes, Swagger UI at `/docs`, and a derived OpenAPI 3.1 document. Bearer tokens resolve to the actor stamped on events. See [HTTP API](/docs/api).
 
+### New Concept: Topics & Projects
+
+Topics are now covered at the concept level, not just the reference level:
+[Topics & Projects](/docs/concepts/topics) explains the two roles a topic plays (subject
+versus operational scope), why a project is a classified topic rather than its own
+aggregate, how effective scope is derived at query time along ancestor/owner/anchor paths,
+the storage-versus-assertion distinction, and where the lightweight ontology deliberately
+stops. **Topic** joins the primitives table, which now lists ten.
+
+The pages that taught a path-valued `project_path` property as the way to tell agents
+where a project lives have been reworked — that is the shape of the deprecated
+`local-repo` convention, and project scope replaces it. Custom properties remain the right
+tool for typed metadata *about* an entity; membership in a larger effort is scope.
+
 ### New Guides: Projects and Reminders
 
 `rei help` gained two topics for the command families big enough to need a guide of their own, and both now have pages here:

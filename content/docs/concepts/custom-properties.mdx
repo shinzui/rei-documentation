@@ -6,7 +6,7 @@ icon: Settings
 
 Custom properties are how you and your agents share structured context. They're typed metadata fields you define on entities, and because agents see them, they become a communication channel between human intent and agent understanding.
 
-When you set `project_path` on an intention, the agent knows where to look. When you define a `workflow` state machine, the agent understands where each intention stands. When you track `swimming_distance` on a habit, the agent can reason about trends. **Properties turn implicit context into explicit, queryable, agent-readable facts.**
+When you set a `deploy-target` on an intention, the agent knows which environment is in play. When you define a `workflow` state machine, the agent understands where each intention stands. When you track `swimming_distance` on a habit, the agent can reason about trends. **Properties turn implicit context into explicit, queryable, agent-readable facts.**
 
 ## Why Custom Properties?
 
@@ -14,7 +14,7 @@ When you set `project_path` on an intention, the agent knows where to look. When
 
 Properties are the bridge between your knowledge and agent capability. Agents see every property value when coaching, assisting, or executing delegated work.
 
-**Example:** An intention has a `project_path` property pointing to where the related project lives on the filesystem. When you delegate research, the agent knows exactly where to look. When you ask for coaching, the agent can reference actual code and files.
+**Example:** An intention has a `spec` property referencing the note that defines the work. When you delegate research, the agent reads the actual specification. When you ask for coaching, the agent can reference what you committed to, not just the title.
 
 **Example:** A `repo_url` property on an intention means the agent can look at PRs, issues, and recent commits when reviewing your progress.
 
@@ -61,7 +61,7 @@ Both the entity type AND category must match for a property to be available.
 
 ## Value Types
 
-Custom properties support 12 value types:
+Custom properties support 19 value types:
 
 | Type | Description | Example |
 |------|-------------|---------|
@@ -70,13 +70,22 @@ Custom properties support 12 value types:
 | `text` | Free text with length limits | `description="Some notes"` |
 | `bool` | Boolean true/false | `is_billable=true` |
 | `enum` | Predefined set of values | `status={todo,doing,done}` |
+| `label-set` | Multi-select from predeclared labels | `areas={backend,security}` |
+| `tag-set` | Free-form multi-value tags | `topics={haskell,event-sourcing}` |
 | `duration` | Time durations | `time_spent=2h30m` |
 | `quantity` | Numeric with units | `distance=5km` |
 | `state-machine` | States with transitions | See below |
 | `date` | Calendar dates | `deadline=2026-02-15` |
 | `datetime` | Timestamps | `scheduled_at=2026-01-29T10:00` |
-| `path` | Filesystem paths | `project_path=/Users/me/project` |
+| `path` | Filesystem paths | `spec_path=/docs/spec.md` |
+| `path-list` | Unique, sorted set of paths | `sources={src/a.hs,src/b.hs}` |
 | `url` | URLs with validation | `repo_url=https://github.com/...` |
+| `note` | Reference to a note entity | `spec=note_01h455...` |
+| `topic` | Reference to one topic, stored as its canonical ID | `primary-project=rei` |
+| `git-ref` | Commit SHA or SHA range | `deployed-commit=a1b2c3d` |
+| `uuid` | UUID, optionally version-constrained | `ticket=550e8400-...` |
+
+A `topic`-valued property is a named, single-valued field that happens to point at a topic. It is not the same as [operational scope](/docs/concepts/topics): reach for a topic association when you need an open many-to-many relationship, reverse traversal, or inherited membership.
 
 ### Quantity Type
 

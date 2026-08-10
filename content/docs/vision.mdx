@@ -75,12 +75,14 @@ When agents operate within this system, they inherit its values. A coaching nudg
 
 One of the most powerful aspects of human-agent collaboration is shared structured context. Custom properties let you attach typed metadata to any entity, and because agents see every property, they become a communication channel:
 
-- **Paths and URLs** tell agents where to look. A `project_path` on an intention means the agent can read actual source code, not guess.
+- **Paths and URLs** tell agents where to look. A `spec-url` on an intention means the agent reads the actual document, not a summary of it.
 - **State machines** give agents workflow awareness. They know what's in backlog, what's in review, what's blocked.
 - **Quantities** enable trend analysis. Agents notice when your swimming distance is increasing and can suggest the next goal.
 - **Enums and booleans** create structured flags. A `deploy-ready=true` gate on a workflow state means work can't advance until prerequisites are met.
 
 State machines deserve special attention: they bring full workflow discipline with enforced transitions, WIP limits, checklist-gated gates, and lifecycle automation (auto-complete intentions when they reach a terminal state). This isn't just tracking. It's a workflow engine that both you and your agents understand.
+
+Properties describe an entity. What an entity *belongs to* is a different kind of fact, and rei models it separately: a **topic** is a durable subject, and a topic classified `instance-of project` is a project. Associate one root intention with a project and its whole tree — children, actions, outcomes, notes, tasks — is in scope, derived when asked rather than copied onto every row. An agent can then enumerate exactly what an effort contains, and the answer stays right when you reorganize underneath it. See [Topics & Projects](/docs/concepts/topics).
 
 ## Agent Memory
 

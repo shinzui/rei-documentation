@@ -8,9 +8,9 @@ Rei is built on a simple conviction: **the right foundation makes everything, in
 
 Agents amplify whatever system they're built on. If the system is a task list, agents become task-completion machines. If the system is built around intention, evidence, and reflection, agents become thinking partners that understand *why* you're doing what you're doing.
 
-## The Nine Primitives
+## The Ten Primitives
 
-Everything in rei is built from nine composable primitives. These represent the minimum set of concepts needed to capture intentional action over time.
+Everything in rei is built from ten composable primitives. These represent the minimum set of concepts needed to capture intentional action over time.
 
 ### Intention & Execution
 
@@ -36,6 +36,12 @@ Everything in rei is built from nine composable primitives. These represent the 
 | **Focus** | A category of activity for daily time allocation. See where your time goes. |
 | **Cycle** | A bounded time period for tracking focus selections. Rhythm, not rigidity. |
 
+### Subject & Scope
+
+| Primitive | What it captures |
+|-----------|-----------------|
+| **Topic** | A durable subject work is *about*, and the operational scope it *belongs to*. A topic classified `instance-of project` is a project. |
+
 ## The Agent Layer
 
 On top of these primitives, rei adds a full agent system that operates within the same event-sourced model:
@@ -59,7 +65,9 @@ Custom properties and state machines create a communication layer between you an
 | **State Machines** | Full workflow discipline with enforced transitions, WIP limits, checklist-gated gates, and lifecycle automation |
 | **Category Scoping** | Properties that vary by domain. Your work workflow differs from your personal workflow. |
 
-When you set a `project_path` on an intention, the agent knows where to look. When an intention enters a `review` state in your workflow, the agent understands what phase it's in. Properties turn implicit context into explicit, queryable, agent-readable facts.
+When an intention enters a `review` state in your workflow, the agent understands what phase it's in. When a habit tracks `swimming_distance` with units, the agent can reason about trends. Properties turn implicit context into explicit, queryable, agent-readable facts.
+
+Properties describe an entity; they do not say what it *belongs to*. Membership in a larger effort is [operational scope](/docs/concepts/topics), which accumulates and can be queried in reverse.
 
 The primitives provide the *meaning*. The agents provide the *capacity*. Custom properties provide the *shared context*. The event log provides the *truth*.
 
@@ -87,6 +95,7 @@ Your files are yours; nothing is hidden. The workspace is a folder of markdown f
 
 <Cards>
   <Card title="Intentions" href="/docs/concepts/intentions" description="The core primitive: commitments to meaningful change" />
+  <Card title="Topics & Projects" href="/docs/concepts/topics" description="Durable subjects, and the operational scope work belongs to" />
   <Card title="AI Agents" href="/docs/concepts/ai-coaching" description="Coaching, assistance, delegation, and autonomous work" />
   <Card title="Habits" href="/docs/concepts/habits" description="Building consistent practice with lifecycle management" />
   <Card title="Reflections" href="/docs/concepts/reflections" description="Deliberate interpretation that turns experience into wisdom" />
