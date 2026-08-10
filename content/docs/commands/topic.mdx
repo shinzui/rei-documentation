@@ -1,0 +1,443 @@
+---
+title: rei topic
+description: Create first-class knowledge topics and relate any entity to them
+icon: Hash
+---
+
+Create and manage first-class knowledge topics, and relate any Rei entity to them. Topics are durable subject nodes such as `rdf`, `agent-memory`, or `haskell-packaging` that can own notes and links without using a fake intention or note.
+
+A topic serves two roles. As a *subject*, it is what a note or link is about. As an *operational scope*, it is the project, programme, or effort that work belongs to. The `associate` family covers both: `--relation about` records subject matter, `--relation scoped-to` records membership, and `--relation instance-of` classifies one topic as an instance of another.
+
+A topic classified `instance-of project` is a **project**, and [`rei project`](/docs/commands/project) is a purpose-built facade over exactly these commands for that case: review state, work rollups, and an attention queue. Everything below still applies to a project topic — the two families are two views of the same rows.
+
+## Subcommands
+
+### create
+
+```bash
+rei topic create KEY LABEL [--description TEXT]
+```
+
+Creates an active topic and prints its `topic_...` ID.
+
+```bash
+rei topic create rdf "RDF" --description "Resource Description Framework"
+```
+
+### list
+
+```bash
+rei topic list [--include-archived] [--with-properties] [--json]
+```
+
+Lists active topics by default. Use `--include-archived` to include archived topics, and `--with-properties` to show each topic's assigned custom property values indented beneath it.
+
+### show
+
+```bash
+rei topic show TOPIC [--json]
+```
+
+`TOPIC` may be either a `topic_...` ID or a topic key.
+
+Shows the topic's identity plus everything Rei owns about it: its **types** (the topics it is an `instance-of`, which is what makes a topic a project), its **custom properties**, and its **external references**. Nothing here contacts an external system; the references are the canonical identities Rei stores, not anything fetched from them.
+
+The JSON keeps the topic's own fields at the top level and adds `types`, `properties`, and `refs` beside them, so existing consumers keep working.
+
+### update
+
+```bash
+rei topic update TOPIC [--label LABEL] [--description TEXT] [--clear-description]
+```
+
+Updates topic metadata. Use either `--description` or `--clear-description`, not both.
+
+### archive
+
+```bash
+rei topic archive TOPIC
+```
+
+Archives a topic. Existing knowledge attachments remain stored.
+
+### restore
+
+```bash
+rei topic restore TOPIC
+```
+
+Restores an archived topic.
+
+### associate
+
+```bash
+rei topic associate TOPIC ENTITY [--entity-type TYPE] [--relation RELATION] [--json]
+```
+
+Relates any supported entity to a topic. `RELATION` is one of:
+
+| Relation | Meaning |
+|---|---|
+| `scoped-to` (default) | The entity belongs to this operational scope — the project, programme, or effort it is part of. |
+| `about` | The entity is *about* this subject. |
+| `instance-of` | The source topic is an instance of the target topic. Topic-to-topic only. |
+
+```bash
+rei topic associate my-project intention_01kv... --relation scoped-to
+Associated intention:intention_01kv... scoped-to my-project (edge_01kv...)
+```
+
+Associating is idempotent. Running the same command again changes nothing, prints the same edge ID, and exits zero:
+
+```bash
+rei topic associate my-project intention_01kv... --relation scoped-to
+Already associated intention:intention_01kv... scoped-to my-project (edge_01kv...)
+```
+
+Both endpoints must be active. A new association cannot be created against an archived topic or a withdrawn entity, though associations made earlier stay readable.
+
+### dissociate
+
+```bash
+rei topic dissociate TOPIC ENTITY [--entity-type TYPE] [--relation RELATION] [--json]
+```
+
+Removes one association. Removing an association that is not there succeeds and says so, so a cleanup script can run twice:
+
+```bash
+rei topic dissociate my-project intention_01kv...
+Dissociated intention:intention_01kv... scoped-to my-project (edge_01kv...)
+
+rei topic dissociate my-project intention_01kv...
+Not associated: intention:intention_01kv... scoped-to my-project
+```
+
+Unlike `associate`, this works on archived topics and withdrawn entities: withdrawing scope must stay possible.
+
+### associations
+
+```bash
+rei topic associations ENTITY [--entity-type TYPE] [--relation RELATION] [--include-inactive] [--effective] [--explain] [--json]
+```
+
+Lists the topics an entity is associated with.
+
+```bash
+rei topic associations intention_01kv...
+Topics for intention intention_01kv... — Ship topic associations:
+  scoped-to   my-project — My Project (topic_01kv...)
+  about       rdf — RDF (topic_01kv...)
+```
+
+Without `--relation`, all three relations are shown. Archived topics are hidden unless you pass `--include-inactive`, which marks them:
+
+```bash
+rei topic associations intention_01kv... --include-inactive
+Topics for intention intention_01kv... — Ship topic associations:
+  scoped-to   old-effort — Old Effort (topic_01kv...) [archived topic]
+```
+
+### entities
+
+```bash
+rei topic entities TOPIC [--entity-type TYPE] [--relation RELATION] [--include-inactive] [--effective] [--explain] [--json]
+```
+
+The same facts read from the other end: which entities are associated with a topic.
+
+```bash
+rei topic entities my-project --relation scoped-to
+Entities associated with my-project — My Project:
+  scoped-to   intention intention_01kv... — Ship topic associations
+  scoped-to   note note_01kv... — Design sketch
+```
+
+Here `--entity-type` filters the result rather than disambiguating an input. An entity that has since been withdrawn still appears, marked `[inactive entity]`, so the history stays explainable.
+
+## Effective scope
+
+Both read commands default to *direct* associations: edges whose source is the entity itself. `--effective` also reports the operational scope an entity inherits, so you do not have to repeat the same `scoped-to` edge on every child intention, action, note, and task.
+
+Scope flows along three structural relationships:
+
+- **ancestor** — a child intention inherits from its parent, grandparent, and above.
+- **owner** — an action, outcome, blocker, or reflection inherits from the intention that owns it.
+- **anchor** — a note, doc, link, or task inherits from whatever it is anchored to, including a topic it is filed under directly.
+
+```bash
+rei topic associations intention_child --effective
+Effective topics for intention intention_child — Develop listening comprehension:
+  scoped-to   my-project — My Project (topic_01kv...) — ancestor via intention_root, depth 1
+```
+
+Read from the other end, one association covers the whole tree:
+
+```bash
+rei topic entities my-project --relation scoped-to --effective
+Entities effectively scoped to my-project — My Project:
+  scoped-to   intention intention_root — Ship the thing
+  scoped-to   intention intention_child — Develop listening comprehension — ancestor via intention_root, depth 1
+  scoped-to   action action_01kv... — Practised shadowing — owner via intention_child, depth 2
+  scoped-to   link link_01kv... — https://example.com/reference — anchor via action_01kv..., depth 2
+```
+
+Nothing is stored. Reparenting an intention, or removing the one direct edge, changes the answer on the next query — no derived rows are written and none need cleaning up.
+
+Scope is **additive**: a child with its own topic still belongs to its ancestors' topics too. When several structures establish the same membership, you get one row led by the strongest explanation, with the rest available under `--explain`:
+
+```bash
+rei topic associations action_01kv... --effective --explain
+Effective topics for action action_01kv... — Practised shadowing:
+  scoped-to   my-project — My Project (topic_01kv...) — owner via intention_child, depth 2
+      owner:
+        owner action:action_01kv... → intention:intention_child
+        ancestor intention:intention_child → intention:intention_root
+        direct scoped-to my-project — My Project (topic_01kv...) (edge_01kv...)
+```
+
+Only `scoped-to` derives. `about` says an entity is *about* a subject and `instance-of` classifies one topic as another's instance; neither is inherited, so asking for them is refused rather than answered with a misleading empty list:
+
+```bash
+rei topic associations intention_01kv... --effective --relation about
+Error: Relation 'about' has no effective scope: only 'scoped-to' is inherited
+through containment and ownership. Drop --effective to see direct 'about'
+associations.
+```
+
+Some relationships deliberately do **not** pass scope on. A habit *supports* an intention rather than living inside it, a disruption is *addressed by* one, and collections, categories, focuses, and cycles organise things without owning them. All of them can still carry their own direct `scoped-to` edge.
+
+If malformed historical data creates an ownership loop, the traversal stops and says so on stderr rather than hanging or silently shortening the answer:
+
+```
+warning: stopped at intention:intention_01kv... after 4 hops (ownership cycle); results may be incomplete
+```
+
+## Naming an entity
+
+`ENTITY` is normally a full Rei ID such as `intention_01kv...`; its type comes from the ID itself, so `--entity-type` is optional. When you do pass it, it is checked rather than trusted:
+
+```bash
+rei topic associate my-project topic_01kv... --entity-type intention
+Error: Declared --entity-type intention but the ID names topic
+```
+
+You can also paste the bare 26-character suffix without its prefix. Rei then asks every read model which one holds it. Exactly one match resolves silently; several report the choice rather than guessing:
+
+```bash
+rei topic associate my-project 01kv9hqz3we5t8n2k4bdxr7c0m
+Error: Ambiguous entity reference '01kv9hqz3we5t8n2k4bdxr7c0m': matches topic, intention.
+Disambiguate with --entity-type topic|intention
+```
+
+Omitting `TOPIC` or `ENTITY` entirely opens an fzf picker when you are at a terminal. The unfiltered picker offers the entity families you curate by hand — topics, intentions, habits, collections, focuses, cycles, and disruptions. For the families that grow one row per event or per line — actions, outcomes, blockers, reflections, journal entries, notes, docs, links, tasks, and reminders — pass `--entity-type` first. Outside a terminal, an omitted argument is an error rather than a prompt that hangs.
+
+## Associations versus edges
+
+`associate`, `dissociate`, `associations`, and `entities` read and write only the three validated first-class relations, and they check that both endpoints really exist. `rei topic edges` shows every raw graph edge touching a topic, including predicates these commands never create. Use the association commands for everyday work and [`rei edge`](/docs/commands/edge) when you need the open graph.
+
+## Association JSON
+
+`--json` emits the same object from both directions:
+
+```json
+[
+  {
+    "edgeId": "edge_01kv...",
+    "relation": "scoped-to",
+    "entity": {
+      "type": "intention",
+      "id": "intention_01kv...",
+      "label": "Ship topic associations",
+      "active": true
+    },
+    "topic": {
+      "id": "topic_01kv...",
+      "key": "my-project",
+      "label": "My Project",
+      "active": true
+    },
+    "provenance": { "kind": "direct" },
+    "active": true
+  }
+]
+```
+
+`entity.label` is omitted when the entity's table has no display value. The top-level `active` is true only when both endpoints are still active. `provenance.kind` is `direct` for a direct association.
+
+Under `--effective`, the same object gains provenance detail. `kind` becomes `ancestor`, `owner`, or `anchor`; `via` names the neighbour the scope arrived through; `depth` counts the hops:
+
+```json
+[
+  {
+    "edgeId": "edge_01kv...",
+    "relation": "scoped-to",
+    "entity": { "type": "action", "id": "action_01kv...", "label": "Practised shadowing", "active": true },
+    "topic": { "id": "topic_01kv...", "key": "my-project", "label": "My Project", "active": true },
+    "provenance": {
+      "kind": "owner",
+      "depth": 2,
+      "via": { "type": "intention", "id": "intention_child", "label": "Develop listening comprehension", "active": true }
+    },
+    "active": true
+  }
+]
+```
+
+`--explain` adds a `hops` array to each provenance object, and an `alternateProvenance` array to any row several structures establish. `edgeId` is absent when the row terminates at a topic an artifact is anchored to, because no edge exists in that case. A direct row's JSON is unchanged by all of this: `via`, `depth`, `hops`, and `alternateProvenance` are omitted rather than emitted empty.
+
+`associate --json` and `dissociate --json` instead emit `{"changed": <bool>, "association": <object|null>}`, where `changed` says whether this invocation is what made the association exist or stop existing.
+
+## Exit status
+
+These four commands follow the [automation exit contract](/docs/guides/automation-exit-contract). A missing topic, a missing or malformed entity reference, an ambiguous reference, a type mismatch, an inactive endpoint, or an omitted argument with no terminal all exit `2` and print nothing on stdout. A database failure exits `70`; missing database configuration exits `64`. An unknown `--relation` or `--entity-type` value is rejected during argument parsing.
+
+### attachments
+
+```bash
+rei topic attachments TOPIC [--json]
+```
+
+Lists notes, docs, and links directly anchored to a topic.
+
+### edges
+
+```bash
+rei topic edges TOPIC [--predicate KEY] [--json]
+```
+
+Lists explicit incoming and outgoing graph edges touching a topic. Use `--predicate` to narrow the result to a single predicate key.
+
+### related
+
+```bash
+rei topic related TOPIC [--predicate KEY] [--include-inferred] [--explain] [--json]
+```
+
+Lists topic-to-topic relationships. By default, this shows explicit graph facts only. Use `--include-inferred` to include ontology inference, such as inverse or transitive broader/narrower facts. Use `--explain` to show the inference rule and source edge IDs in human output.
+
+### tree
+
+```bash
+rei topic tree TOPIC [--direction broader|narrower] [--include-inferred] [--explain] [--json]
+```
+
+Prints a hierarchy rooted at the topic. `--direction narrower` follows `broader-than` facts from the root toward narrower topics. `--direction broader` follows `narrower-than` facts from the root toward broader topics. Cycles are marked and not expanded forever.
+
+## Custom Properties
+
+A topic can carry custom property values, the same way an intention or a note can. Two rules make topics different from every other target:
+
+- **Only global property definitions.** A topic stores identity and display metadata and has no category, so a category-scoped definition can never be satisfied. Assigning one is refused and names the category it requires.
+- **An archived topic accepts no new values.** `set-property`, `append-property`, and `remove-property-value` are refused on an archived topic; `clear-property` still works, so stale metadata can be tidied up.
+
+```bash
+rei topic set-property TOPIC PROPERTY_KEY VALUE [--at TIME]
+rei topic clear-property TOPIC PROPERTY_KEY
+rei topic append-property TOPIC PROPERTY_KEY VALUE...
+rei topic remove-property-value TOPIC PROPERTY_KEY VALUE...
+```
+
+All three positionals are required. Unlike the other entities' `set-property` commands, which take their subject as a flag, a topic's subject occupies the first positional — so an optional property key could not be told apart from the value.
+
+```bash
+rei custom-property create owner --type-text -e topic
+rei topic set-property rei owner shinzui
+rei topic show rei
+rei topic list --with-properties
+```
+
+See [`rei custom-property`](/docs/commands/custom-property) for defining properties, including `--type-topic` for a property whose *value* is a reference to a topic.
+
+## External References
+
+An external reference says "this topic is the same subject as `mori://shinzui/rei`". One **active** reference belongs to at most one topic, which is what stops two topics from being created for the same real-world project.
+
+```bash
+rei topic add-ref TOPIC SCHEME://EXTERNAL_KEY [--label TEXT] [--json]
+rei topic remove-ref TOPIC SCHEME://EXTERNAL_KEY
+rei topic restore-ref TOPIC SCHEME://EXTERNAL_KEY
+rei topic refs TOPIC [--include-removed] [--json]
+rei topic ref-show SCHEME://EXTERNAL_KEY [--include-removed] [--json]
+```
+
+A reference is `scheme://external-key`. The scheme is lowercase ASCII starting with a letter (`mori`, `doi`, `jira`, `git+ssh`); the key is everything after `://` and is stored verbatim, so `mori://shinzui/rei`, `doi://10.1000/example`, and `jira://TEAM/PROJECT-42` all work. Rei attaches no meaning to any particular scheme.
+
+```bash
+$ rei topic add-ref rei mori://shinzui/rei
+Added mori://shinzui/rei to topic rei (topic_ref_01..., unverified)
+
+$ rei topic ref-show mori://shinzui/rei
+Reference:    mori://shinzui/rei
+Topic:        Rei (rei)
+Topic ID:     topic_01...
+Reference ID: topic_ref_01...
+Verification: unverified
+Status:       active
+```
+
+**Behaviour worth knowing:**
+
+- Adding a reference the same topic already owns returns the existing reference and writes nothing, so a sync loop can call it on every pass.
+- Adding one another topic actively owns is refused and names that topic.
+- Removal is soft. The reference stays visible under `--include-removed`, and its identity becomes free for another topic to claim. `restore-ref` therefore succeeds only while nothing else owns it.
+- Every reference starts **unverified**, and there is no flag to change that. Verification means an integration checked that the reference resolves; a user-typed claim nobody checked would be worth less than an honest `unverified`.
+- `ref-show` exits nonzero when nothing owns the identity, so a script can test "is this project already in Rei?" without parsing output.
+- An archived topic accepts no new reference.
+
+## Attachments
+
+Use topic IDs when creating notes, docs, or links:
+
+```bash
+rei note new --topic topic_01kv...
+rei note list --topic topic_01kv...
+
+rei doc add ./rdf-primer.pdf --topic topic_01kv... --title "RDF primer"
+rei doc list --topic topic_01kv...
+
+rei link add --topic topic_01kv... https://www.w3.org/TR/rdf11-concepts/ --title "RDF 1.1 Concepts"
+rei link list --topic topic_01kv...
+```
+
+Move existing artifacts under a topic with the topic-focused re-anchor commands:
+
+```bash
+rei note set-topic note_01kv... rdf
+rei link set-topic link_01kv... rdf
+rei doc set-topic doc_01kv... rdf
+```
+
+A direct topic attachment is a storage relationship: the note, doc, or link is filed under that topic and appears in `rei topic attachments TOPIC`. A graph edge such as `note_... -[about]-> topic_...` is a separate semantic assertion created with `rei edge`; it does not change where the artifact is listed. Rei does not silently create `about` edges from direct attachments.
+
+## Graph Examples
+
+Seed the standard ontology predicates once per store if they are not already present:
+
+```bash
+rei ontology seed-system
+```
+
+Create topic relationships with explicit edges:
+
+```bash
+rei topic create rdf "RDF"
+rei topic create skos "SKOS"
+rei edge add --from topic_01rdf... --to topic_01skos... --predicate related-to
+rei edge add --from topic_01rdf... --to topic_01skos... --predicate broader-than
+```
+
+Then query them from the topic surface:
+
+```bash
+rei topic edges rdf
+rei topic related rdf --include-inferred --explain
+rei topic tree rdf --direction narrower --include-inferred
+```
+
+JSON output keeps direct attachments under `attachments`, explicit graph rows under `graphEdges`, and topic relation facts under `relations` with `provenance.kind` set to `explicit` or `inferred`.
+
+## Related
+
+- [Topics guide](/docs/guides/topics) — the end-to-end walkthrough
+- [`rei project`](/docs/commands/project) — projects as typed topics
+- [`rei ontology`](/docs/commands/ontology) — seeding predicates and validating the graph

@@ -25,6 +25,7 @@ rei doc add <file> [options]
 - `-o, --outcome <id>` — Attach to outcome (optional)
 - `-r, --reflection <id>` — Attach to reflection (optional)
 - `-n, --note <id>` — Attach to note (optional)
+- `--topic <id>` — Attach to topic (optional)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 - `-t, --title <title>` — Human-readable title to attach to the document (optional)
 
@@ -44,6 +45,9 @@ rei doc add ~/Documents/spec.md
 
 # Add to a note
 rei doc add ~/Downloads/diagram.png -n note_01h455vb4pex
+
+# Add to a topic
+rei doc add ~/Downloads/rdf-primer.pdf --topic topic_01h455vb4pex --title "RDF primer"
 ```
 
 ### attach
@@ -63,6 +67,7 @@ rei doc attach <file> [options]
 - `-o, --outcome <id>` — Attach to outcome (optional)
 - `-r, --reflection <id>` — Attach to reflection (optional)
 - `-n, --note <id>` — Attach to note (optional)
+- `--topic <id>` — Attach to topic (optional)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 - `--copy` — Copy the file into `workspace/docs/` before attaching (names file by DocId)
 
@@ -83,6 +88,9 @@ rei doc attach ./meeting-notes.md -i intention_01h455vb4pex -a action_01h455vb4p
 # Attach to a note
 rei doc attach ./diagram.pdf -n note_01h455vb4pex
 
+# Attach to a topic
+rei doc attach ./rdf-notes.pdf --topic topic_01h455vb4pex
+
 # Copy an external file into workspace/docs, then attach
 rei doc attach ~/Downloads/report.pdf -i intention_01h455vb4pex --copy
 ```
@@ -101,8 +109,9 @@ rei doc list [options]
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
 - `-n, --note <id>` — Filter by note
+- `--topic <id>` — Filter by topic
 - `--include-archived` — Include docs whose parent note is archived. Default behavior excludes them (they remain reachable by ID via `rei doc open`). Each row brought back by this flag is tagged `[archived parent]`.
-- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"docs": [<DocRow>, ...], "warnings": [...]}`. Each `DocRow` carries `docId`, `anchorType`, `anchorId`, `intentionId` (nullable), `relativePath`, `contentHash` (nullable), `title` (nullable), `attachedAt`, and `archivedParent`. Without an explicit anchor flag, `--json` does *not* launch the FZF picker — it short-circuits with `{"docs":[],"warnings":["--json requires an explicit anchor: -i, -a, -o, -r, or -n"]}` on stdout (exit code 0).
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"docs": [<DocRow>, ...], "warnings": [...]}`. Each `DocRow` carries `docId`, `anchorType`, `anchorId`, `intentionId` (nullable), `relativePath`, `contentHash` (nullable), `title` (nullable), `attachedAt`, and `archivedParent`. Without an explicit anchor flag, `--json` does *not* launch the FZF picker — it short-circuits with `{"docs":[],"warnings":["--json requires an explicit anchor: -i, -a, -o, -r, -n, or --topic"]}` on stdout (exit code 0).
 
 **Examples:**
 
@@ -112,6 +121,9 @@ rei doc list -i intention_01h455vb4pex
 
 # List docs for a note
 rei doc list -n note_01h455vb4pex
+
+# List docs for a topic
+rei doc list --topic topic_01h455vb4pex
 ```
 
 After archiving the note, the same listing is empty by default:
@@ -131,6 +143,42 @@ Documents for note: note_01h455vb4pex
 The `Title:` line appears only when a title has been set (via `doc add --title` or `doc set-title`). Docs without a title omit the line entirely.
 
 `rei doc open <doc-id>` continues to work without any flag because `open` resolves by ID regardless of parent-note status.
+
+### set-topic
+
+Move a standalone document's single owning anchor to a topic.
+
+```bash
+rei doc set-topic [DOC_ID] [TOPIC] [--actor ACTOR]
+```
+
+**Arguments:**
+- `[DOC_ID]` — Document ID (optional if fzf is available)
+- `[TOPIC]` — Topic ID, key, or label (optional if fzf is available)
+
+**Options:**
+- `--doc <id>` — Document ID to move (alternative to positional `DOC_ID`)
+- `--topic <topic>` — Topic ID, key, or label (alternative to positional `TOPIC`)
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+`set-topic` moves the document's storage relationship: the doc appears in `rei doc list --topic TOPIC` and `rei topic attachments TOPIC` and no longer appears under its previous anchor. It does not create an `about` edge.
+
+Docs attached to notes are not moved independently. Re-anchor the parent note instead with `rei note set-topic`; note-owned docs follow that note.
+
+> **FZF Support:** If the document or topic is omitted and fzf is available, Rei opens the corresponding picker.
+
+**Examples:**
+
+```bash
+# Move a standalone doc to a topic key
+rei doc set-topic doc_01h455vb4pex agent-memory
+
+# Pick the topic interactively
+rei doc set-topic doc_01h455vb4pex
+
+# Pick both the doc and topic interactively
+rei doc set-topic
+```
 
 ### open
 

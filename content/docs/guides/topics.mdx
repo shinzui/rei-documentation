@@ -1,0 +1,372 @@
+---
+title: Topics
+description: First-class subjects that own knowledge and connect through the ontology graph
+icon: Hash
+---
+
+Topics are first-class subjects in Rei. Use them for abstract areas such as "RDF",
+"agent memory", or "Haskell packaging" without creating a fake note or intention just
+to hold related material.
+
+A topic has a stable key, a human label, an optional description, a `topic_...` ID,
+lifecycle state, direct knowledge attachments, custom properties, external references, and
+graph relationships through edges.
+
+Topics are also Rei's operational scopes. A topic classified `instance-of project` **is** a
+project — there is no separate project aggregate — and any entity can be associated to it
+with `scoped-to`. See the [Configuration guide](/docs/guides/config) for Mori federation and
+the [Projects guide](/docs/guides/projects) for the project command family.
+
+<Callout type="info">
+This guide mirrors `rei help topics`. For the full command reference see
+[`rei topic`](/docs/commands/topic).
+</Callout>
+
+## Quick start
+
+1. Create a topic:
+
+   ```bash
+   rei topic create rdf "RDF" --description "Resource Description Framework"
+   ```
+
+2. Attach knowledge directly to it:
+
+   ```bash
+   rei note new --topic topic_01abc
+   rei doc add ./rdf-primer.pdf --topic topic_01abc --title "RDF primer"
+   rei link add --topic topic_01abc https://www.w3.org/TR/rdf11-concepts/ \
+     --title "RDF 1.1 Concepts"
+   ```
+
+3. Ask what is attached:
+
+   ```bash
+   rei topic attachments rdf
+   ```
+
+4. Seed standard ontology predicates and system topics before creating topic
+   relationships:
+
+   ```bash
+   rei ontology seed-system
+   ```
+
+5. Connect topics with explicit graph edges:
+
+   ```bash
+   rei edge add --from topic_01rdf --to topic_01skos --predicate related-to
+   rei edge add --from topic_01web --to topic_01rdf --predicate broader-than
+   ```
+
+6. Query graph relationships:
+
+   ```bash
+   rei topic edges rdf
+   rei topic related rdf --include-inferred --explain
+   rei topic tree web-standards --direction narrower --include-inferred
+   ```
+
+## Managing topics
+
+```bash
+# Create
+rei topic create KEY LABEL [--description TEXT]
+
+# List active topics
+rei topic list
+
+# Include archived topics
+rei topic list --include-archived
+
+# Show by key or ID
+rei topic show rdf
+rei topic show topic_01abc
+
+# Update metadata
+rei topic update rdf --label "Resource Description Framework"
+rei topic update rdf --description "W3C graph data model"
+rei topic update rdf --clear-description
+
+# Archive and restore
+rei topic archive rdf
+rei topic restore rdf
+```
+
+## Direct attachments
+
+A direct topic attachment is a storage relationship: the note, document, or link is
+filed under the topic. It does not automatically create an `about` edge.
+
+```bash
+# Attach notes
+rei note new --topic topic_01abc
+rei note list --topic topic_01abc
+
+# Attach documents
+rei doc add ./rdf-primer.pdf --topic topic_01abc --title "RDF primer"
+rei doc attach ./rdf-notes.pdf --topic topic_01abc
+rei doc list --topic topic_01abc
+
+# Attach links
+rei link add --topic topic_01abc https://example.com
+rei link list --topic topic_01abc
+
+# Summarize direct attachments
+rei topic attachments rdf
+rei topic attachments rdf --json
+```
+
+## Associations
+
+An association relates any supported entity to a topic. Unlike a direct attachment (a
+storage fact), it is a validated relationship with a meaning:
+
+| Relation | Meaning |
+|----------|---------|
+| `scoped-to` (default) | The entity belongs to this operational scope |
+| `about` | The entity is about this subject |
+| `instance-of` | The source topic is an instance of the target topic (topic-to-topic only; this is what makes a project) |
+
+Associate and dissociate:
+
+```bash
+rei topic associate my-project intention_01kv...
+rei topic associate rdf note_01kv... --relation about
+rei topic dissociate my-project intention_01kv...
+```
+
+Associating is idempotent — running it twice prints the same edge ID and exits zero. Both
+endpoints must be active to **create** one; dissociating works on archived topics and
+withdrawn entities, because withdrawing scope must stay possible.
+
+Read from either end:
+
+```bash
+rei topic associations intention_01kv...     # which topics an entity has
+rei topic entities my-project                # which entities a topic has
+```
+
+Both accept `--relation`, `--entity-type`, `--include-inactive`, and `--json`.
+
+`ENTITY` is normally a full ID such as `intention_01kv...`, whose type comes from the ID
+itself. Pass `--entity-type` to assert the type (it is checked, not trusted) or, on
+`entities`, to filter the result.
+
+## Effective scope
+
+Both read commands default to **direct** associations. Add `--effective` to see the scope an
+entity inherits, so one edge on a root intention covers its whole tree:
+
+```bash
+rei topic associations intention_child --effective
+rei topic entities my-project --relation scoped-to --effective
+```
+
+Scope flows along three structural relationships:
+
+| Path | What inherits |
+|------|---------------|
+| `ancestor` | A child intention inherits from its parent and above |
+| `owner` | An action, outcome, blocker, or reflection inherits from the intention that owns it |
+| `anchor` | A note, doc, link, or task inherits from what it is anchored to, including a topic it is filed under directly |
+
+Scope is **additive**: a child with its own topic still belongs to its ancestors' topics.
+Where several structures establish the same membership, you get one row led by the strongest
+explanation; `--explain` shows the rest:
+
+```bash
+rei topic associations action_01kv... --effective --explain
+```
+
+Nothing is stored. Reparenting an intention, or removing the one direct edge, changes the
+next answer — no derived rows are written.
+
+Only `scoped-to` derives. Asking for effective `about` or `instance-of` is refused rather
+than answered with a misleading empty list. Relationships that organise without owning —
+habit supports, disruption addressed-by, collections, categories, focuses, cycles — do not
+pass scope on, though each can carry its own direct `scoped-to` edge.
+
+## External references
+
+An external reference says "this topic is the same subject as `mori://shinzui/rei`". One
+**active** reference belongs to at most one topic, which is what stops two topics being
+created for the same real project.
+
+```bash
+rei topic add-ref rei mori://shinzui/rei [--label TEXT]
+rei topic refs rei [--include-removed]
+rei topic ref-show mori://shinzui/rei
+rei topic remove-ref rei mori://shinzui/rei
+rei topic restore-ref rei mori://shinzui/rei
+```
+
+A reference is `scheme://external-key`. The scheme is lowercase ASCII starting with a letter
+(`mori`, `doi`, `jira`, `git+ssh`); the key is stored verbatim. Rei attaches no meaning to
+any particular scheme.
+
+Worth knowing:
+
+- Re-adding a reference the topic already owns writes nothing and returns the existing one,
+  so a sync loop can call it every pass.
+- Adding one another topic actively owns is refused, and names it.
+- Removal is soft: the identity becomes free for another topic, and `restore-ref` succeeds
+  only while nothing else owns it.
+- Every reference starts **unverified** and no flag changes that. Verification means an
+  integration checked that it resolves.
+- `ref-show` exits nonzero when nothing owns the identity, so a script can test "is this
+  project already in Rei?" without parsing output.
+
+## Custom properties on topics
+
+Topics accept custom properties like any other entity, and a property can itself be
+topic-valued. See the [Custom Properties guide](/docs/guides/custom-properties).
+
+```bash
+rei custom-property create owner --type text --entity-type topic
+rei topic set-property rei owner shinzui
+rei topic clear-property rei owner
+```
+
+A topic's subject is the **first positional**, not a flag — otherwise an optional property
+key could not be told from the value.
+
+An archived topic accepts no new values: `set-property`, `append-property`, and
+`remove-property-value` are refused. `clear-property` still works, so stale metadata can be
+tidied up.
+
+## Graph edges
+
+Edges are semantic assertions between entities. A graph edge such as
+`note_... -[about]-> topic_...` is separate from a note directly anchored to a topic.
+Rei keeps these facts distinct so later graph projections do not double-count them.
+
+```bash
+# Show explicit edges touching a topic
+rei topic edges rdf
+rei topic edges rdf --predicate related-to
+rei topic edges rdf --json
+
+# Create topic-to-topic relations
+rei edge add --from topic_01rdf --to topic_01skos --predicate related-to
+rei edge add --from topic_01web --to topic_01rdf --predicate broader-than
+rei edge add --from topic_01rdf --to topic_01semantic --predicate narrower-than
+```
+
+## Ontology predicates
+
+Rei ships an idempotent seeding command for standard topic predicates and the topics
+Rei itself owns by key:
+
+```bash
+rei ontology seed-system
+```
+
+The old spelling `rei ontology seed-predicates` is kept as an alias and now seeds the
+system topics too.
+
+Seeded predicates:
+
+| Predicate | Meaning |
+|-----------|---------|
+| `about` | Semantic relation between artifacts and topics |
+| `broader-than` | Transitive topic hierarchy, inverse of `narrower-than` |
+| `narrower-than` | Transitive topic hierarchy, inverse of `broader-than` |
+| `related-to` | Symmetric peer relationship between topics |
+
+Validate stored edges against predicate semantics:
+
+```bash
+rei ontology validate
+rei ontology validate --json
+```
+
+## Related topics and inference
+
+By default, topic relation queries show explicit graph facts only:
+
+```bash
+rei topic related rdf
+```
+
+Include inferred facts from predicate semantics:
+
+```bash
+rei topic related rdf --include-inferred
+```
+
+Show why inferred facts exist:
+
+```bash
+rei topic related rdf --include-inferred --explain
+```
+
+JSON output marks each relation with provenance:
+
+```bash
+rei topic related rdf --include-inferred --json
+```
+
+Inferred facts are query-time only. They are not written back to the edges table.
+
+## Topic trees
+
+```bash
+# Print narrower topics under a broader root
+rei topic tree web-standards --direction narrower
+
+# Print broader topics above a narrower root
+rei topic tree rdf --direction broader
+
+# Include inferred transitive or inverse facts
+rei topic tree web-standards --direction narrower --include-inferred
+```
+
+Topic trees track visited topics and mark cycles instead of recursing forever.
+
+## JSON output
+
+The topic query commands keep provenance boundaries explicit:
+
+| Command | Where the rows land |
+|---------|---------------------|
+| `rei topic attachments rdf --json` | Direct attachments appear under `attachments`. |
+| `rei topic edges rdf --json` | Explicit graph rows appear under `graphEdges`. |
+| `rei topic related rdf --include-inferred --json` | Relation facts appear under `relations` with `provenance.kind` set to `explicit` or `inferred`. |
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `topic create` | Create a topic |
+| `topic list` | List topics |
+| `topic show` | Show topic details |
+| `topic update` | Update topic metadata |
+| `topic archive` | Archive a topic |
+| `topic restore` | Restore an archived topic |
+| `topic attachments` | List notes, docs, and links attached to a topic |
+| `topic associate` | Relate an entity to a topic |
+| `topic dissociate` | Remove one association |
+| `topic associations` | List the topics an entity is associated with |
+| `topic entities` | List the entities associated with a topic |
+| `topic add-ref` | Add a canonical external reference |
+| `topic remove-ref` | Soft-remove an external reference |
+| `topic restore-ref` | Restore a removed external reference |
+| `topic refs` | List a topic's external references |
+| `topic ref-show` | Show which topic owns an external identity |
+| `topic set-property` | Set a custom property on a topic |
+| `topic clear-property` | Clear a custom property on a topic |
+| `topic append-property` | Append to a multi-value property |
+| `topic remove-property-value` | Remove one value from a multi-value property |
+| `topic edges` | List explicit graph edges touching a topic |
+| `topic related` | List topic-to-topic relations |
+| `topic tree` | Show a broader or narrower hierarchy |
+| `ontology seed-system` | Seed default ontology predicates and system topics |
+| `ontology validate` | Validate active edges against ontology semantics |
+
+## Related
+
+- [`rei topic`](/docs/commands/topic) — full command reference, including associations, properties, and external references
+- [Projects guide](/docs/guides/projects) — projects are topics classified `instance-of project`
+- [Edges and Predicates](/docs/guides/edges) — the open graph these topics live in
+- [Custom Properties](/docs/guides/custom-properties) — including topic-valued properties

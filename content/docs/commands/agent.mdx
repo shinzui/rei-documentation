@@ -8,13 +8,37 @@ AI-assisted coaching and review. The agent reads your current state to provide i
 
 ## Configuration
 
-The agent requires an LLM backend. See [configuration](/docs/configuration) for setup.
+The agent requires an LLM backend. Rei can configure provider, transport, model, and reasoning effort separately for each command. See [Configuration](/docs/configuration#optional-ai-agent) for the complete precedence and `llm.commands:` reference.
 
 ## Global Options
 
+### Provider, transport, model, and effort
+
+Every model-launching `rei agent` subcommand accepts these options:
+
+- `--provider anthropic|openai`
+- `--transport cli|api`
+- `--model MODEL`
+- `--effort minimal|low|medium|high|xhigh|max`
+
+Put them before the subcommand to set the parent-group override, or after it to override a single subcommand. A subcommand flag wins when both are present:
+
+```bash
+# Parent-group override
+rei agent --model claude-sonnet-5 coach
+
+# This nudge alone uses Haiku with low reasoning effort
+rei agent nudge --model claude-haiku-4-5 --effort low
+
+# Subcommand value wins over the parent-group value
+rei agent --model claude-sonnet-5 coach --model claude-opus-4-8
+```
+
+The same four command-local flags are available on `rei note get-help` and `rei category improve-note-guidance`. Scheduled work has no invocation-time flags; configure it with `llm.commands.scheduled-work`. Use `rei agent config` to inspect every effective value and its source.
+
 ### Debug Mode
 
-All agent commands support `--debug` to output the rendered prompt without invoking the LLM. This is useful for testing prompt construction and debugging context loading.
+Model-launching agent commands support `--debug` to output the rendered prompt without invoking the LLM. This is useful for testing prompt construction and debugging context loading.
 
 ```bash
 rei agent --debug COMMAND
@@ -44,15 +68,15 @@ rei agent --debug reflect today
 
 ### Interactive Mode
 
-All agent commands support `--interactive` (`-i`) to start an interactive Claude Code session instead of getting a one-shot response.
+Model-launching agent commands support `--interactive` (`-i`) to start an interactive Claude Code or Codex session instead of getting a one-shot response.
 
 ```bash
 rei agent [-i|--interactive] COMMAND
 ```
 
 **Interactive mode:**
-- Starts Claude Code with your current Rei state pre-loaded
-- Claude retains all tools (Bash, Read, Edit, etc.)
+- Starts the configured Claude Code or Codex CLI with your current Rei state pre-loaded
+- The interactive agent retains its tools (Bash, Read, Edit, etc.)
 - All `rei` commands are pre-approved (no permission prompts)
 - Supports multi-turn conversations with full context
 - Claude can record actions, resolve blockers, and make changes on your behalf
@@ -68,6 +92,29 @@ rei agent review intention_01h455vb4pex -i
 ```
 
 ## Subcommands
+
+### config
+
+Show the resolved provider, transport, model, and effort for all fourteen model-launching commands:
+
+```bash
+rei agent config
+```
+
+Each value includes its winning source, such as `[local: llm.commands.coach.model]`, `[env: REI_LLM_EFFORT]`, or `[--model flag]`. The output also names the local and global files Rei loaded and prints the full precedence legend. This command does not connect to the database.
+
+### models
+
+List the model catalogue embedded in the current Baikai dependency:
+
+```bash
+rei agent models
+rei agent models --provider anthropic
+rei agent models --provider openai --json
+rei agent models --all
+```
+
+By default, only Anthropic and OpenAI models that Rei can dispatch are shown. `--all` includes models for every provider in Baikai's catalogue; `--json` emits the filtered model records as JSON. These are API identifiers Baikai knows. With `transport: cli`, the local `claude` or `codex` tool decides which identifiers it accepts, including its own short aliases. This command does not connect to the database.
 
 ### coach
 
@@ -176,7 +223,7 @@ Start an interactive AI assistant for setup and management of your Rei system.
 rei agent assist
 ```
 
-Unlike other agent commands, assist is **always interactive** — it opens a Claude Code session pre-loaded with your complete Rei state including categories, contexts, intentions, habits, blockers, and disruptions.
+Unlike other agent commands, assist is **always interactive** — it opens the configured Claude Code or Codex session pre-loaded with your complete Rei state including categories, contexts, intentions, habits, blockers, and disruptions.
 
 The assistant helps you organize, configure, and maintain your system: creating intentions, setting up categories, establishing habits, managing blockers, and keeping everything well-structured.
 
@@ -315,7 +362,7 @@ rei agent --debug update-note note_01k... -I "Tighten the wording"
 
 ### ask-note
 
-Ask a question about a single note, either as a one-shot answer or in an interactive Claude Code session loaded with the note as context. Unlike `update-note`, this is read-only — the note is never modified.
+Ask a question about a single note, either as a one-shot answer or in an interactive Claude Code or Codex session loaded with the note as context. Unlike `update-note`, this is read-only — the note is never modified.
 
 ```bash
 rei agent ask-note [NOTE_ID] -q "<question>"
@@ -327,7 +374,7 @@ rei agent ask-note [NOTE_ID] -i
 
 **Options:**
 - `-q, --question <text>` — Question to ask. May also be piped on stdin instead of passed as a flag. Required for one-shot mode; ignored in interactive mode.
-- `-i, --interactive` — Start an interactive Claude Code session with the note pre-loaded as context.
+- `-i, --interactive` — Start the configured interactive agent with the note pre-loaded as context.
 
 **Examples:**
 
@@ -358,7 +405,7 @@ In both modes the note file is read-only — the command never writes to it. To 
 
 ### explore
 
-Explore a collection's contents in an interactive Claude Code session pre-loaded with the collection's notes. Ask follow-up questions, drill into individual notes, or have Claude record actions on your behalf — all with the collection's context already loaded.
+Explore a collection's contents in an interactive Claude Code or Codex session pre-loaded with the collection's notes. Ask follow-up questions, drill into individual notes, or have Claude record actions on your behalf — all with the collection's context already loaded.
 
 ```bash
 rei agent explore [COLLECTION] [options]
@@ -410,7 +457,7 @@ rei agent schedule <subcommand>
 | Mode | Behavior | Use Case |
 |------|----------|----------|
 | Non-interactive (default for most commands) | Returns a single response, read-only | Quick advice, suggestions |
-| Interactive (`-i`) | Multi-turn Claude Code session | Getting unstuck, making changes |
+| Interactive (`-i`) | Multi-turn Claude Code or Codex session | Getting unstuck, making changes |
 
 Some subcommands always run interactively (`assist`, `intention-assist`) and have no flag. `explore` defaults to interactive — pass `--no-interactive` to get a one-shot response instead.
 

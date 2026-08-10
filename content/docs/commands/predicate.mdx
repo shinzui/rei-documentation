@@ -48,16 +48,27 @@ rei predicate define KEY --label LABEL [options]
 - `-d, --description TEXT` — Optional description
 - `--source-types TYPES` — Comma-separated allowed source entity types
 - `--target-types TYPES` — Comma-separated allowed target entity types
+- `--transitive` — Mark this predicate as transitive (e.g. `broader-than`)
+- `--symmetric` — Mark this predicate as symmetric (e.g. `related-to`)
+- `--inverse-of KEY` — Predicate key for the inverse relationship (e.g. `narrower-than`)
+- `--domain-types TYPES` — Comma-separated ontology domain entity types
+- `--range-types TYPES` — Comma-separated ontology range entity types
+
+The `--transitive`, `--symmetric`, `--inverse-of`, `--domain-types`, and `--range-types` flags record lightweight ontology semantics. They are read by [`rei ontology validate`](/docs/commands/ontology#validate) and by the inference shown in `rei topic related` / `rei topic tree --include-inferred`.
 
 **Examples:**
 
 ```bash
 # Unconstrained predicate (any entity type)
-rei predicate define related-to --label "Related To"
+rei predicate define related-to --label "Related To" --symmetric
 
 # Constrained predicate
 rei predicate define summarizes --label "Summarizes" \
   --source-types note --target-types link,note
+
+# Transitive predicate with an inverse
+rei predicate define broader-than --label "Broader Than" \
+  --transitive --inverse-of narrower-than
 ```
 
 ### list
@@ -96,6 +107,12 @@ rei predicate update KEY [options]
 - `-d, --description TEXT` — New description
 - `--source-types TYPES` — New source type constraints
 - `--target-types TYPES` — New target type constraints
+- `--transitive` — Mark this predicate as transitive
+- `--symmetric` — Mark this predicate as symmetric
+- `--inverse-of KEY` — Predicate key for the inverse relationship
+- `--clear-inverse` — Clear the inverse predicate key
+- `--domain-types TYPES` — New ontology domain entity types
+- `--range-types TYPES` — New ontology range entity types
 
 ### archive
 
@@ -116,4 +133,5 @@ rei predicate restore KEY
 ## Related Commands
 
 - [`rei edge`](/docs/commands/edge) — Create and manage edges using predicates
+- [`rei ontology`](/docs/commands/ontology) — Seed the default predicates and validate the graph against their semantics
 - [`rei help edges`](/docs/guides/edges) — Detailed guide on edges and predicates

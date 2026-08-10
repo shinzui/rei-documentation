@@ -49,6 +49,33 @@ Rei checks `REI_PG_CONNECTION_STRING` first, then falls back to `PG_CONNECTION_S
 | `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time in seconds | 600 |
 | `PG_POOL_MAX_CONNECTION_LIFETIME` | Max lifetime in seconds | 1800 |
 
+### Event Attribution (optional)
+
+| Variable | Description |
+|----------|-------------|
+| `REI_RECORDED_BY_AGENT` | Agent id credited as the recorder of events |
+| `REI_RECORDED_BY_SESSION` | Agent session id the recorder belongs to |
+| `REI_PERFORMER` | Who performed the work (e.g. `human`) |
+
+`REI_RECORDED_BY_AGENT` is the switch: unset, the other two are ignored and
+performer = recorder = whatever `--actor` resolves to.
+
+### Mori Federation (optional)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MORI_API_URL` | Mori HTTP API base URL | `http://127.0.0.1:8080` |
+
+Used by [`rei project`](/docs/commands/project#sync) when resolving software projects. Rei
+never contacts Mori unless a command asks it to.
+
+### Worker (optional)
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_WORKER_DRAIN_TIMEOUT_SECONDS` | Shutdown drain timeout in seconds | 30 |
+| `REI_KIROKU_METRICS_PORT` | kiroku-metrics HTTP port | 9091 |
+
 ## Config File Sections
 
 ```yaml

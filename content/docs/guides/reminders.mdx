@@ -1,0 +1,175 @@
+---
+title: Reminders
+description: Scheduling, triage, and the reminders Rei creates for you
+icon: Bell
+---
+
+A reminder is a scheduled prompt attached to an intention, action, habit, or note. It sits
+pending until its time arrives, then triggers and shows up in `rei today`. Reminders are how
+Rei brings something back to you without you having to remember to look for it.
+
+Some reminders you create; others Rei creates for you (see [Automatic reminders](#automatic-reminders)).
+Both live in the same list and behave the same way.
+
+<Callout type="info">
+This guide mirrors `rei help reminders`. For the full command reference see
+[`rei reminder`](/docs/commands/reminder).
+</Callout>
+
+## Quick start
+
+1. Remind yourself about an intention:
+
+   ```bash
+   rei intention remind "Follow up on the proposal" --at tomorrow
+   ```
+
+2. See what is due now:
+
+   ```bash
+   rei reminder list --triggered
+   ```
+
+3. Triage the whole list interactively:
+
+   ```bash
+   rei reminder list --triggered --tui
+   ```
+
+4. Deal with one:
+
+   ```bash
+   rei reminder complete            # fzf picks it
+   rei reminder snooze --until 2h
+   ```
+
+## Creating
+
+```bash
+rei reminder create [DESCRIPTION] --at TIME [entity flag]
+```
+
+Attach with one of `-i`/`--intention`, `-a`/`--action`, `--habit`, or `-n`/`--note`. Omit the
+flag entirely and fzf asks what to attach to. The description can also arrive on stdin:
+
+```bash
+echo "Review PR comments" | rei reminder create --at tomorrow -i <id>
+```
+
+Shortcuts equivalent to `reminder create` with the matching flag:
+
+```bash
+rei intention remind [id] "Follow up" --at tomorrow
+rei habit remind     [id] "Check streak" --at "1 week"
+rei note remind      [id] "Review notes" --at "3 days"
+```
+
+`--at` accepts keywords (`now`, `today`, `tomorrow`), natural expressions (`"2 hours"`,
+`"30 minutes"`, `"1 day"`), short forms (`2h`, `30m`, `1d`), and ISO 8601 instants. See
+[Time Formats](/docs/guides/time-formats).
+
+## Lifecycle
+
+```
+Pending    ──>  Triggered     (its time arrives)
+Triggered  ──>  Completed     (rei reminder complete)
+any        ──>  Snoozed       (rei reminder snooze --until TIME)
+any        ──>  Cancelled     (rei reminder cancel)
+Pending    ──>  Pending       (rei reminder reschedule --to TIME)
+```
+
+Snooze accepts **any** non-terminal reminder — pending, triggered, or snoozed — so you can
+push something out before it ever fires. Reschedule is for pending reminders only; its fzf
+picker offers only those.
+
+Completed and cancelled are terminal.
+
+Every command takes the reminder ID as an optional argument. Leave it out and fzf offers the
+reminders that command can actually act on.
+
+## Listing
+
+```bash
+rei reminder list [filters]
+```
+
+| Filter | Meaning |
+|--------|---------|
+| `--triggered` | Due now |
+| `--pending` | Not yet due |
+| `--all` | Include completed and cancelled |
+| `--system` | Only reminders Rei generated |
+| `--user` | Only reminders you created |
+| `-i` / `-a` / `--habit` / `-n` | Scope to one entity |
+| `--tui` | Triage the filtered list interactively |
+
+`--system` and `--user` are mutually exclusive.
+
+`--tui` opens a full-screen interface over the **same** filtered list, so you can complete
+and snooze without copying IDs back into a shell command.
+
+## Checking
+
+```bash
+rei reminder check
+```
+
+Shows what is due and triggers anything whose time has passed. `rei today` surfaces
+triggered reminders under "Triggered Reminders", so a normal morning needs no explicit
+check.
+
+## Automatic reminders
+
+**Task due dates.** Setting a due date on a task schedules a reminder for that date.
+
+**Dormancy.** An intention that goes quiet long enough is marked dormant, and a reminder is
+scheduled (by default 21 days later) to prompt a revisit. Rei then manages it for you:
+
+- **Cancelled** when the intention awakens on new activity
+- **Completed** when the intention reaches a terminal state
+
+Filter for them with `--system`; filter them out with `--user`.
+
+These are produced by reactors in the `rei worker kiroku` process. With no worker running,
+scheduled reminders do not fire.
+
+## Maintenance
+
+```bash
+rei reminder backfill-orphans [--dry-run]
+```
+
+Completes reminders whose anchor intention is already done or abandoned. A one-shot cleanup
+for older data: new reminders cannot become orphans, because the reminder reactors terminate
+anchored reminders when their anchor does. `--dry-run` prints the IDs and writes nothing.
+
+```bash
+rei reminder backfill-timers
+```
+
+Schedules kiroku fire timers for existing active reminders. A cutover backfill, not part of
+normal operation.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `reminder create` | Create a reminder |
+| `reminder list` | List reminders (add `--tui` to triage) |
+| `reminder show` | Show one reminder |
+| `reminder complete` | Mark completed |
+| `reminder snooze` | Push a non-terminal reminder later |
+| `reminder cancel` | Cancel a reminder |
+| `reminder reschedule` | Move a pending reminder |
+| `reminder check` | Show and trigger what is due |
+| `reminder backfill-orphans` | Complete reminders with terminal anchors |
+| `reminder backfill-timers` | Schedule fire timers (cutover backfill) |
+| `intention remind` | Create a reminder on an intention |
+| `habit remind` | Create a reminder on a habit |
+| `note remind` | Create a reminder on a note |
+
+## Related
+
+- [`rei reminder`](/docs/commands/reminder) — full command reference
+- [Time Formats](/docs/guides/time-formats) — what `--at` and `--until` accept
+- [`rei worker`](/docs/commands/worker) — the process that fires scheduled reminders

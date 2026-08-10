@@ -180,9 +180,9 @@ Every piece of agent work in rei is fully observable:
 
 ## Configuration
 
-### LLM Provider, Transport, and Model
+### LLM Provider, Transport, Model, and Effort
 
-Rei's LLM access is provider-neutral, built on the in-house **baikai** library and selected by **provider** (`anthropic` or `openai`), **transport** (`cli` or `api`), and **model**. The `cli` transport runs the vendor's command-line tool (`claude -p` / `codex exec`), billed against your subscription with no API key; the `api` transport calls the vendor's HTTP API, billed per token and requiring a key.
+Rei's LLM access is provider-neutral, built on the in-house **baikai** library and selected by **provider** (`anthropic` or `openai`), **transport** (`cli` or `api`), **model**, and reasoning **effort**. The `cli` transport runs the vendor's command-line tool (`claude -p` / `codex exec`), billed against your subscription with no API key; the `api` transport calls the vendor's HTTP API, billed per token and requiring a key.
 
 Configure it with `REI_LLM_*` environment variables or an `llm:` section in your YAML config (`./rei.yaml` per-project or `~/.config/rei/config.yaml` global):
 
@@ -194,9 +194,28 @@ Configure it with `REI_LLM_*` environment variables or an `llm:` section in your
 export REI_LLM_TRANSPORT=api
 export ANTHROPIC_API_KEY=sk-ant-...
 export REI_LLM_MODEL=sonnet
+
+# Cross-command reasoning override
+export REI_LLM_EFFORT=high
 ```
 
-Precedence is `REI_LLM_*` env vars over the file's `llm:` section over the built-in default. The legacy `REI_LLM_BACKEND` variable is still honored when the new variables are unset. See [Configuration](/docs/configuration#optional-ai-agent) for the full provider/transport matrix and the subscription-vs-API tradeoff.
+Each of the fourteen model-launching commands can also have its own settings under `llm.commands.<command>`, with shared fields under `llm:` as fallbacks:
+
+```yaml
+llm:
+  provider: anthropic
+  transport: cli
+  model: claude-sonnet-5
+  commands:
+    nudge:
+      model: claude-haiku-4-5
+      effort: low
+    coach:
+      model: claude-opus-4-8
+      effort: max
+```
+
+Run `rei agent config` to see every resolved value and the source that won, and `rei agent models` to list the identifiers baikai knows. Command flags beat cross-command `REI_LLM_*` variables, local values beat global ones, and built-in defaults come last. The legacy `REI_LLM_BACKEND` variable is still honored when the new variables are unset. See [Configuration](/docs/configuration#optional-ai-agent) for the full precedence table and the subscription-vs-API tradeoff.
 
 ## Choosing the Right Level
 

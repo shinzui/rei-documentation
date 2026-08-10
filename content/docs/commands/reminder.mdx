@@ -306,7 +306,7 @@ When you set a due date on a task, a reminder is automatically created to trigge
 
 ### Dormancy Reminders
 
-When an intention becomes dormant (inactive for 30+ days), a reminder is automatically created to prompt you to revisit it. By default, dormancy reminders are scheduled for 21 days after the intention becomes dormant.
+When an intention becomes dormant, a reminder is automatically created to prompt you to revisit it. Both thresholds are configurable: an intention is marked dormant after `intentions.dormancy_threshold_days` without activity (default 10), and the reminder is scheduled `intentions.dormancy_reminder_days` later (default 21). See [Configuration](/docs/configuration#default-values).
 
 Dormancy reminders are automatically:
 - **Cancelled** when the intention awakens (receives new activity)

@@ -108,3 +108,5 @@ When a memory is archived or superseded, its file is automatically deleted.
 - **Context injection:** Active memories are automatically included in relevant agent prompts based on anchor and focus mode
 - **Workspace files:** Active memories are written as markdown files to `memories/` — when superseded or archived, the file is deleted
 - **Dashboard:** `rei today` shows a summary of active memory counts and the most recently recorded memory
+- **Conversation turns:** For non-interactive sessions, `rei agent session <id>` shows a **Conversation Turns** section listing the recorded request and the agent's response with timestamps, token counts, and any tool summary, above the session's extracted memories
+- **Storage:** Agent memories and sessions are stored in Kioku, Rei's event-sourced agent memory/session library, backed by the same Kiroku event store

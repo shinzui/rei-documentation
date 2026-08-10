@@ -30,46 +30,48 @@ Specify exact dates and times:
 
 ## Examples
 
-### Recording Completed Actions
-
 ```bash
-# Complete an action 2 hours ago
-rei action complete --at "2 hours ago"
+# Record an action you did 2 hours ago
+rei action record -i <id> "Reviewed the draft" --at "2 hours ago"
 
-# Start an action at a specific time today
-rei action start --at "14:30"
-```
+# Record a habit action for yesterday
+rei habit record-action --at yesterday
 
-### Logging Habits
-
-```bash
-# Log a habit for yesterday
-rei habit log --at yesterday
-```
-
-### Completing Tasks
-
-```bash
-# Complete a task at a specific date and time
+# Complete a task at a specific time
 rei task complete --at "2024-01-15 09:00"
-```
 
-### Starting Focus Cycles
+# Record an action at a specific time today
+rei action record -i <id> "Standup" --at "14:30"
 
-```bash
 # Start a focus cycle 30 minutes ago
 rei cycle start --at "30 minutes ago"
 ```
+
+## Future Times
+
+Reminders schedule forward rather than backdating, so their time flags also accept
+future expressions: keywords (`now`, `today`, `tomorrow`), bare durations
+(`"2 hours"`, `"30 minutes"`), short forms (`2h`, `30m`, `1d`), and ISO 8601 instants.
+
+```bash
+rei reminder create "Follow up" --at tomorrow
+rei reminder snooze --until 2h
+```
+
+See the [Reminders guide](/docs/guides/reminders).
 
 ## Commands That Support --at
 
 | Command | Description |
 |---------|-------------|
-| `action complete` | Complete an action with optional backdating |
-| `action start` | Start working on an action |
+| `action record` | Record an action, optionally backdated |
+| `outcome record` | Record an outcome |
+| `habit record-action` | Record an action for a habit |
 | `task complete` | Mark a task as completed |
-| `habit log` | Log a habit occurrence |
 | `cycle start` | Start a focus cycle |
+| `reminder create` | Schedule a reminder (future times) |
+| `project review` | Record a review at the time it happened |
+| `<entity> set-property` | Bitemporal property transition (see [Custom Properties](/docs/guides/custom-properties)) |
 
 ## Related
 
@@ -77,3 +79,4 @@ rei cycle start --at "30 minutes ago"
 - [`rei habit`](/docs/commands/habit) — Habit command reference
 - [`rei task`](/docs/commands/task) — Task command reference
 - [`rei cycle`](/docs/commands/cycle) — Focus cycle command reference
+- [`rei reminder`](/docs/commands/reminder) — Reminder command reference

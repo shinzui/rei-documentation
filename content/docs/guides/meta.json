@@ -19,9 +19,13 @@
 		"views",
 		"collections",
 		"edges",
+		"topics",
+		"projects",
 		"disruptions",
 		"templates",
 		"time-formats",
-		"kit"
+		"reminders",
+		"kit",
+		"automation-exit-contract"
 	]
 }

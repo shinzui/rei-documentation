@@ -1,0 +1,219 @@
+---
+title: Projects
+description: Projects as typed topics — scope, review cadence, and Mori sync
+icon: FolderKanban
+---
+
+A project in Rei is a **topic classified `instance-of project`**. There is no separate
+project record, no `project_...` ID, and no projects table. `rei project` is a facade over
+the topic commands, so anything you can do with `rei topic` still applies and nothing here
+is a second source of truth.
+
+That has a practical consequence worth stating up front: this works for *any* durable
+subject that collects work over time. A kitchen renovation, a research programme, a book, a
+conference talk, and a software repository are all projects to Rei. Only the last kind gains
+anything from Mori.
+
+<Callout type="info">
+This guide mirrors `rei help projects`. For the full command reference see
+[`rei project`](/docs/commands/project).
+</Callout>
+
+## Quick start
+
+1. Once per installation:
+
+   ```bash
+   rei ontology seed-system
+   ```
+
+2. Create a project:
+
+   ```bash
+   rei project create kitchen-renovation --label "Kitchen renovation"
+   ```
+
+3. Put work in its scope:
+
+   ```bash
+   rei project scope add kitchen-renovation intention_01kv...
+   ```
+
+4. Review it on a cadence:
+
+   ```bash
+   rei project review kitchen-renovation \
+     --stage active --health healthy --cadence-days 14
+   ```
+
+5. See the portfolio and the attention queue:
+
+   ```bash
+   rei project list
+   rei project review --due
+   ```
+
+`rei ontology seed-system` is a **prerequisite**. It creates the system `project` topic that
+classification points at, and the four custom properties that hold review state. Without it,
+`rei project` reports that no topic can be a project yet and tells you to run it.
+
+## Scope
+
+```bash
+rei project scope add    PROJECT ENTITY [--entity-type TYPE]
+rei project scope remove PROJECT ENTITY [--entity-type TYPE]
+rei project scope list   PROJECT [--direct] [--entity-type TYPE]
+```
+
+This is exactly `rei topic associate` / `dissociate` / `entities` with the `scoped-to`
+relation — same validation, same output, same JSON — so you can move between the two
+families freely.
+
+You rarely need more than one edge. Scope is **effective**: scoping a root intention brings
+its descendants, and the actions, outcomes, blockers, notes, docs, links, and tasks they own.
+`scope list` shows effective scope and explains how each entity got there; `--direct` shows
+only what someone associated explicitly. See the [Topics guide](/docs/guides/topics#effective-scope)
+for the inheritance rules.
+
+`ENTITY` accepts a full Rei ID or a bare 26-character TypeID suffix. `--entity-type` asserts
+the type of a full ID and disambiguates a bare one.
+
+## Review state
+
+Four Rei-owned custom properties on the project topic:
+
+| Property | Values |
+|----------|--------|
+| `project-stage` | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
+| `project-health` | `healthy`, `watch`, `blocked` |
+| `project-review-cadence-days` | Minimum 1 |
+| `project-last-reviewed-at` | Written by `rei project review` |
+
+Stage is an **enum, not a state machine**. No transition graph is imposed, because the
+legitimate moves differ per project: a publication goes `active → completed` and never
+reaches `maintaining`, while a library may oscillate for years.
+
+There is no `unknown` health. An unset property already means unknown.
+
+## Recording a review
+
+```bash
+rei project review PROJECT [--stage S] [--health H] [--cadence-days N] [--at ISO8601]
+```
+
+`project-last-reviewed-at` is **always** written. Stage, health, and cadence are written only
+when supplied, so reviewing a project without changing your mind about its stage does not
+clear the stage.
+
+Use `--at` to record a review at the moment it actually happened rather than when you got
+round to typing it. Rerunning with the same `--at` and the same values repairs a partial
+write.
+
+## The attention queue
+
+```bash
+rei project review --due        # no PROJECT argument
+```
+
+A project is due when:
+
+- it has **never** been reviewed — a new or migrated project should not hide until a
+  timestamp happens to exist; or
+- today is on or after its next review date.
+
+It is **not** due when its stage is `completed` or `retired`: the cycle is over, though the
+project stays queryable by stage. A **paused** project *is* due on schedule — a pause is
+worth revisiting, and the review is exactly when you notice it has quietly become
+abandonment.
+
+Days are counted in **your local timezone**, so a review at 22:00 local on the 3rd counts as
+the 3rd.
+
+An unset cadence displays as 30 days without writing anything, so changing the default later
+still moves every project that never chose one.
+
+## Listing
+
+```bash
+rei project list [--stage S] [--health H] [--due] [--include-archived]
+                 [--with-mori] [--json]
+```
+
+```
+!  kitchen-renovation   active        watch     3 active 1 blocked 12 recent
+   shinzui-rei          maintaining   healthy   1 active 0 blocked 40 recent
+```
+
+A leading `!` marks a project whose review is due. Counts cover effective scope, and
+"recent" means the last 30 days; counts describing current state (active, blocked) take no
+window.
+
+Listing reads only Rei's own data and **issues no network request**. `--with-mori` opts in
+to live Mori data for software projects; it asks Mori once whether it is ready before
+enriching anything, so a Mori that is down costs one request rather than one timeout per
+project.
+
+## Software projects and Mori
+
+```bash
+rei project sync MORI_REF | --repo-id REPO_ID
+```
+
+For a software project, prefer `sync` over `create`: it resolves the canonical identity from
+Mori instead of asking you to assert one. It looks the project up in Mori's HTTP API
+(`MORI_API_URL`, default `http://127.0.0.1:8080`), then creates or reuses one topic
+classified `instance-of project`, attaches the canonical `mori://` reference, and marks it
+verified. Rerunning is a no-op that reports what was reused.
+
+Rei stores **only the reference**. Paths, packages, dependencies, repositories, and technical
+lifecycle stay Mori's, and are fetched when you ask for them rather than copied into Rei
+where they would rot.
+
+## Archiving
+
+```bash
+rei project archive PROJECT
+rei project restore PROJECT
+```
+
+Soft, and delegated to the topic's lifecycle. Associations, external references, review
+metadata, and historical work are all kept and stay readable; restoring brings the project
+back with the same identity.
+
+## Migrating from `local-repo`
+
+```bash
+rei project migrate-local-repos [--dry-run | --apply --confirm TOKEN | --verify]
+                                [--mapping FILE] [--report FILE]
+```
+
+Converts the deprecated [`local-repo`](/docs/commands/custom-property#local-repo-deprecated)
+custom property into project scope. Start with `--dry-run`, which classifies every assignment
+and issues a confirmation token; `--apply` requires that token, so you cannot apply a run you
+have not read. `--verify` checks coverage afterwards.
+
+See [`rei project migrate-local-repos`](/docs/commands/project#migrate-local-repos) for the
+row statuses and what fixes each.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `project create` | Create a project topic |
+| `project list` | Portfolio with review state and work rollup |
+| `project show` | One project in detail |
+| `project scope add` | Put an entity in the project's scope |
+| `project scope remove` | Take an entity out |
+| `project scope list` | What is in scope (effective by default) |
+| `project review` | Record a review, or list what is due |
+| `project archive` | Archive a project |
+| `project restore` | Restore an archived project |
+| `project sync` | Materialize a software project from Mori |
+| `project migrate-local-repos` | Convert legacy `local-repo` values to scope |
+| `ontology seed-system` | Seed the system project topic and properties |
+
+## See also
+
+- [Topics guide](/docs/guides/topics) — associations, effective scope, external references
+- [Configuration guide](/docs/guides/config) — `MORI_API_URL` and other environment variables
+- [`rei project`](/docs/commands/project) — full command reference

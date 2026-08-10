@@ -116,10 +116,20 @@ rei agent sessions --intention <INTENTION_ID>
 ```bash
 # Show session details
 rei agent session <SESSION_ID>
+```
 
+Session detail includes a **Conversation Turns** section: for non-interactive sessions, the
+recorded request and the agent's response are shown as compact turns with their timestamp,
+token counts, and any tool summary. The session's extracted memories are listed below the
+turns.
+
+```bash
 # Show the full session chain (parent/child sessions)
 rei agent session <SESSION_ID> --chain
 ```
+
+Agent sessions and memories are stored in Kioku, Rei's event-sourced agent memory/session
+library, backed by the same Kiroku event store.
 
 ## Agent Memory
 

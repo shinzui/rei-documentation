@@ -5,11 +5,94 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `19a0d271` (2026-06-14)
+**Last Source Commit Reviewed:** `822780e0` (2026-08-09)
 
 ---
 
 ## Changelog
+
+### 2026-08-09
+
+**Reviewed commits:** `19a0d271` through `822780e0` (plus the uncommitted `docs/user/api.md` and `docs/user/observability.md` working-tree changes for the shipped `rei-api` package)
+
+**Theme:** First-class topics and topic associations, projects as typed topics federated with Mori, lightweight ontology semantics on predicates, the `rei-api` HTTP server, per-command LLM configuration, and worker/Kioku changes.
+
+**Help topics:** `topics.md` is **new**; `agent-sessions.md`, `edges.md`, and `views.md` changed. `custom-properties.md`, `intention-filtering.md`, and `time.md` were unchanged. All help topics again have a 1:1 guide after adding `guides/topics.mdx`.
+
+**New command pages:**
+- `commands/topic.mdx` — Topics, the `associate`/`dissociate`/`associations`/`entities` family, `--effective` scope with provenance, entity naming rules, association JSON, exit status, custom properties on topics, external references, attachments, and graph queries.
+- `commands/project.mdx` — Projects as topics classified `instance-of project`: `create`, `list`, `show`, `scope`, `review` (including the due table), `archive`/`restore`, `sync` from Mori, and `migrate-local-repos` with its nine row statuses, mapping file, and token flow. Review-state properties, exit statuses, and JSON shape.
+- `commands/ontology.mdx` — `seed-system` (seeded predicates, the system `project` topic, the four review properties, compatibility rules) and `validate`.
+
+**New guide pages:**
+- `guides/topics.mdx` — Mirrors the new `rei help topics` topic.
+- `guides/automation-exit-contract.mdx` — Status classes, covered commands, the deliberate-exit correction, and the unconverted inventory (from `docs/user/cli/automation-exit-contract.md`).
+
+**New top-level page:**
+- `api.mdx` — The `rei-api` HTTP server: environment, endpoint table, what it does not run, bearer auth and its fail-closed token map, Relay pagination and the non-problem-document `400`, the RFC 9457 error catalog, the write-durability/read-model consistency rule, and the derived OpenAPI document. Registered in root `meta.json` under Reference, after `commands`.
+
+**Updated command pages:**
+- `commands/predicate.mdx` — Ontology semantics flags on `define`/`update` (`--transitive`, `--symmetric`, `--inverse-of`, `--clear-inverse`, `--domain-types`, `--range-types`).
+- `commands/note.mdx` — `--topic` on `new`/`list`/`move`, plus the `set-topic` command.
+- `commands/doc.mdx` — `--topic` on `add`/`attach`/`list`, the corrected `--json` anchor warning, and `set-topic`.
+- `commands/link.mdx` — `--topic` on `add`/`list`, plus `set-topic` with its `--attachment` rule.
+- `commands/custom-property.mdx` — `--type-topic`, topic-valued filtering, the `local-repo` deprecation section and migration pointer, and a rewritten inheritance example that no longer uses `local-repo`.
+- `commands/view.mdx` — `exec --json` and the new `exec-batch` request/response format.
+- `commands/dependency.mdx` — `graph --json`.
+- `commands/agent.mdx` — Per-command `--provider/--transport/--model/--effort` flags and their precedence, the new `config` and `models` subcommands, and Codex-or-Claude wording throughout.
+- `commands/agent-memory.mdx` — Conversation turns in session detail; Kioku storage.
+- `commands/worker.mdx` — The corrected `worker all` processor list, Kioku distillation timers in `worker kiroku`, the Kioku embedding companion, and graceful shutdown (`REI_WORKER_DRAIN_TIMEOUT_SECONDS`, `TimeoutStopSec`).
+- `commands/index.mdx` — Added `topic`, `project`, and `ontology` rows.
+- `commands/help.mdx` — Rebuilt the topic table in registry order against `docs/user/cli/help.md`; it was missing `cycles`, `config`, `review-checkpoints`, `agent-sessions`, `delegation`, `multi-agent-orchestration`, `agent-memory`, `agent-memory-filesystem`, `agent-schedules`, `kit`, and the new `topics`.
+
+**Updated guides:**
+- `guides/edges.mdx` — New "Predicate Semantics (Ontology)" section and an Ontology Commands reference table.
+- `guides/views.mdx` — Batch execution for machine clients; `exec-batch` in the command table.
+- `guides/agent-sessions.mdx` — Conversation Turns section and Kioku storage.
+
+**Updated top-level pages:**
+- `configuration.mdx` — `llm.commands:` per-command map with the fourteen command keys, the eight-tier precedence list, merged local/global `llm:` scopes, the unknown-key warning, `REI_LLM_EFFORT`, and shared YAML defaults.
+- `observability.mdx` — HTTP server span row and the `rei-api` access log (whitelist fields, omitted correlation ids, excluded probe paths).
+- `installation.mdx` — zsh completion caching and `REI_COMPLETION_CACHE=0`.
+- `concepts/ai-coaching.mdx` — Reasoning effort, the `llm.commands:` map, and `rei agent config` / `rei agent models`.
+
+**Navigation:** `commands/meta.json` (topic, project, ontology after predicate), `guides/meta.json` (topics after edges; automation-exit-contract last), root `meta.json` (api under Reference).
+
+**Not synced:** developer docs (`docs/dev/**`), ADRs 001–011, MasterPlans 14–23, ExecPlans 130–196, improvement requests, reviews, and the deployment runbooks — contributor-facing artifacts outside this site's scope.
+
+#### Second pass — the source's reference-surface audit
+
+Mid-sync, the source repo landed a reference-surface audit (uncommitted working tree at
+`822780e0`): two new help topics, nine revised ones, and corrections to pages that
+documented commands which do not exist. Synced on top of the above.
+
+**New guide pages:**
+- `guides/projects.mdx` — from the new `rei help projects`.
+- `guides/reminders.mdx` — from the new `rei help reminders`.
+
+**Corrections (the site carried the same drift):**
+- `guides/time-formats.mdx` — Listed `action complete`, `action start`, and `habit log` under commands supporting `--at`. **None of the three exist.** Rewritten against the real nine-command surface, plus a Future Times section for the expressions reminders accept.
+- `guides/custom-properties.mdx` — `custom-property rename` → `relabel` (positional signature), in both the example and the command table.
+- `commands/system.mdx` — Rewritten as a tombstone: the family was removed in May 2026; dormancy is now a keiro timer. `commands/index.mdx` row updated to match.
+- `commands/reminder.mdx` — "dormant (inactive for 30+ days)" was wrong; the default threshold is 10 (`intentions.dormancy_threshold_days`), and 21 is the reminder delay. Now points at the configuration defaults instead of restating a number.
+- `commands/help.mdx` — Added `projects` and `reminders`; the table is now all 24 registry topics.
+- `concepts/custom-properties.mdx` — Second `rename` → `relabel` instance in its command summary.
+- `commands/periodic-check.mdx` — Its "See Also" still advertised `rei system` as manual dormancy evaluation.
+
+**Updated guides (help-topic changes):**
+- `guides/topics.mdx` — Four new sections: associations (three relations, idempotence, archived-endpoint rules), effective scope (ancestor/owner/anchor, additivity, `--explain`, why only `scoped-to` derives), external references, and custom properties on topics. Intro now states a topic classified `instance-of project` **is** a project; command table gained the fourteen missing subcommands.
+- `guides/custom-properties.mdx` — `topic` and `path-list` value types, a Topic-Valued Property section (`--type-topic`, `--select-topic`, canonical-ID storage, when to use an association instead), and `topic` in the supported-entity table.
+- `guides/config.mdx` — Event attribution, Mori federation, and worker environment variables.
+- `guides/intention-filtering.mdx` — `--completed`, `--roots`, `--has-deadline`, `--search`, `--json`, `--hide-id`.
+- `guides/dashboard.mdx` — The `rei today` section flags, that they combine, and `--include-dormant` / `--tui`.
+- `guides/collections.mdx`, `guides/cycles.mdx`, `guides/views.mdx` — `collection export-notes`, `cycle reschedule`, `view edit`.
+
+**Updated top-level page:**
+- `configuration.mdx` — `intentions.dormancy_threshold_days` / `dormancy_reminder_days` in the defaults table, and four new env-var sections: Event Attribution, HTTP API Server, Mori Federation, and Worker and Storage.
+
+**Navigation:** `guides/meta.json` gained `projects` (after `topics`) and `reminders` (before `kit`).
+
+**Note:** the site's *command* pages were already ahead of the help topics on `collection export-notes`, `cycle reschedule`, `view edit`, the `today` flags, and the intention list filters — the drift was concentrated in the guides. `predeploy` appears in the source command table with no documentation page, so it is not represented here.
 
 ### 2026-06-14
 

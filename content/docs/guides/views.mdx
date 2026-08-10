@@ -222,6 +222,41 @@ Execute with explicit IDs:
 rei intention view int_01abc... project-overview
 ```
 
+## Batch Execution for Machine Clients
+
+Execute multiple saved views in one process:
+
+```bash
+rei view exec-batch --from-file requests.json --json
+```
+
+The file must contain `schemaVersion` 1 and a non-empty `requests` array. Each request has a
+unique `requestId`, exactly one of `viewId` or `viewName`, and an optional
+`scopeIntentionId`. Results retain input order and request IDs.
+
+A missing or archived view, invalid scope, or per-view query failure produces `result: null`
+plus warnings for only that request. Invalid file structure, duplicate request IDs, and
+unsupported schema versions fail before execution.
+
+Example request file:
+
+```json
+{
+  "schemaVersion": 1,
+  "requests": [
+    {"requestId": "panel-a", "viewName": "Delivery"},
+    {
+      "requestId": "panel-b",
+      "viewName": "Review",
+      "scopeIntentionId": "intention_01abc..."
+    }
+  ]
+}
+```
+
+A single view can also emit machine-readable output with `rei view exec NAME --json`, which
+produces `{result, warnings}`.
+
 ## Managing Views
 
 List all views:
@@ -419,7 +454,9 @@ Examples: `daily-planning`, `project_review`, `quarterly-okrs`
 | `view list` | List all views |
 | `view show` | Show view definition |
 | `view exec` | Execute a view and display results |
+| `view exec-batch` | Execute several views in one process from a JSON request file |
 | `view update` | Update view configuration from YAML |
+| `view edit` | Edit a view's configuration in `$EDITOR` |
 | `view export` | Export view configuration to YAML |
 | `view archive` | Archive a view |
 | `view restore` | Restore an archived view |

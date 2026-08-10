@@ -100,6 +100,32 @@ Show all intentions that are currently blocked by incomplete dependencies.
 rei dependency blocked
 ```
 
+### graph
+
+Emit every active dependency edge plus one status-bearing row for each endpoint intention. This is the efficient machine-consumer surface for portfolio and Obeya clients.
+
+```bash
+rei dependency graph --json
+```
+
+`--json` is required. Standard output is always one object containing `graph` and `warnings`. Completed and abandoned endpoints remain in `graph.intentions`; removed edges do not appear.
+
+```json
+{
+  "graph": {
+    "intentions": [
+      {
+        "intentionId": "intention_01h455vb4pex5vsknk084sn02q",
+        "title": "Build gateway",
+        "status": "active"
+      }
+    ],
+    "edges": []
+  },
+  "warnings": []
+}
+```
+
 ## Related Commands
 
 - [`rei intention`](/docs/commands/intention) — Manage intentions

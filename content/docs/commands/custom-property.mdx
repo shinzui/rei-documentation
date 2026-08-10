@@ -8,6 +8,8 @@ Define and manage custom properties that can be attached to entities (intentions
 
 > **Tip:** State machine properties scoped to a category auto-initialize when an entity gets that category — including via category [`childDefault` inheritance](/docs/commands/category#set-child-default). See the [Workflow Auto-Setup guide](/docs/guides/workflow-auto-setup) for end-to-end walkthroughs that combine these features.
 
+> **Deprecated:** `local-repo`, the path-valued convention for saying which repository an intention tree belonged to, has been replaced by [project scope](#local-repo-deprecated). Existing values still work and are still readable; nothing new should create or query one.
+
 ## Concepts
 
 **Custom Property** — A user-defined property definition with:
@@ -45,6 +47,7 @@ Custom properties support the following value types:
 | `path` | File path | reference file |
 | `url` | URL | documentation link |
 | `note` | Reference to a note entity | spec note, next action note |
+| `topic` | Reference to one topic, stored as its canonical ID | primary project, client, research area |
 | `git-ref` | Git commit SHA or SHA range | deployed commit, change range |
 | `uuid` | UUID (optionally version-constrained) | external ticket ID |
 | `tag-set` | Free-form set of tags (no predeclared values) | topics, keywords |
@@ -251,6 +254,10 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 
 - `--type-note` — Note reference type (value is a note ID)
 
+- `--type-topic` — Topic reference type. Assign it by topic key (`rei`) or by `topic_...` ID; either way the stored value is the canonical topic ID, so renaming a topic never rewrites the assignment. The target must exist and be active when the value is set. Pass `--select-topic` in place of VALUE on any entity's `set-property` to choose an active topic interactively instead.
+
+  A topic-valued property is a **named, single-valued field** with the usual custom-property cardinality, inheritance, conditions, and filters. It is not a topic association: use [`rei topic associate`](/docs/commands/topic#associate) when you need an open many-to-many relationship, reverse traversal (`rei topic entities`), or effective operational scope.
+
 - `--type-git-ref` — Git commit reference type
   - `--ref-format <format>` — Allowed format: `commit` (single SHA), `range` (SHA..SHA or SHA...SHA), or `any` (default)
 
@@ -295,6 +302,12 @@ rei custom-property create task-state \
 rei custom-property create spec \
   --type-note \
   -e intention
+
+# Create a topic reference property naming an intention's primary project
+rei custom-property create primary-project \
+  --type-topic \
+  -e intention \
+  --inheritable
 
 # Create a git ref property for tracking deployed commits
 rei custom-property create deployed-commit \
@@ -1092,7 +1105,13 @@ rei intention list --where "effort>=5"
 
 # Filter habits by effort
 rei habit list --where "effort<3"
+
+# Filter by a topic-valued property, by key or by canonical ID
+rei intention list --where primary-project=rei
+rei intention list --where primary-project=topic_01hzz...
 ```
+
+Equality on a topic-valued property matches either form: the stored canonical ID, or a topic key that resolves to it. `key:exists` and `key:missing` work unchanged.
 
 ### LabelSet / TagSet Filtering
 
@@ -1264,7 +1283,9 @@ rei intention show CHILD_ID --full
 
 For properties flagged `--inheritable`, `rei intention list --where key=value` matches against the **effective** value of each intention — the local value if set, otherwise the value inherited from the nearest ancestor. This includes every operator (`=`, `:exists`, `:missing`, `>=`, `<`, `>`, `<=`, `any`, `all`, and the state-tag form `key:tag=value`).
 
-Concretely: if a parent intention has `local-repo=/foo` set and the property is inheritable, then `rei intention list --where local-repo=/foo` returns both the parent and every descendant that inherits the value (i.e., descendants without their own `local-repo` row). A descendant whose own row overrides the parent — say `local-repo=/bar` — is not returned by `--where local-repo=/foo`; it appears under `--where local-repo=/bar` instead.
+Concretely: if a parent intention has `deploy-target=staging` set and the property is inheritable, then `rei intention list --where deploy-target=staging` returns both the parent and every descendant that inherits the value (i.e., descendants without their own `deploy-target` row). A descendant whose own row overrides the parent — say `deploy-target=production` — is not returned by `--where deploy-target=staging`; it appears under `--where deploy-target=production` instead.
+
+This expansion is also why the [`local-repo` migration](#local-repo-deprecated) does **not** inventory with `--where`: it needs the rows a person authored, and a filter query deliberately returns descendants that have none.
 
 For non-inheritable properties, filter behaviour is unchanged: only intentions with a local row matching the predicate are returned. Non-intention entities (links, habits, notes, disruptions) have no parent chain among themselves and so always behave as local-only.
 
@@ -1509,8 +1530,43 @@ rei custom-property add-state-rule workflow \
   --state production --require deploy-ready=true
 ```
 
+## `local-repo` (deprecated)
+
+`local-repo` was the convention for recording which git repository an intention tree belonged to: a path-valued, inheritable property set on a root intention, which every descendant inherited until one of them set its own. Automation read it to decide where a commit's work should be filed.
+
+It is **deprecated**. Projects are now [typed topics](/docs/commands/project), and an intention belongs to one through a `scoped-to` association:
+
+```bash
+# Then
+rei intention set-property $ID local-repo /Users/you/code/rei
+
+# Now
+rei project sync mori://shinzui/rei
+rei project scope add mori://shinzui/rei $ID
+```
+
+Three things the property could not do, and the reason it was replaced:
+
+- **A path is a locator, not a relationship.** It says where a checkout is, not what an intention is part of. When the checkout moved, the answer became wrong.
+- **It could not be queried in reverse.** "Which intentions belong to this project?" meant scanning every value. `rei project scope list` answers it directly.
+- **It replaced rather than accumulated.** A descendant's own value shadowed its ancestor's, so an intention could belong to exactly one repository. `scoped-to` accumulates, so a shared component can legitimately belong to two projects.
+
+Existing values are **not** removed. They remain readable and filterable, and the definition is untouched — it is the audit trail and the rollback path. What changed is that nothing should create or query one any more.
+
+To convert existing values, use [`rei project migrate-local-repos`](/docs/commands/project#migrate-local-repos), which reads every authored row, resolves each path to a Mori project, and adds the equivalent association. It never modifies the property. Effective scope then reproduces the reach the old inheritance had:
+
+```bash
+rei project migrate-local-repos --dry-run          # what would happen, and a token
+rei project migrate-local-repos --apply --confirm migration_…
+rei project migrate-local-repos --verify           # exits non-zero if anything is uncovered
+```
+
+One difference is worth understanding before you run it. Under the old model a descendant's own `local-repo` value **replaced** its ancestor's; under the new one, scope **adds up**, so that descendant ends up in both projects. The migration reports those rows as `additive-override-review` and refuses to write them until you pass `--accept-additive-overrides` — because whether that is the right answer depends on what you meant, and nothing in the data says which.
+
 ## Related Commands
 
+- [`rei project`](/docs/commands/project) — Projects, scope, and the `local-repo` migration
+- [`rei topic`](/docs/commands/topic) — Topics, including topic-valued properties and associations
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
 - [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
 - [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions

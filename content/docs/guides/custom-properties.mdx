@@ -35,8 +35,10 @@ Property keys cannot be changed after creation. Use the label for display.
 | `date` | Date (YYYY-MM-DD) |
 | `datetime` | Date and time |
 | `path` | File path |
+| `path-list` | Unique, sorted set of file paths (multi-value) |
 | `url` | URL |
 | `note` | Reference to a note entity |
+| `topic` | Reference to one topic, stored as its canonical topic ID |
 | `git-ref` | Git commit SHA or SHA range |
 | `uuid` | UUID (v4, v7, or any) |
 | `tag-set` | Free-form tag set (no predeclared values) |
@@ -94,6 +96,36 @@ rei custom-property create spec \
   --type-note \
   -e intention
 ```
+
+### Topic-Valued Property
+
+```bash
+rei custom-property create primary-project \
+  --type-topic \
+  --entity-type intention \
+  --label "Primary project"
+```
+
+Assign it by topic key or by `topic_...` ID. Either way the stored value is the canonical
+topic ID, so renaming a topic never rewrites assignments:
+
+```bash
+rei intention set-property <id> primary-project rei
+```
+
+The target must exist and be active when the value is set.
+
+Pass `--select-topic` in place of VALUE on **any** entity's `set-property` to pick an active
+topic interactively instead of typing one:
+
+```bash
+rei intention set-property <id> primary-project --select-topic
+```
+
+A topic-valued property is a **named, single-valued field** with the usual inheritance and
+filtering. It is not a replacement for a topic association: use `rei topic associate` when
+you need an open many-to-many relationship, reverse traversal (`rei topic entities`), or
+effective operational scope. See the [Topics guide](/docs/guides/topics).
 
 ### Scoped to a Category
 
@@ -177,8 +209,8 @@ rei custom-property show workflow --with-counts
 # Disambiguate when multiple properties have the same key
 rei custom-property show workflow --category work
 
-# Rename the display label
-rei custom-property rename priority --label "Task Priority"
+# Change the display label (keys are immutable)
+rei custom-property relabel priority "Task Priority"
 
 # Archive a property
 rei custom-property archive priority
@@ -506,7 +538,7 @@ The same key CAN exist in different categories.
 | `custom-property create` | Create a new property definition |
 | `custom-property list` | List all properties |
 | `custom-property show` | Show property details (use `--with-counts` for states) |
-| `custom-property rename` | Update display label |
+| `custom-property relabel` | Update display label (keys are immutable) |
 | `custom-property archive` | Archive a property |
 | `custom-property set-inheritable` | Mark property as inheritable in intention tree |
 | `custom-property unset-inheritable` | Stop propagating values to descendants |
@@ -568,6 +600,7 @@ Entities with custom-property support:
 | Action | `rei action …` |
 | Outcome | `rei outcome …` |
 | Blocker | `rei blocker …` |
+| Topic | `rei topic …` (subject is the **first positional**, not a flag; an archived topic refuses everything but `clear-property`) |
 
 Additional viewers:
 

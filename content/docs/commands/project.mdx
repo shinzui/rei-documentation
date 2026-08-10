@@ -1,0 +1,314 @@
+---
+title: rei project
+description: Create, review, and roll up projects as typed topics
+icon: FolderKanban
+---
+
+Work with projects: create them, see what needs attention, and review them on a cadence.
+
+A project in Rei is a **topic classified `instance-of project`** — there is no separate project record, no `project_...` ID, and no projects table. `rei project` is a facade over the [topic commands](/docs/commands/topic), so anything you can do with `rei topic` still applies, and nothing here is a second source of truth.
+
+That has a practical consequence worth stating up front: this works for *any* durable subject that collects work over time. A kitchen renovation, a research programme, a book, a conference talk, and a software repository are all projects to Rei. Only the last kind gains anything from Mori.
+
+## Quick start
+
+```bash
+rei ontology seed-system                                    # once per installation
+rei project create kitchen-renovation --label "Kitchen renovation"
+rei project scope add kitchen-renovation intention_01kv...
+rei project review kitchen-renovation --stage active --health healthy --cadence-days 14
+rei project list
+rei project review --due
+```
+
+`rei ontology seed-system` is a prerequisite: it creates the system `project` topic that classification points at, and the four custom properties that hold review state. Without it, `rei project` reports that no topic can be a project yet and tells you to run it.
+
+## Subcommands
+
+### create
+
+```bash
+rei project create KEY --label LABEL [--description TEXT] [--json]
+```
+
+Creates a topic and classifies it `instance-of project`.
+
+```bash
+rei project create kitchen-renovation --label "Kitchen renovation"
+Created project kitchen-renovation (topic_01kv...)
+```
+
+Both steps look before they write, so this is safe to rerun. If it created the topic and then failed to classify it, running it again repairs the classification; if everything already exists, it reports that rather than failing on the existing key.
+
+For a *software* project, prefer [`sync`](#sync): it resolves the canonical `mori://` identity from Mori instead of asking you to assert one.
+
+### list
+
+```bash
+rei project list [--stage STAGE] [--health HEALTH] [--due]
+                 [--include-archived] [--with-mori] [--json]
+```
+
+Every project, with its review state and a rollup of the work in scope.
+
+```bash
+rei project list
+!  kitchen-renovation        active        watch     3 active 1 blocked 12 recent
+   shinzui-rei               maintaining   healthy   1 active 0 blocked 40 recent
+```
+
+The leading `!` marks a project whose review is due. Counts cover **effective scope**: an intention scoped to the project brings its descendants and the actions, outcomes, blockers, notes, docs, links, and tasks they own, so scoping one root intention is usually all you need.
+
+Listing reads only Rei's own data and **issues no network request**. `--with-mori` opts in to live Mori data for software projects; it asks Mori once whether it is ready before enriching anything, so a Mori that is down costs one request rather than one timeout per project.
+
+Archived projects are excluded unless you pass `--include-archived`.
+
+### show
+
+```bash
+rei project show PROJECT [--direct] [--with-mori|--no-mori] [--json]
+```
+
+`PROJECT` may be a topic key, a `topic_...` ID, or a canonical external reference such as `mori://shinzui/rei`.
+
+```bash
+rei project show kitchen-renovation
+Kitchen renovation (kitchen-renovation)
+  topic_01kv...
+
+Review:     active, watch, every 14d
+            due now
+
+Intentions: 3 active, 1 dormant, 2 completed
+Blockers:   1 unresolved
+Actions:    12 recent
+Outcomes:   2 recent
+Tasks:      4 pending
+
+Scope:      1 direct, 27 effective
+            ancestor: 14
+            owner: 12
+            direct: 1
+
+Knowledge:  6 notes, 1 docs, 0 links
+
+Active intentions:
+  intention   Fit the new cabinets
+  ...
+
+Identities:
+  (none)
+  Mori: not linked
+```
+
+Direct and effective counts stay side by side on purpose: a project whose whole scope is inherited from one root intention looks very different from one where forty things were filed by hand, and the two numbers are what tell them apart. `--direct` narrows the *explanation* to directly associated entities; the counts are unaffected.
+
+If the project has a **verified** `mori://` reference, `show` consults Mori by default. When Mori is unreachable the command still prints everything Rei owns, reports `Mori: unavailable`, and **exits zero** — the stored data is complete and correct without Mori. `--no-mori` skips the lookup; `--with-mori` attempts it even for an unverified reference.
+
+An archived project still shows, marked archived.
+
+### scope
+
+```bash
+rei project scope add    PROJECT ENTITY [--entity-type TYPE] [--json]
+rei project scope remove PROJECT ENTITY [--entity-type TYPE] [--json]
+rei project scope list   PROJECT [--direct] [--entity-type TYPE] [--json]
+```
+
+What belongs to the project. This is exactly `rei topic associate` / `dissociate` / `entities` with the `scoped-to` relation — same validation, same output, same JSON — so you can move between the two families freely.
+
+```bash
+rei project scope add kitchen-renovation intention_01kv...
+Scoped intention:intention_01kv... scoped-to kitchen-renovation (edge_01kv...)
+```
+
+`ENTITY` accepts a full Rei ID or a bare 26-character TypeID suffix; `--entity-type` asserts the type of a full ID and disambiguates a bare suffix.
+
+`scope list` shows effective scope by default and explains how each entity got there. `--direct` shows only the associations someone made explicitly.
+
+### review
+
+```bash
+rei project review [PROJECT] [--due] [--stage STAGE] [--health HEALTH]
+                   [--cadence-days N] [--at ISO8601] [--json]
+```
+
+With **no** `PROJECT`, this is the attention queue:
+
+```bash
+rei project review --due
+  kitchen-renovation        due 2026-07-15   Kitchen renovation
+  thesis                    never reviewed   PhD thesis
+```
+
+With a `PROJECT`, it records a review:
+
+```bash
+rei project review kitchen-renovation --stage active --health healthy --cadence-days 14
+Reviewed kitchen-renovation; next review 2026-08-07
+```
+
+`project-last-reviewed-at` is always written. Stage, health, and cadence are written **only when supplied**, so reviewing a project without changing your mind about its stage does not clear the stage.
+
+Use `--at` to record a review at the moment it actually happened rather than when you got round to typing it. Rerunning with the same `--at` and the same values repairs a partial write.
+
+#### When a project is due
+
+| Situation | Due? |
+|---|---|
+| Never reviewed | **Yes** — a new or migrated project should not hide until a timestamp happens to exist |
+| Reviewed, and today is on or after the next review date | **Yes** — a 14-day cadence reviewed on the 1st comes up on the 15th |
+| Reviewed, and the next review date is still ahead | No |
+| Stage is `completed` or `retired` | **No** — the cycle is over, though the project stays queryable by stage |
+| Stage is `paused` | **Yes**, on schedule — a pause is worth revisiting, and the review is when you notice it has become abandonment |
+
+Days are counted in **your local timezone**, so a review at 22:00 local on the 3rd counts as the 3rd.
+
+An unset cadence displays as 30 days without writing anything, so changing the default later still moves every project that never chose one.
+
+### archive / restore
+
+```bash
+rei project archive PROJECT [--json]
+rei project restore PROJECT [--json]
+```
+
+Archiving is soft and delegates to the topic's lifecycle. Associations, external references, review metadata, and historical work are all kept and stay readable; restoring brings the project back with the same identity.
+
+### sync
+
+```bash
+rei project sync MORI_REF|--repo-id REPO_ID [--json]
+```
+
+Materializes a **software** project from Mori. Looks the project up in Mori's HTTP API (`MORI_API_URL`, default `http://127.0.0.1:8080`), then creates or reuses one topic classified `instance-of project`, attaches the canonical `mori://` reference, and marks it verified.
+
+```bash
+rei project sync mori://shinzui/rei
+Project:      shinzui/rei (shinzui-rei)
+Topic ID:     topic_01kv...
+Reference:    mori://shinzui/rei [verified]
+Mori path:    /Users/you/code/rei
+Mori status:  active
+Sync:         topic-created, type-added, reference-created, reference-verified
+```
+
+Rerunning is a no-op that reports what was reused.
+
+Rei stores **only the reference**. Paths, packages, dependencies, repositories, and technical lifecycle stay Mori's, and are fetched when you ask for them rather than copied into Rei where they would silently rot.
+
+### migrate-local-repos
+
+```bash
+rei project migrate-local-repos [--dry-run] [--mapping FILE] [--report FILE] [--json]
+                                [--accept-additive-overrides]
+rei project migrate-local-repos --apply --confirm TOKEN [--mapping FILE] [--report FILE]
+                                [--accept-additive-overrides]
+rei project migrate-local-repos --verify [--mapping FILE] [--report FILE] [--json]
+```
+
+Converts the legacy [`local-repo`](/docs/commands/custom-property#local-repo-deprecated) convention into project scope. Before this existed, "which project is this intention part of?" was answered by a path-valued custom property that one intention carried and its descendants inherited. That works while every relevant intention sits under one root and the checkout never moves; it cannot express one intention belonging to two projects, and it cannot be queried in reverse.
+
+The migration reads every **authored** `local-repo` row — not the inherited expansion — resolves its path against one Mori project snapshot, and adds one direct `scoped-to` association at the same intention. Effective scope then reproduces the reach the old inheritance had, with provenance.
+
+It is **additive**. Nothing here modifies, archives, or deletes a `local-repo` definition or value; the old rows remain readable and are the rollback path.
+
+**`--dry-run` is the default** and writes nothing. It prints a confirmation token derived from the database, the assignments, the Mori snapshot, the mapping file, and the override policy — so a report prepared against a rehearsal clone cannot authorize an apply against production, and yesterday's token cannot authorize today's data.
+
+```bash
+rei project migrate-local-repos --dry-run
+local-repo migration — dry-run
+  database:            rei:16401
+  source digest:       4f2a91c0d3b8
+  mori snapshot:       9c1e77aa0215
+  mapping file:        (none)
+  additive overrides:  not accepted
+
+Direct assignments:    6
+  ready                     2
+  additive-override-review  1
+  unresolved                1
+  ambiguous                 1
+  invalid-value             1
+…
+Confirmation token: migration_1f0b…
+```
+
+Each row lands in exactly one status:
+
+| Status | Meaning | What to do |
+|---|---|---|
+| `ready` | One Mori project matches and nothing is in the way | Nothing — `--apply` writes it |
+| `already-migrated` | The direct `scoped-to` association already exists | Nothing |
+| `additive-override-review` | A nearer value *replaced* a different ancestor value; `scoped-to` will *accumulate* both | Accept with `--accept-additive-overrides`, or remove the ancestor row first |
+| `unresolved` | No Mori project and no alias resolves the path | `mori register` the project, or add an alias |
+| `ambiguous` | Two Mori projects declare the same path | Fix the duplicate in Mori |
+| `invalid-value` | The value is empty, relative, or not a path | Fix or clear the value |
+| `identity-conflict` | An archived topic already owns the `mori://` reference | `rei project restore` it, or release the reference |
+| `historical-only` | The definition is archived | Nothing — inventoried for audit, never written |
+| `source-unavailable` | The intention is withdrawn or not in the read model | Nothing — withdrawn work does not gain scope |
+
+`--apply` re-derives the plan, requires the token to match, and **refuses the whole run** if any row is `ambiguous`, `invalid-value`, or `identity-conflict`. It is idempotent: a run interrupted anywhere is completed by running it again.
+
+`--verify` re-reads the same classification and exits non-zero unless every eligible assignment has its association. For a row that overrode an ancestor it also reports what the intention now *effectively* belongs to, so "the association exists" and "the meaning changed the way I accepted" are two separate observations.
+
+`--mapping FILE` supplies aliases for checkouts that moved or are gone:
+
+```yaml
+version: 1
+aliases:
+  /old/checkout/rei: mori://shinzui/rei
+```
+
+An alias resolves **identity only**; the topic stores the canonical `mori://` reference, never the path and never the alias. An alias naming a project Mori does not have stops the whole run rather than silently leaving its rows unresolved.
+
+Mori must be reachable: an empty snapshot would classify every assignment `unresolved` and read as a clean migration with no coverage, so the command pre-flights `/health/ready` and aborts if Mori is down.
+
+## Review state
+
+Review state is four ordinary global custom properties on the topic, seeded by `rei ontology seed-system`. You can read and set them with `rei custom-property` like any other, and `rei topic show` lists them.
+
+| Property | Type | Values |
+|---|---|---|
+| `project-stage` | enum | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
+| `project-health` | enum | `healthy`, `watch`, `blocked` — unset means unknown |
+| `project-review-cadence-days` | integer (min 1) | Days between reviews |
+| `project-last-reviewed-at` | datetime | When it was last reviewed |
+
+Stage is an **enum, not a state machine**: no transition graph is imposed, because the legitimate moves differ per project kind — a publication goes `active → completed` and never reaches `maintaining`, while a library may oscillate for years.
+
+## Exit status
+
+`rei project` follows the [automation exit contract](/docs/guides/automation-exit-contract).
+
+| Code | Meaning |
+|---|---|
+| 0 | Success. **Includes** a `show` or `list` where Mori was unavailable — the Rei data is still complete |
+| 2 | Rei refused the request: no such project, the topic is not classified as one, a malformed reference, a stale migration token, or a `migrate-local-repos --verify` whose coverage is incomplete |
+| 64 | `MORI_API_URL` is unusable |
+| 70 | The store, or Mori during a `sync`, could not be reached |
+
+## JSON
+
+`--json` emits a stable object with Rei-owned and Mori-owned facts in separate sections:
+
+```json
+{
+  "identity":     { "topicId": "topic_01kv...", "key": "shinzui-rei", "label": "shinzui/rei", "status": "active", "active": true },
+  "review":       { "stage": "maintaining", "health": "healthy", "cadenceDays": 30, "nextReviewOn": "2026-08-14", "due": false },
+  "work":         { "intentions": { "active": 1, "dormant": 0, "completed": 4 }, "blockers": { "unresolved": 0 }, "actions": { "recent": 40 } },
+  "knowledge":    { "notes": 6, "docs": 1, "links": 0 },
+  "associations": { "direct": 1, "effective": 27, "truncatedBranches": 0 },
+  "external":     { "refs": [], "mori": { "available": true, "path": "/Users/you/code/rei", "lifecycle": "active" } }
+}
+```
+
+`external.mori` is absent when no lookup was attempted, and carries `{"available": false, "retryable": …}` when one failed — `retryable` is Mori's own answer about whether trying again can help, not something Rei inferred from a status code.
+
+`list` emits an array of the same objects, and `show` adds `samples` and `scope` sections. A consumer that parses a `list` row parses a `show` unchanged.
+
+## See also
+
+- [`rei topic`](/docs/commands/topic) — the underlying topics, associations, properties, and external references
+- [`rei ontology`](/docs/commands/ontology) — seeding the system `project` topic and the review properties
+- [`rei custom-property`](/docs/commands/custom-property) — reading and setting review state directly

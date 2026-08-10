@@ -45,6 +45,7 @@ Rei currently emits these span families:
 | `rei.timer.<name>` | `rei.reactor.kind`, `rei.reactor.name`, `rei.timer.name`, `rei.timer.scheduled_for`, `rei.reactor.ack`, `rei.reactor.outcome` |
 | Database statements | `db.system.name=postgresql`, `db.operation.name`, `db.collection.name`, `db.query.text` |
 | HTTP client requests | `http.request.method`, `url.full`, `server.address`, `server.port`, `http.response.status_code` |
+| HTTP server requests (`rei-api` only) | Emitted by the WAI instrumentation with the standard HTTP server semantic-convention attributes. The server span is the root of everything a request does, so command and database spans nest inside it. |
 
 ## Metrics
 
@@ -69,6 +70,18 @@ Operational log lines written through Rei's telemetry logger are prefixed like t
 ```
 
 Copy the value after `trace=` into your trace backend's search UI. When no span is active, Rei writes `[trace=- span=-]` so the log format stays stable.
+
+### The `rei-api` Access Log
+
+The [HTTP API server](/docs/api) additionally writes one JSON line per request to stdout:
+
+```json
+{"time":"2026-08-09T17:04:11.412Z","method":"GET","path":"/api/v1/intentions","status":200,"duration_ms":7.31,"user_agent":"curl/8.7.1","trace_id":"4bf92f...","span_id":"00f067..."}
+```
+
+- The field set is a **whitelist**. `User-Agent` is the only header logged, the path excludes the query string, and no request or response body is ever written. Adding a field is a deliberate act — the alternative, a redaction list, fails open on the next header somebody adds.
+- `trace_id`/`span_id` are **omitted** rather than written as zeros when telemetry is off or the root span was not sampled. A zero id looks real to every downstream query and would turn "we have no trace" into "every request shares one trace".
+- Health probe paths are excluded; the orchestrator already records those, and at a one-second interval they would drown real traffic.
 
 ## Run Jaeger Locally
 

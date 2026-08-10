@@ -146,6 +146,7 @@ rei view exec [NAME] [options]
 
 **Options:**
 - `-s, --scope INTENTION_ID` — Scope the view to a specific intention
+- `--json` — Emit `{result, warnings}` for a machine consumer
 
 **Examples:**
 
@@ -180,6 +181,43 @@ View: daily-planning
 ## Recent Notes (3)
 
   (notes would be listed here)
+```
+
+### exec-batch
+
+Execute multiple saved views in one process and preserve caller request IDs and input order.
+
+```bash
+rei view exec-batch --from-file requests.json --json
+```
+
+The request file is versioned JSON. Each request must provide a unique `requestId` and exactly one of `viewId` or `viewName`; `scopeIntentionId` is optional.
+
+```json
+{
+  "schemaVersion": 1,
+  "requests": [
+    {"requestId": "panel-a", "viewName": "Delivery"},
+    {
+      "requestId": "panel-b",
+      "viewName": "Project Review",
+      "scopeIntentionId": "intention_01h455vb4pex5vsknk084sn02q"
+    }
+  ]
+}
+```
+
+Missing or archived views, invalid or missing scopes, and per-view query failures produce a local result with `result: null` and warnings without discarding successful requests. An unsupported schema version, empty request list, duplicate request ID, or invalid view selector fails the command before execution.
+
+```json
+{
+  "schemaVersion": 1,
+  "results": [
+    {"requestId": "panel-a", "result": {"viewName": "Delivery", "sectionResults": []}, "warnings": []},
+    {"requestId": "panel-b", "result": null, "warnings": ["View not found: Missing"]}
+  ],
+  "warnings": []
+}
 ```
 
 ### update

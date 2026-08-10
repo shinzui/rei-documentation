@@ -34,6 +34,23 @@ Control which intention statuses to display:
 | `--future` | Future/deferred intentions only |
 | `--all` | Both active and future (excludes completed/abandoned) |
 | `--dormant` | Dormant intentions only |
+| `--completed` | Completed intentions only |
+
+## Structure and Deadline Filters
+
+| Flag | Description |
+|------|-------------|
+| `--roots` | Only root intentions (no parent) |
+| `--has-deadline` | Only intentions that have a deadline |
+
+## Search
+
+Match titles case-insensitively:
+
+```bash
+rei intention list --search shadowing
+rei intention list -s "listening comprehension"
+```
 
 ## Context Filter
 
@@ -174,6 +191,13 @@ rei intention list --format json       # JSON array
 ```
 
 The `fzf` format outputs tab-separated values (`ID<tab>title<tab>horizon`) for shell scripting and fzf widgets.
+
+Shortcuts:
+
+| Flag | Description |
+|------|-------------|
+| `--json` | Same as `--format json`; overrides `--format` |
+| `--hide-id` | Drop intention IDs from human-readable output |
 
 ## Grouping
 

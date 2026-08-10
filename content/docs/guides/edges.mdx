@@ -80,6 +80,46 @@ rei predicate archive summarizes
 rei predicate restore summarizes
 ```
 
+## Predicate Semantics (Ontology)
+
+Predicates can carry lightweight ontology semantics that power validation and opt-in
+query-time inference. These are optional flags on `define` / `update`:
+
+| Flag | Meaning |
+|------|---------|
+| `--transitive` | The relationship chains (A→B, B→C implies A→C) |
+| `--symmetric` | The relationship holds both ways (A→B implies B→A) |
+| `--inverse-of KEY` | Names the inverse predicate (e.g. `narrower-than`) |
+| `--domain-types TYPES` | Allowed source entity types for the ontology |
+| `--range-types TYPES` | Allowed target entity types for the ontology |
+| `--clear-inverse` | (update only) Drop the inverse predicate key |
+
+Example — a transitive hierarchy predicate with an inverse:
+
+```bash
+rei predicate define broader-than --label "Broader Than" \
+  --transitive --inverse-of narrower-than \
+  --domain-types topic --range-types topic
+```
+
+Seed the standard ontology predicates (`about`, `scoped-to`, `instance-of`, `broader-than`,
+`narrower-than`, `related-to`) with their semantics, plus the system topics Rei owns by key,
+in one step:
+
+```bash
+rei ontology seed-system
+```
+
+Validate that every active edge respects its predicate's domain/range constraints:
+
+```bash
+rei ontology validate
+rei ontology validate --json
+```
+
+These semantics drive the inference shown by `rei topic related` and
+`rei topic tree --include-inferred`. See the [Topics guide](/docs/guides/topics).
+
 ## Creating Edges
 
 An edge connects a source entity to a target entity via a predicate key.
@@ -194,6 +234,13 @@ rei edge list --predicate inspired-by
 | `predicate update` | Update predicate metadata |
 | `predicate archive` | Archive a predicate (prevents new edges) |
 | `predicate restore` | Restore an archived predicate |
+
+### Ontology Commands
+
+| Command | Description |
+|---------|-------------|
+| `ontology seed-system` | Seed the default predicates and system topics |
+| `ontology validate` | Validate active edges against predicate semantics |
 
 ### Edge Commands
 

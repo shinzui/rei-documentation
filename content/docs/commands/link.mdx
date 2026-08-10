@@ -26,6 +26,7 @@ rei link add <url> [options]
 - `-a, --action <id>` — Attach to action
 - `-o, --outcome <id>` — Attach to outcome
 - `-r, --reflection <id>` — Attach to reflection
+- `--topic <id>` — Attach to topic (optional)
 - `-t, --title <title>` — Link title (optional)
 - `--actor <actor>` — Actor that created this link (optional)
 - `-p, --property KEY=VALUE` — Set a custom property on the new link (repeatable)
@@ -47,6 +48,9 @@ rei link add https://github.com/user/repo -i intention_01h455vb4pex -t "Project 
 
 # Add to an action
 rei link add https://pr-url.com -i intention_01h455vb4pex -a action_01h455vb4pex
+
+# Add to a topic
+rei link add --topic topic_01h455vb4pex https://www.w3.org/TR/rdf11-concepts/ -t "RDF 1.1 Concepts"
 
 # Same URL added to a different intention shares the canonical link
 rei link add https://github.com/user/repo -i intention_01h789abc
@@ -90,6 +94,7 @@ rei link list [options]
 - `-a, --action <id>` — Filter by action
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
+- `--topic <id>` — Filter by topic
 - `--all` — Show all links across all anchors
 - `-q, --query <text>` — Search links by title or URL (case-insensitive substring match; with `--all`)
 - `-d, --domain <domain>` — Filter by registrable domain (e.g., `x.com`, `github.com`; with `--all`)
@@ -243,6 +248,40 @@ If the link has only one attachment, the `--attachment` flag is not needed.
 
 ```bash
 rei link detach link_01h789abc --attachment link_att_01h999
+```
+
+### set-topic
+
+Move one link attachment's single owning anchor to a topic.
+
+```bash
+rei link set-topic [LINK_ID] [TOPIC] [--attachment ATTACHMENT_ID] [--actor ACTOR]
+```
+
+**Arguments:**
+- `[LINK_ID]` — Link ID (optional if fzf is available)
+- `[TOPIC]` — Topic ID, key, or label (optional if fzf is available)
+
+**Options:**
+- `--link <id>` — Link ID to move (alternative to positional `LINK_ID`)
+- `--attachment <id>` — Attachment ID to move when a link has multiple attachments
+- `--actor <actor>` — Actor performing this action (overrides global `--actor`)
+
+If the link has exactly one attachment, `--attachment` is not needed. If it has multiple attachments, Rei lists them and asks you to choose one by passing `--attachment`. Re-anchoring preserves the attachment ID and moves the storage relationship: the link appears in `rei link list --topic TOPIC` and `rei topic attachments TOPIC`. It does not create an `about` edge.
+
+> **FZF Support:** If the link or topic is omitted and fzf is available, Rei opens the corresponding picker.
+
+**Examples:**
+
+```bash
+# Move a single-attachment link to a topic key
+rei link set-topic link_01h789abc agent-memory
+
+# Move a specific attachment when the link is attached in several places
+rei link set-topic link_01h789abc agent-memory --attachment link_att_01h999
+
+# Pick the link and topic interactively
+rei link set-topic
 ```
 
 ### title

@@ -1,0 +1,224 @@
+---
+title: HTTP API
+description: Run rei-api, the HTTP front end over the same event-sourced domain as the CLI
+icon: Server
+---
+
+`rei-api` is Rei's second front end. It serves the same event-sourced domain the `rei` command-line tool drives — the same `rei-core` command handlers, the same read models, the same PostgreSQL database — over HTTP, so a mobile app, a web UI, another service, or an agent can drive Rei across a network instead of from a shell.
+
+It is a **separate long-running process**. Installing or running the CLI does not start it, and nothing in the CLI talks to it.
+
+The endpoint surface is deliberately narrow: intentions and categories. Everything else Rei can do is still CLI-only.
+
+## Running the server
+
+```bash
+cabal run rei-api
+# rei-api listening on http://localhost:8080
+```
+
+### Environment
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `REI_PG_CONNECTION_STRING` | *(required)* | PostgreSQL connection string. `PG_CONNECTION_STRING` is accepted as a fallback. The server refuses to start without one. |
+| `REI_API_PORT` | `8080` | Listen port. An unparseable value falls back to `8080` rather than failing. |
+| `REI_API_TOKENS` | unset | Bearer tokens, see [Authentication](#authentication). Unset means every write is rejected. |
+
+The server also reads Rei's ordinary config file and the OpenTelemetry variables described in [Observability](/docs/observability); tracing is on by the same switches the CLI uses.
+
+The store's connection pool is opened **once per process**, so the server holds connections for its whole lifetime rather than per request.
+
+### What it does not run
+
+`rei-api` serves HTTP and nothing else. Asynchronous projections, reactors, and timers run in the `rei worker kiroku` process, exactly as they do for the CLI. A deployment that starts only `rei-api` will serve reads from read models that nobody is updating — see [Write responses and consistency](#write-responses-and-consistency).
+
+## Endpoints
+
+Operational endpoints live at the root; every domain endpoint lives under `/api/v1`.
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| `GET` | `/health/live` | — | Liveness. Answers `200` while the process is responsive; **never** touches PostgreSQL. |
+| `GET` | `/health/ready` | — | Readiness. `SELECT 1` on the store pool; `503` when the database is unreachable. |
+| `GET` | `/version` | — | `{"version":"5.0.0.0"}` — the compiled package version. |
+| `GET` | `/docs` | — | Interactive Swagger UI over the derived OpenAPI document. |
+| `GET` | `/openapi.json` | — | The OpenAPI 3.1 document itself. |
+| `GET` | `/api/v1/intentions` | — | Paginated page of non-terminal intentions. |
+| `GET` | `/api/v1/intentions/{id}` | — | One intention's read-model row. |
+| `GET` | `/api/v1/intentions/{id}/full-view` | — | The projected graph: children, actions, outcomes, blockers, notes, docs, links, reminders, properties. |
+| `POST` | `/api/v1/intentions` | Bearer | Create an intention. |
+| `POST` | `/api/v1/intentions/{id}/commands/complete` | Bearer | Complete it. |
+| `POST` | `/api/v1/intentions/{id}/commands/abandon` | Bearer | Abandon it. |
+| `POST` | `/api/v1/intentions/{id}/commands/defer` | Bearer | Defer it to `Future`. |
+| `POST` | `/api/v1/intentions/{id}/actions` | Bearer | Record an action against it. |
+| `GET` | `/api/v1/categories` | — | Paginated page of active categories, flat — every row carries its `parentId`, so a client assembles the hierarchy itself. |
+| `GET` | `/api/v1/categories/{id}` | — | One category. |
+
+`{id}` is a TypeID string (`intention_01k...`, `category_01k...`). A malformed id answers `400` with a problem document, not a `404` and not plain text. Because the capture refuses anything that is not a well-formed TypeID, it can never swallow a literal path segment such as `full-view`.
+
+<Callout type="warn">
+**Reads are currently unauthenticated.** Only the write endpoints carry the bearer combinator. Do not expose this server to a network you would not give read access to.
+</Callout>
+
+### The API is not the CLI
+
+The API exposes a subset of what the CLI can express, and a few things differ on purpose:
+
+- `POST /api/v1/intentions` takes `title`, and optionally `parentId` and `context`. There is no `horizon` field — the free-text horizon parser lives in the CLI package.
+- Timestamps are **UTC**. `occurredAt` on a recorded action defaults to the server clock; the server has no notion of the caller's local timezone, which is exactly why the CLI (which runs on the operator's machine) uses the operator's.
+- Intention ids are generated server-side and never taken from the request body.
+
+## Authentication
+
+Write endpoints require `Authorization: Bearer <token>`. The resolved token decides the **actor stamped on every event** the request records — the same provenance the CLI stamps.
+
+`REI_API_TOKENS` is a comma-separated list of `token=actor` pairs, where `actor` is the literal `human` or `agent:<agentId>`:
+
+```bash
+export REI_API_TOKENS="s3cret=human,botkey=agent:claude-code"
+```
+
+This is **fail-closed** and single-tenant. An unset or empty variable yields an empty token map, and an empty map rejects every write; an unparseable entry is dropped rather than defaulting to something permissive. A typo costs access — it never grants it.
+
+A missing header, a malformed one, and an unknown token are all answered identically with `401`, an `unauthorized` problem document, and a `WWW-Authenticate: Bearer` challenge. They are not told apart on purpose: distinguishing them would turn the error into a token-enumeration oracle.
+
+Because the rejection happens before any handler runs, `401` is **not** listed in each operation's responses in the OpenAPI document. Treat it as universal on every bearer-protected route.
+
+This is an authentication *seam*, not an identity system. There is no per-object authorization: any valid token can write anything.
+
+## Pagination
+
+Both list endpoints use Relay cursor pagination and have done since their first release — there is no unpaginated variant and no `?limit=`/`?offset=`.
+
+| Parameter | Meaning |
+|---|---|
+| `first` | Page size, forward. Default `20`, maximum `100`. |
+| `after` | Cursor to page forward from. |
+| `last` | Page size, backward. |
+| `before` | Cursor to page backward from. |
+
+A request above the maximum is **rejected, not clamped**.
+
+```bash
+curl -s 'http://localhost:8080/api/v1/intentions?first=2'
+```
+
+Each `node` is the full read-model row (abbreviated here):
+
+```json
+{
+  "edges": [
+    { "node": { "intentionId": "intention_01k...", "title": "Ship the API", "status": "Active" }, "cursor": "eyJ..." }
+  ],
+  "pageInfo": {
+    "hasNextPage": true,
+    "hasPreviousPage": false,
+    "startCursor": "eyJ...",
+    "endCursor": "eyJ..."
+  }
+}
+```
+
+**Cursors are opaque.** They are base64url strings that encode the sort key and a fingerprint of the endpoint's sort specification. Do not decode, construct, or reuse one across endpoints: a cursor that decodes but does not belong to this endpoint's sort is rejected as a client error, before any SQL runs.
+
+An invalid pagination request answers `400` with the pagination error body — **not** a problem document, because that wire contract belongs to the pagination combinator:
+
+```json
+{ "code": "invalid_cursor", "message": "cursor rejected: ...", "retryable": false, "parameter": "after" }
+```
+
+Every other status on a list endpoint is an ordinary problem document.
+
+## Errors
+
+Every error except the pagination `400` above is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem document served as `application/problem+json`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Intention has active children",
+  "status": 409,
+  "detail": "intention intention_01k... has 2 active child intention(s): ...; complete or abandon them first",
+  "code": "intention_has_active_children",
+  "retryable": false
+}
+```
+
+- `code` is the stable `snake_case` key **clients should branch on**. `title` is stable per code; `detail` carries request-specific prose and may be reworded at any time.
+- `retryable` is `true` only when retrying the *unchanged* request can succeed.
+- `type` is always `about:blank` — Rei does not host error documentation URLs and will not invent ones it does not serve.
+
+### Catalog
+
+| `code` | Status | Retryable | Raised when |
+|---|---|---|---|
+| `bad_request` | 400 | no | A malformed value in a request body, e.g. an unparseable `parentId`. |
+| `body_parse_error` | 400 | no | The JSON body did not parse or was missing a required field. |
+| `unauthorized` | 401 | no | Missing, malformed, or unknown bearer token. |
+| `not_found` | 404 | no | No such entity — or a lifecycle command that was a no-op (see below). |
+| `method_not_allowed` | 405 | no | The path exists but not with that method. |
+| `conflict` | 409 | no | Optimistic-concurrency clash, duplicate event, or retry exhaustion. |
+| `intention_has_active_children` | 409 | no | `complete` on an intention with Active children. The offending ids are in `detail`. |
+| `unprocessable` | 422 | no | The domain rejected the command. |
+| `internal` | 500 | no | Rei is broken — a decode failure, corrupt stored data. Retrying cannot help. |
+| `store_unavailable` | 503 | **yes** | PostgreSQL is unreachable, the connection was lost, or the pool timed out. |
+
+A dead database is `503 retryable:true` on every route, including the paginated ones. That distinction is load-bearing: a lost connection is the most common production failure there is, and reporting it as a non-retryable `500` would tell clients to give up on something that will work in a moment.
+
+## Write responses and consistency
+
+A successful write answers with what the **command itself produced** — the aggregate and the status the command yielded — never with a re-read of a read model:
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/intentions \
+  -H 'Authorization: Bearer s3cret' \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Ship the API","context":"work"}'
+```
+
+```json
+{
+  "intentionId": "intention_01k...",
+  "parentId": null,
+  "title": "Ship the API",
+  "context": "work",
+  "categoryId": null,
+  "focusId": null,
+  "deadline": null,
+  "createdAt": "2026-08-09T17:04:11.412Z",
+  "startedAt": "2026-08-09T17:04:11.412Z",
+  "status": "Active"
+}
+```
+
+This is the one consistency rule to understand before writing a client:
+
+> **A write is durable the moment it answers `2xx`. The `GET` endpoints may not show it yet.**
+
+The `intentions` read model those `GET`s serve is fed by an asynchronous keiro projection running in a *separate* worker process. A handler that re-read it to build its response would be racing that worker, and would have to answer something when the row is not there yet — but the write has already succeeded, so a `5xx` or a `404` would misreport a success. Clients that need the projected graph ask for `GET /api/v1/intentions/{id}/full-view` after the fact, which is honest about reading a projection.
+
+Two more behaviors worth knowing:
+
+- `POST /api/v1/intentions` and `POST .../actions` answer `201`; the lifecycle commands answer `200`.
+- A lifecycle command that is a **no-op** answers `404`. The intention may be absent, or already in a state where the transition emits nothing — the handler cannot tell those apart. Abandoning an already-abandoned intention therefore gets `404`, not an idempotent `200`.
+
+## The OpenAPI document
+
+The document is a **build artifact**, derived from the very types the server serves. It is never hand-written and never hand-edited: if it is wrong, the types are wrong.
+
+- Live, from a running server: `GET /openapi.json`, or the viewer at `/docs`.
+- Committed, for tooling and code generation without a server: `docs/api/openapi.json` in the source repository.
+
+Regenerate and verify the committed copy with:
+
+```bash
+just openapi-check     # regenerates, then fails if the artifact differs
+```
+
+A red diff means someone changed the API and did not regenerate.
+
+## See also
+
+- [Observability](/docs/observability) — tracing and the structured access log
+- [Commands](/docs/commands) — the other front end

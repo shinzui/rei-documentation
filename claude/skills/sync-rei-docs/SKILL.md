@@ -23,11 +23,30 @@ Help topics are accessed via `rei help <topic>` and define canonical explanation
 
 Current help topics and their required guides:
 
-| Help Topic | Required Guide | Description |
-|------------|----------------|-------------|
-| `custom-properties.md` | `custom-properties.mdx` | Custom property types, creation, and usage |
-| `intention-filtering.md` | `intention-filtering.mdx` | Filtering intentions with --where, --context, --state-tag |
-| `time.md` | `time-formats.mdx` | Time formats for --at flag (relative and absolute) |
+| Help Topic | Required Guide |
+|------------|----------------|
+| `agent-memory-filesystem.md` | `agent-memory-filesystem.mdx` |
+| `agent-memory.md` | `agent-memory.mdx` |
+| `agent-schedules.md` | `agent-schedules.mdx` |
+| `agent-sessions.md` | `agent-sessions.mdx` |
+| `collections.md` | `collections.mdx` |
+| `config.md` | `config.mdx` |
+| `custom-properties.md` | `custom-properties.mdx` |
+| `cycles.md` | `cycles.mdx` |
+| `dashboard.md` | `dashboard.mdx` |
+| `delegation.md` | `delegation.mdx` |
+| `disruptions.md` | `disruptions.mdx` |
+| `edges.md` | `edges.mdx` |
+| `intention-filtering.md` | `intention-filtering.mdx` |
+| `journal-entries.md` | `journal-entries.mdx` |
+| `kit.md` | `kit.mdx` |
+| `multi-agent-orchestration.md` | `multi-agent-orchestration.mdx` |
+| `review-checkpoints.md` | `review-checkpoints.mdx` |
+| `state-machines.md` | `state-machines.mdx` |
+| `templates.md` | `templates.mdx` |
+| `time.md` | `time-formats.mdx` |
+| `topics.md` | `topics.mdx` |
+| `views.md` | `views.mdx` |
 
 **Sync requirements:**
 1. **Every help topic MUST have a corresponding guide** - if a help topic exists without a guide, create one
@@ -42,13 +61,18 @@ Current help topics and their required guides:
 - `docs/user/concepts.md` - Core concepts
 - `docs/user/CHANGELOG.md` - User-facing changelog
 
-**CLI commands in source:**
-- action.md, agent.md, blocker.md, category.md, configuration.md
-- custom-property.md, cycle.md, dependency.md, disruption.md, doc.md
-- focus.md, habit.md, help.md, intention.md, knowledge.md
-- link.md, note.md, outcome.md, reflect.md, reminder.md
-- review.md, subscription.md, support.md, system.md
-- task.md, today.md, tomorrow.md, workspace.md
+**CLI commands in source** (`docs/user/cli/`, as of the 2026-08-09 sync):
+- action.md, agent-memory.md, agent-schedule.md, agent.md, automation-exit-contract.md
+- blocker.md, category.md, checkpoint.md, collection.md, configuration.md
+- custom-property.md, cycle.md, day.md, dependency.md, disruption.md, doc.md, edge.md
+- focus.md, habit.md, help.md, intention.md, kiroku.md, kit.md, knowledge.md
+- link.md, note.md, ontology.md, outcome.md, periodic-check.md, playbook.md, predicate.md
+- project.md, reflect.md, reminder.md, review.md, subscription.md, support.md, system.md
+- task.md, template.md, today.md, tomorrow.md, topic.md, view.md, worker.md
+- workspace.md, yesterday.md
+
+Other user docs worth checking each sync: `docs/user/api.md` (→ `content/docs/api.mdx`) and
+`docs/user/observability.md` (→ `content/docs/observability.mdx`).
 
 ### Developer Documentation (`docs/dev/`)
 
@@ -85,10 +109,9 @@ Current help topics and their required guides:
 - intentions.mdx, habits.mdx, reflections.mdx
 - focus-cycles.mdx, custom-properties.mdx, ai-coaching.mdx
 
-**Current guide pages (must match help topics):**
-- custom-properties.mdx (from help/custom-properties.md)
-- intention-filtering.mdx (from help/intention-filtering.md)
-- time-formats.mdx (from help/time.md)
+**Current guide pages:** one per help topic (see the table above), plus two guides with no
+help topic of their own — `workflow-auto-setup.mdx` and `automation-exit-contract.mdx`
+(the latter tracks `docs/user/cli/automation-exit-contract.md`).
 
 ## Workflow
 
@@ -144,48 +167,24 @@ Help topics define canonical behavior. When they change:
 
 ### Step 4: Identify Files to Update
 
-Map source files to documentation files:
+Map source files to documentation files.
 
-| Source (rei/docs/user/cli/*.md) | Target (rei-documentation/content/docs/commands/*.mdx) |
-|---------------------------------|--------------------------------------------------------|
-| action.md | action.mdx |
-| agent.md | agent.mdx |
-| blocker.md | blocker.mdx |
-| category.md | category.mdx |
-| configuration.md | (content/docs/configuration.mdx) |
-| custom-property.md | custom-property.mdx |
-| cycle.md | cycle.mdx |
-| dependency.md | dependency.mdx (if exists) |
-| disruption.md | disruption.mdx |
-| doc.md | doc.mdx |
-| focus.md | focus.mdx |
-| habit.md | habit.mdx |
-| help.md | help.mdx |
-| intention.md | intention.mdx |
-| knowledge.md | knowledge.mdx |
-| link.md | link.mdx |
-| note.md | note.mdx |
-| outcome.md | outcome.mdx |
-| reflect.md | reflect.mdx |
-| reminder.md | reminder.mdx |
-| review.md | review.mdx |
-| subscription.md | subscription.mdx |
-| support.md | support.mdx |
-| system.md | system.mdx |
-| task.md | task.mdx |
-| today.md | today.mdx |
-| tomorrow.md | tomorrow.mdx |
-| workspace.md | workspace.mdx |
+Each `docs/user/cli/<name>.md` maps to `content/docs/commands/<name>.mdx` with the same
+basename, with these exceptions:
+
+| Source | Target |
+|--------|--------|
+| configuration.md | `content/docs/configuration.mdx` (root page, not a command page) |
+| automation-exit-contract.md | `content/docs/guides/automation-exit-contract.mdx` |
+| README.md | `content/docs/commands/index.mdx` (command index tables) |
+| `docs/user/api.md` | `content/docs/api.mdx` (root page) |
+| `docs/user/observability.md` | `content/docs/observability.mdx` (root page) |
 
 Map help topics to guides (**all help topics MUST have a corresponding guide**):
 
-| Help Topic (rei-cli/help/) | Target (content/docs/guides/) | Status |
-|----------------------------|-------------------------------|--------|
-| custom-properties.md | custom-properties.mdx | Required |
-| intention-filtering.md | intention-filtering.mdx | Required |
-| time.md | time-formats.mdx | Required |
+See the help-topic table above — every topic in `rei-cli/help/` maps to a guide of the same name, except `time.md` → `time-formats.mdx`.
 
-**NOTE:** When new help topics are added in the source repo, add them to this table and create the corresponding guide.
+**NOTE:** When new help topics are added in the source repo, add them to that table, create the corresponding guide, and register it in `content/docs/guides/meta.json`.
 
 ### Step 5: Update Documentation
 
@@ -285,7 +284,9 @@ Use these Lucide icons for command pages:
 - link: `ExternalLink`
 - neglected: `Clock`
 - note: `FileText`
+- ontology: `Network`
 - outcome: `Trophy`
+- project: `FolderKanban`
 - reflect: `BookText`
 - reminder: `Bell`
 - review: `CalendarCheck`
@@ -295,7 +296,9 @@ Use these Lucide icons for command pages:
 - task: `ListTodo`
 - today: `CalendarDays`
 - tomorrow: `CalendarArrowUp`
+- topic: `Hash`
 - workspace: `FolderGit2`
+- api (root page): `Server`
 
 ### Looking Up Valid Icons
 

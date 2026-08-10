@@ -22,8 +22,10 @@ rei worker all
 
 This is the recommended way to run workers in production. It starts:
 - `workspace-git-sync` — Commits note files to git with batching and deduplication
-- `intention-dormancy` — Evaluates dormancy for intentions (triggered by pg_cron)
 - `reminder-trigger` — Triggers due reminders (triggered by pg_cron)
+- `reflection-scheduler` — Creates successor reflections
+- `agent-work` — Evaluates agent schedules and executes scheduled agent work
+- an in-process periodic scheduler that feeds the periodic queue checks
 
 ### kiroku
 
@@ -34,6 +36,8 @@ rei worker kiroku
 ```
 
 This keeps read models current, runs event-triggered reactors, and schedules queue work such as workspace git sync jobs. Run it alongside `rei worker all` in production.
+
+The kiroku worker also routes due Kioku distillation timers for agent memory. Kioku schedules these timers when agent sessions and turns are recorded. Rei's timer dispatcher recognizes `kioku-l1-extract`, `kioku-l2-scene`, and `kioku-l3-persona` rows so they are not claimed as unknown no-ops.
 
 The kiroku worker also starts a **kiroku-metrics HTTP server** that exposes live subscription status (the `/subscriptions` endpoint). Query it from another process with [`rei kiroku subscriptions status --remote-url`](/docs/commands/kiroku).
 
@@ -52,6 +56,24 @@ REI_KIROKU_METRICS_PORT=9200 rei worker kiroku
 REI_KIROKU_METRICS_PORT=disabled rei worker kiroku
 ```
 
+### Kioku Memory Embeddings
+
+Kioku owns memory embedding storage and backfill. Rei hosts Kioku's distillation timers in `rei worker kiroku`, but embedding backfill and continuous embedding work should be run with the Kioku worker companion until Rei grows a first-class embedding worker subcommand.
+
+Use the same PostgreSQL connection string as Rei:
+
+```bash
+PG_CONNECTION_STRING="$REI_PG_CONNECTION_STRING" kioku worker --backfill
+```
+
+For continuous embedding work, run:
+
+```bash
+PG_CONNECTION_STRING="$REI_PG_CONNECTION_STRING" kioku worker
+```
+
+If pgvector is unavailable, Kioku reports that recall will run in FTS-only mode and still runs the timer worker path.
+
 ### git-sync
 
 Run only the git sync worker.
@@ -61,6 +83,22 @@ rei worker git-sync
 ```
 
 Useful for testing or when you only need git commit functionality.
+
+## Graceful Shutdown
+
+`worker all` and `worker git-sync` stop accepting new queue work, wait for active handlers to drain, and then exit. The default drain budget is 30 seconds. Override it with a positive integer number of seconds:
+
+```bash
+REI_WORKER_DRAIN_TIMEOUT_SECONDS=45 rei worker all
+```
+
+A clean stop exits successfully and reports how many processors drained. If the budget expires, Rei prints each processor's state, in-flight count, and received/processed/failed counters, then exits nonzero. Unacknowledged PGMQ messages remain eligible for redelivery after their visibility timeout.
+
+Configure the outer service manager's termination grace period to exceed Rei's drain budget. With the 30-second default, use at least 45 seconds. For systemd:
+
+```ini
+TimeoutStopSec=45s
+```
 
 ## Usage
 
@@ -84,6 +122,7 @@ After=network.target
 [Service]
 ExecStart=/path/to/rei worker kiroku
 Restart=always
+TimeoutStopSec=45s
 
 [Install]
 WantedBy=multi-user.target

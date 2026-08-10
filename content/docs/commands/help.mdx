@@ -26,19 +26,34 @@ rei help <topic>
 
 ## Available Topics
 
+Listed in registry order — the same order `rei help` prints.
+
 | Topic | Description |
 |-------|-------------|
 | `time` | Understanding time formats and the `--at` flag |
-| `custom-properties` | How to define and use custom properties on entities |
-| `state-machines` | State machine properties: YAML config, transitions, WIP limits, metrics |
-| `dashboard` | Configurable dashboard panels for the today command |
-| `views` | Reusable multi-section views for displaying intentions |
-| `collections` | Grouping knowledge artifacts into curated sets |
+| `custom-properties` | Extending entities with custom metadata fields |
+| `dashboard` | Configurable intention panels in the `today` command |
+| `intention-filtering` | Filtering options for the `intention list` command |
+| `state-machines` | Workflow tracking with state machine properties |
+| `views` | Reusable multi-section configurations for displaying intentions |
+| `collections` | Curated groups of notes, links, and documents |
 | `journal-entries` | Daily tracking with journal entry properties |
 | `disruptions` | Tracking recurring interruptions and their patterns |
+| `templates` | Template syntax, helpers, and workspace customization |
+| `cycles` | Focus cycles, daily adherence, and cycle reports |
+| `config` | Configuration file and environment variable reference |
+| `review-checkpoints` | Structured review workflow for agent and human work |
+| `agent-sessions` | Agent focus modes, sessions, memory, and interactive mode |
+| `delegation` | Delegating intentions to agents with scope and autonomy |
+| `multi-agent-orchestration` | Scheduled and event-triggered agent work |
+| `agent-memory` | Agent memory types, anchors, lifecycle, and supersession |
+| `agent-memory-filesystem` | Workspace markdown projection of agent memories |
+| `agent-schedules` | Automated recurring and event-triggered agent work |
 | `edges` | Typed relationships between entities via predicates |
-| `templates` | Template syntax, helpers, variables, and customization |
-| `intention-filtering` | Filtering options for the `intention list` command |
+| `topics` | First-class subjects, attachments, and ontology queries |
+| `projects` | Projects as typed topics: scope, review cadence, and Mori sync |
+| `reminders` | Scheduling, triage, and the reminders Rei creates for you |
+| `kit` | Installing and managing skills and subagents |
 
 ## Examples
 
@@ -72,6 +87,15 @@ rei help disruptions
 
 # Learn about typed relationships between entities
 rei help edges
+
+# Learn about first-class topics and ontology queries
+rei help topics
+
+# Learn about projects as typed topics
+rei help projects
+
+# Learn about reminders and their lifecycle
+rei help reminders
 
 # Learn about note and reflection templates
 rei help templates

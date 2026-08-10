@@ -165,6 +165,32 @@ dashboard:
       category: "projects"
 ```
 
+## Showing Only Some Sections
+
+By default `rei today` prints every section. These flags narrow it, and they **combine** —
+pass two and you get both sections, not neither:
+
+| Flag | Shows |
+|------|-------|
+| `--intentions` | Intentions only |
+| `--actions` | Actions only |
+| `--habits` | Habits only |
+| `--reminders` | Triggered reminders only |
+| `--panels` | Dashboard panels only |
+
+```bash
+rei today --panels                 # just the configured panels
+rei today --actions --reminders    # what happened and what is due
+```
+
+Two more flags shape the whole dashboard rather than selecting sections:
+
+| Flag | Effect |
+|------|--------|
+| `-c, --context CONTEXT` | Restrict to one context |
+| `--include-dormant` | Include dormant intentions (excluded by default) |
+| `--tui` | Launch the interactive TUI dashboard |
+
 ## Behavior
 
 - Panels only appear when configured (empty default)

@@ -13,7 +13,7 @@ Rei uses two configuration sources:
 
 ### Loading Order
 
-Rei checks for a config file in priority order (first found wins):
+For every section except `llm:`, Rei checks for a config file in priority order (first found wins):
 
 | Priority | Location | Description |
 |----------|----------|-------------|
@@ -24,6 +24,8 @@ Rei checks for a config file in priority order (first found wins):
 
 If no config file is found, defaults are used.
 
+The `llm:` section is the exception: Rei loads both a local and a global scope and merges them as described under [AI Agent](#optional-ai-agent). Other sections still come from one file, so this feature does not merge `workspace:`, `display:`, `git:`, or other settings.
+
 ### Default Values
 
 | Setting | Default | Description |
@@ -33,6 +35,8 @@ If no config file is found, defaults are used.
 | `display.date_format` | `%Y-%m-%d` | Date format (strftime) |
 | `display.time_format` | `%H:%M` | Time format (strftime) |
 | `editor` | None | Falls back to `$EDITOR` env var |
+| `intentions.dormancy_threshold_days` | `10` | Days without activity before an intention is marked dormant |
+| `intentions.dormancy_reminder_days` | `21` | Days after going dormant before the revisit reminder fires |
 | `git.enabled` | `true` | Master switch for git integration |
 | `git.commit_notes` | `true` | Auto-commit note changes |
 | `git.commit_reflections` | `false` | Auto-commit reflection changes |
@@ -152,19 +156,97 @@ export PG_CONNECTION_STRING="host=localhost port=5432 dbname=rei user=postgres"
 
 ### Optional: AI Agent
 
-Rei's LLM access is **provider-neutral and configurable** by provider, transport, and model. It is built on the in-house **baikai** library, which speaks to Anthropic, OpenAI, and the `claude -p` / `codex exec` command-line tools. You can configure it two ways — **environment variables** or an **`llm:` section in the YAML config file** (per-project or global). Environment variables take precedence over the file.
+Rei can choose a different provider, transport, model, and reasoning effort **for each model-launching command**. It is built on the in-house **baikai** library, which speaks to Anthropic, OpenAI, and the `claude -p` / `codex exec` command-line tools.
 
-<Callout type="info">
-**Precedence:** `REI_LLM_*` environment variables **>** the `llm:` section of your config file **>** the built-in default (Anthropic + CLI). Within the file layer, a project `./rei.yaml` overrides the global `~/.config/rei/config.yaml`.
-</Callout>
+#### Per-command settings
+
+Put overrides under `llm.commands.<command>`. For example, this uses a fast model for nudges, a stronger model with maximum reasoning for coaching, and the shared model for all other commands:
+
+```yaml
+llm:
+  provider: anthropic
+  transport: cli
+  model: claude-sonnet-5
+  effort: medium
+
+  commands:
+    nudge:
+      model: claude-haiku-4-5
+      effort: low
+    coach:
+      model: claude-opus-4-8
+      effort: max
+```
+
+Verify the effective settings and the exact winning source with:
+
+```bash
+rei agent config
+```
+
+The fourteen command keys are:
+
+| Config key | Command or launch site |
+|------------|------------------------|
+| `coach` | `rei agent coach` |
+| `review` | `rei agent review` |
+| `nudge` | `rei agent nudge` |
+| `reflect` | `rei agent reflect` |
+| `create-note` | `rei agent create-note` |
+| `update-note` | `rei agent update-note` |
+| `ask-note` | `rei agent ask-note` |
+| `assist` | `rei agent assist` |
+| `intention-assist` | `rei agent intention-assist` |
+| `explore` | `rei agent explore` |
+| `create-skill` | `rei agent create-skill` |
+| `note-get-help` | `rei note get-help` |
+| `category-improve-note-guidance` | `rei category improve-note-guidance` |
+| `scheduled-work` | scheduled agent tasks processed by `rei worker all` |
+
+Each command entry accepts `provider`, `transport`, `model`, and `effort`. Valid efforts are `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. An omitted effort leaves the provider or local CLI default unchanged. `api_key` is deliberately shared, not per-command.
+
+A key that is not one of the fourteen names above is ignored, and Rei prints a warning to stderr before running the command:
+
+```
+warning: unknown agent command in config: llm.commands.coaching (no such command)
+```
+
+Commands still run normally; the warning usually means a typo or a stale key.
+
+#### Precedence
+
+Each of the four fields resolves independently, highest first:
+
+1. The flag on the agent subcommand, such as `rei agent coach --model MODEL`.
+2. The flag on the `agent` group, such as `rei agent --model MODEL coach`.
+3. The matching `REI_LLM_*` environment variable.
+4. Local `llm.commands.<command>.<field>`.
+5. Local shared `llm.<field>`.
+6. Global `llm.commands.<command>.<field>`.
+7. Global shared `llm.<field>`.
+8. The built-in default: Anthropic, CLI transport, and no explicit model or effort.
+
+The parent-group flag tier applies only to `rei agent ...`; note help, category guidance, and scheduled work have no `agent` parent. Run `rei agent config` to see this precedence legend alongside every resolved value.
+
+#### Local and global `llm:` scopes
+
+Only the `llm:` section is merged across two files:
+
+- **Local scope:** `$REI_CONFIG` when set to an existing file, otherwise `./rei.yaml`.
+- **Global scope:** `~/.config/rei/config.yaml`, falling back to `~/.rei/config.yaml`.
+
+Any local value beats any global value; within one scope a command value beats its shared default. This is wider than the old first-file-wins behavior when both a local and a global file exist. All non-`llm:` sections retain the loading order documented above.
 
 #### Environment Variables
+
+The four cross-command override variables deliberately affect every command. Use the YAML `commands:` map when different commands should use different settings.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `REI_LLM_PROVIDER` | `anthropic` or `openai` | `anthropic` |
 | `REI_LLM_TRANSPORT` | `cli` (subscription, no key) or `api` (per-token, needs a key) | `cli` |
 | `REI_LLM_MODEL` | Model id forwarded to the provider/CLI (e.g. `sonnet`, `gpt-5-codex`) | provider/CLI default |
+| `REI_LLM_EFFORT` | Reasoning effort: `minimal`, `low`, `medium`, `high`, `xhigh`, or `max` | provider/CLI default |
 | `REI_LLM_API_KEY` | Explicit API key for the `api` transport | - |
 | `ANTHROPIC_API_KEY` | Anthropic key, read by baikai when `REI_LLM_API_KEY` is unset | - |
 | `OPENAI_API_KEY` | OpenAI key, read by baikai when `REI_LLM_API_KEY` is unset | - |
@@ -193,21 +275,27 @@ export REI_LLM_MODEL=gpt-5
 # OpenAI over the codex exec CLI (subscription)
 export REI_LLM_PROVIDER=openai
 export REI_LLM_TRANSPORT=cli
+
+# Cross-command reasoning override
+export REI_LLM_EFFORT=high
 ```
 
-#### YAML Config File (`llm:` section)
+#### Shared YAML Defaults
 
-Instead of (or in addition to) environment variables, set the provider/model in the config file so it sticks per-project or globally without exporting variables. The file is resolved in this order: `$REI_CONFIG` → `./rei.yaml` (**project**) → `~/.config/rei/config.yaml` (**global**) → `~/.rei/config.yaml`. Add an `llm:` section:
+Fields directly under `llm:` are fallbacks shared by every command:
 
 ```yaml title="./rei.yaml (project-local) or ~/.config/rei/config.yaml (global)"
 llm:
   provider: openai      # anthropic | openai   (optional)
   transport: api        # cli | api            (optional)
   model: gpt-5-codex    # model id             (optional)
+  effort: high          # minimal | low | medium | high | xhigh | max
   # api_key: sk-...     # discouraged in a committed file — prefer the env key below
 ```
 
-Every field is optional; an omitted field falls back to the env var, then the built-in default. **Prefer the environment** (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`) for the API key rather than committing `api_key` to a shared/checked-in file. A typical split is a global `~/.config/rei/config.yaml` choosing your usual provider/model, with a project `./rei.yaml` overriding it for a specific repo, and `REI_LLM_*` for one-off overrides in a shell.
+Every field is optional. **Prefer the environment** (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY`) for the API key rather than committing `api_key` to a shared/checked-in file.
+
+Use `rei agent models` to list API model identifiers known by baikai. With `transport: cli`, the locally installed `claude` or `codex` tool decides which identifiers and short aliases it accepts.
 
 **Legacy compatibility.** The old `REI_LLM_BACKEND` variable is still honored when `REI_LLM_PROVIDER` and `REI_LLM_TRANSPORT` are both unset: `claude-cli` maps to Anthropic + CLI and `anthropic-api` maps to Anthropic + API (with the key taken from `REI_LLM_API_KEY`, else the legacy `REI_ANTHROPIC_API_KEY`). Prefer the new variables.
 
@@ -241,6 +329,45 @@ export REI_DEPLOYMENT_ENVIRONMENT=dev
 ```
 
 The `rei worker kiroku` process additionally exposes a kiroku-metrics HTTP server for live subscription status. See the [Observability](/docs/observability) page for the full span families, metrics guidance, and collector setup.
+
+### Optional: Event Attribution
+
+Rei stamps every event with a **performer** (who decided) and a **recorder** (what wrote it). Without these variables, both are whatever `--actor` resolves to.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_RECORDED_BY_AGENT` | Agent id credited as the recorder of events written by this process | unset |
+| `REI_RECORDED_BY_SESSION` | Agent session id (`agentsession_...`) the recorder belongs to | unset |
+| `REI_PERFORMER` | Who actually performed the work — set to `human` when an agent records on a person's behalf | unset |
+
+`REI_RECORDED_BY_AGENT` is the switch: with it unset the other two are ignored. `rei agent` sets all three before handing off to a scribing subprocess, so events that agent writes are attributed to the human who asked for them while still being traceable to the session that recorded them.
+
+### Optional: HTTP API Server
+
+Read by the `rei-api` server only; the CLI ignores them. See [HTTP API](/docs/api).
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_API_PORT` | Listen port. An unparseable value falls back to the default rather than failing | 8080 |
+| `REI_API_TOKENS` | Comma-separated `token=actor` pairs, where actor is `human` or `agent:<id>`. Unset means every write is rejected | unset (fail-closed) |
+
+The server reads the same `REI_PG_CONNECTION_STRING`/`PG_CONNECTION_STRING` and OpenTelemetry variables as the CLI, and refuses to start without a connection string.
+
+### Optional: Mori Federation
+
+Used by `rei project` when it resolves software projects against [Mori](/docs/commands/project#sync). Rei never contacts Mori unless a command asks it to.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MORI_API_URL` | Base URL of the Mori HTTP API | `http://127.0.0.1:8080` |
+
+### Optional: Worker and Storage
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REI_WORKER_DRAIN_TIMEOUT_SECONDS` | How long `rei worker` waits for in-flight work to drain on shutdown before forcing it. Must be a positive integer | 30 |
+| `REI_STORAGE_BACKEND` | Storage backend. `postgres` is the only accepted value; anything else is a startup error | `postgres` |
+| `REI_COMPLETION_CACHE` | Set to `0` to bypass the zsh completion cache and query `rei` on every TAB. Read by the generated completion script, not by `rei` itself. See [Installation](/docs/installation#completion-caching-zsh) | unset (cache on) |
 
 ## Complete Example
 

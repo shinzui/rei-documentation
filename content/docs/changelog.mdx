@@ -6,6 +6,83 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-08-09
+
+### New Command: `rei topic`
+
+Topics are first-class subjects — durable nodes such as `rdf`, `agent-memory`, or `haskell-packaging` that own notes, docs, and links without inventing a placeholder intention.
+
+- `rei topic create|list|show|update|archive|restore` — Manage topics by key or `topic_...` ID.
+- `rei topic associate|dissociate|associations|entities` — Relate any entity to a topic with `scoped-to` (operational scope), `about` (subject matter), or `instance-of` (classification). Associating is idempotent, and both endpoints must be active.
+- `--effective` — Report the scope an entity *inherits* through ancestor, owner, and anchor relationships, so one `scoped-to` edge on a root intention covers its whole tree. Nothing is stored; `--explain` shows the hops.
+- `rei topic attachments|edges|related|tree` — Read direct attachments, raw graph edges, topic-to-topic relations (with `--include-inferred`), and broader/narrower hierarchies.
+- `rei topic add-ref|remove-ref|restore-ref|refs|ref-show` — Canonical external references such as `mori://shinzui/rei`. One active reference belongs to at most one topic.
+- Topics carry custom property values (global definitions only; archived topics accept no new values).
+
+See the [Topics guide](/docs/guides/topics) and [`rei topic`](/docs/commands/topic).
+
+### New Command: `rei project`
+
+A project is a topic classified `instance-of project` — no separate record, no `project_...` ID. `rei project` is a purpose-built facade over the topic commands.
+
+- `rei project create|list|show|archive|restore` — Projects with review state and a rollup of the work in effective scope. `list` issues no network request unless you pass `--with-mori`.
+- `rei project scope add|remove|list` — What belongs to the project (`scoped-to` associations).
+- `rei project review [PROJECT] [--due] [--stage] [--health] [--cadence-days] [--at]` — Record a review, or run with no project as an attention queue.
+- `rei project sync mori://…` — Materialize a software project from Mori and attach the verified canonical reference. Rei stores only the reference; paths and packages stay Mori's.
+- `rei project migrate-local-repos` — Convert the deprecated `local-repo` property into project scope. Dry-run by default, token-confirmed apply, and a `--verify` gate.
+
+### New Command: `rei ontology`
+
+- `rei ontology seed-system` — Idempotently seed the default predicates (`about`, `scoped-to`, `instance-of`, `broader-than`, `narrower-than`, `related-to`), the system `project` topic, and the four project-review properties. `seed-predicates` remains an alias.
+- `rei ontology validate [--json]` — Check every active edge against its predicate's domain/range constraints.
+
+### New: HTTP API
+
+`rei-api` is a separate long-running process serving the same event-sourced domain over HTTP: paginated intention and category reads, intention write commands, health probes, Swagger UI at `/docs`, and a derived OpenAPI 3.1 document. Bearer tokens resolve to the actor stamped on events. See [HTTP API](/docs/api).
+
+### New Guides: Projects and Reminders
+
+`rei help` gained two topics for the command families big enough to need a guide of their own, and both now have pages here:
+
+- [Projects](/docs/guides/projects) — scope as `topic associate` under another name, the four review properties, what "due" means (including the never-reviewed and paused cases), and why listing issues no network request.
+- [Reminders](/docs/guides/reminders) — the full lifecycle (snooze accepts any non-terminal reminder; reschedule is pending-only), list filters and `--tui`, the reminders Rei creates for task due dates and dormancy, and the two backfill commands.
+
+### Corrections
+
+Several reference pages documented commands and flags that do not exist. All are fixed:
+
+- **`rei system` is removed.** Its only subcommand, `evaluate-dormancy`, was a manual trigger for the legacy MessageDB evaluator. Dormancy is now a durable keiro timer — run `rei worker kiroku`. The [page](/docs/commands/system) is now a migration note.
+- **Dormancy threshold was wrong.** `rei reminder` said an intention goes dormant after "30+ days". The default is **10** (`intentions.dormancy_threshold_days`); 21 is the *reminder* delay. Both settings are now in the [configuration defaults](/docs/configuration#default-values).
+- **`custom-property rename` does not exist** — the command is `relabel`, and its signature is positional (`relabel KEY NEW_LABEL`).
+- **The Time Formats guide listed three commands that error**: `action complete`, `action start`, and `habit log`. The real surface is `action record`, `habit record-action`, and seven others; the guide now also covers the future-time formats reminders accept.
+- **The help-topic table listed 11 of 24 topics.** It is now the registry, in registry order.
+
+### More Feature Coverage
+
+- **Topics guide** — Gained associations, effective scope (ancestor/owner/anchor, additivity, `--explain`), external references, and properties on topics: most of what a topic now does.
+- **Custom Properties guide** — `topic` and `path-list` value types, a topic-valued property section, and `topic` in the entity-support list.
+- **Intention filtering** — `--completed`, `--roots`, `--has-deadline`, `--search`, `--json`, and `--hide-id`.
+- **`rei today` section flags** — `--intentions`, `--actions`, `--habits`, `--reminders`, `--panels` select what prints and **combine**; plus `--include-dormant` and `--tui`.
+- **New environment variables** — Event attribution (`REI_RECORDED_BY_AGENT`, `REI_RECORDED_BY_SESSION`, `REI_PERFORMER`), `MORI_API_URL`, `REI_API_PORT` / `REI_API_TOKENS`, `REI_WORKER_DRAIN_TIMEOUT_SECONDS`, `REI_STORAGE_BACKEND`, and `REI_COMPLETION_CACHE`.
+- **`collection export-notes`, `cycle reschedule`, `view edit`** — Three subcommands missing from guides that otherwise enumerate them.
+
+### Feature Enhancements
+
+- **`rei predicate define` / `update`** — New ontology semantics flags: `--transitive`, `--symmetric`, `--inverse-of`, `--domain-types`, `--range-types`, and `--clear-inverse`. These drive `rei ontology validate` and the inference behind `rei topic related` / `rei topic tree --include-inferred`.
+- **`rei note` / `rei doc` / `rei link`** — All three accept `--topic` on create and list, and gain a `set-topic` command that re-anchors an artifact under a topic. `rei note move --topic` works too.
+- **`rei custom-property`** — New `--type-topic` value type: a single-valued reference stored as the canonical topic ID, assignable by key or ID, filterable by either form. Pass `--select-topic` on any entity's `set-property` to pick interactively.
+- **`local-repo` is deprecated** — Project scope replaces it. Existing values remain readable; use [`rei project migrate-local-repos`](/docs/commands/project#migrate-local-repos) to convert them.
+- **`rei view exec --json`** and **`rei view exec-batch --from-file requests.json --json`** — Execute one or many saved views for a machine consumer, preserving caller request IDs and input order.
+- **`rei dependency graph --json`** — Every active dependency edge plus a status-bearing row per endpoint intention, in one object.
+- **`rei agent config`** and **`rei agent models`** — Inspect the resolved provider/transport/model/effort for all fourteen model-launching commands with the winning source, and list Baikai's model catalogue. Neither connects to the database.
+- **Per-command LLM configuration** — `llm.commands.<command>` in YAML gives each launch site its own provider, transport, model, and reasoning `effort`; `--provider/--transport/--model/--effort` work on the `agent` group and on each subcommand. New `REI_LLM_EFFORT`. Only the `llm:` section merges local and global config files. See [Configuration](/docs/configuration#optional-ai-agent).
+- **`rei worker all`** — Now runs `workspace-git-sync`, `reminder-trigger`, `reflection-scheduler`, `agent-work`, and an in-process periodic scheduler. Graceful shutdown drains active handlers within `REI_WORKER_DRAIN_TIMEOUT_SECONDS` (default 30) — set your service manager's `TimeoutStopSec` higher.
+- **`rei worker kiroku`** — Routes Kioku distillation timers (`kioku-l1-extract`, `kioku-l2-scene`, `kioku-l3-persona`). Embedding backfill still runs from the Kioku worker companion.
+- **`rei agent session <id>`** — Shows a **Conversation Turns** section for non-interactive sessions, with timestamps, token counts, and tool summaries. Sessions and memories are stored in Kioku.
+- **Interactive agent sessions** — Now open the configured Claude Code *or* Codex CLI, depending on your provider/transport.
+- **zsh completion caching** — Candidates are cached in memory and under `${XDG_CACHE_HOME:-~/.cache}/rei/completions`, keyed on the `rei` binary path and mtime. Set `REI_COMPLETION_CACHE=0` to bypass.
+- **[Automation exit contract](/docs/guides/automation-exit-contract)** — Documented status classes (`0`/`2`/`64`/`70`) for release-facing checks, now covering the topic-association family and `rei project`.
+
 ## 2026-06-14
 
 ### Event Store Migration: `rei subscription` → `rei worker kiroku`

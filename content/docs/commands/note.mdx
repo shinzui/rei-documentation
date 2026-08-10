@@ -38,6 +38,7 @@ rei note new [options]
 - `-o, --outcome <id>` — Attach to outcome
 - `-r, --reflection <id>` — Attach to reflection
 - `-h, --habit <id>` — Attach to habit
+- `--topic <id>` — Attach to a topic
 - `-t, --tag <tag>` — Add tag (repeatable)
 - `-c, --category <slug>` — Category to assign (e.g., 'work/meeting')
 - `--template <name>` — Template to use for initial content (default: `default`)
@@ -66,6 +67,9 @@ rei note new -i intention_01h455vb4pex -r reflection_01h455vb4pex
 
 # Create a note for a habit
 rei note new --habit habit_01h455vb4pex
+
+# Create a note for a topic
+rei note new --topic topic_01h455vb4pex
 
 # Create a note with a category
 rei note new -i intention_01h455vb4pex --category work/meeting
@@ -151,6 +155,7 @@ rei note list [options]
 - `-o, --outcome <id>` — Filter by outcome
 - `-r, --reflection <id>` — Filter by reflection
 - `-h, --habit <id>` — Filter by habit
+- `--topic <id>` — Filter by topic
 - `-t, --tag <tag>` — Filter by tag
 - `-c, --category <slug>` — Filter by category (e.g., 'system/journal')
 - `--title <substring>` — Filter by title substring (case-insensitive, matched in SQL)
@@ -612,6 +617,7 @@ rei note move [-n NOTE_ID] [anchor-options]
 - `-o, --outcome <id>` — Move to outcome
 - `-r, --reflection <id>` — Move to reflection
 - `-h, --habit <id>` — Move to habit
+- `--topic <id-or-key>` — Move to topic
 - `--disruption <id>` — Move to disruption
 - `--disruption-action <id>` — Move to disruption action
 
@@ -637,6 +643,38 @@ rei note move -n note_01h455vb4pex --habit habit_01h888xyz
 
 # Move a note to an action under an intention
 rei note move -n note_01h455vb4pex -i intention_01h999abc -a action_01h777def
+
+# Move a note to a topic
+rei note move -n note_01h455vb4pex --topic agent-memory
+```
+
+### set-topic
+
+Move a note's single owning anchor to a topic.
+
+```bash
+rei note set-topic [NOTE_ID] [TOPIC]
+```
+
+**Arguments:**
+- `[NOTE_ID]` — Note ID (optional if fzf is available)
+- `[TOPIC]` — Topic ID, key, or label (optional if fzf is available)
+
+`set-topic` is a topic-focused wrapper over `note move`: it emits `NoteAnchorChanged`, so the note appears in `rei note list --topic TOPIC` and `rei topic attachments TOPIC` and no longer appears under its previous anchor. It does not create an `about` edge.
+
+> **FZF Support:** If the note or topic is omitted and [fzf](https://github.com/junegunn/fzf) is installed, Rei opens the corresponding picker.
+
+**Examples:**
+
+```bash
+# Move a known note to a topic key
+rei note set-topic note_01h455vb4pex agent-memory
+
+# Pick the topic interactively
+rei note set-topic note_01h455vb4pex
+
+# Pick both the note and topic interactively
+rei note set-topic
 ```
 
 ### set-category

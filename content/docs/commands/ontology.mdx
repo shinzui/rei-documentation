@@ -1,0 +1,102 @@
+---
+title: rei ontology
+description: Seed default predicates and system topics, and validate the edge graph
+icon: Network
+---
+
+The `ontology` command seeds the predicates and topics Rei owns by key, and validates the explicit edge graph against the lightweight ontology semantics recorded on predicates (transitive, symmetric, inverse, domain/range type constraints).
+
+Ontology semantics are intentionally minimal: just enough to validate stored facts and to power opt-in query-time inference (see `rei topic related` and `rei topic tree --include-inferred`). There is no OWL reasoning, no SPARQL, and no materialized inferred-fact tables — inference is computed at query time and never written back as edges.
+
+## Overview
+
+```bash
+# Seed the default ontology predicates and system topics (idempotent)
+rei ontology seed-system
+
+# Validate active edges against predicate semantics
+rei ontology validate
+```
+
+## Commands
+
+### seed-system
+
+Create the default ontology predicates and system topics if they are not already defined. The command is idempotent: entries that already exist are reported as already-present, and an existing entry that conflicts with the seed definition is reported as incompatible rather than overwritten.
+
+```bash
+rei ontology seed-system
+```
+
+`rei ontology seed-predicates` is kept as an alias for the same command, so existing setup scripts keep working; it now seeds the system topics too.
+
+**Seeded predicates:**
+
+| Key | Label | Semantics |
+|-----|-------|-----------|
+| `about` | About | Relates a supported entity to a topic it is semantically about |
+| `scoped-to` | Scoped to | Relates a supported entity to a topic that is its operational scope |
+| `instance-of` | Instance of | Topic → topic; classifies a topic as an instance of another |
+| `broader-than` | Broader than | Topic → topic; transitive; inverse of `narrower-than` |
+| `narrower-than` | Narrower than | Topic → topic; transitive; inverse of `broader-than` |
+| `related-to` | Related to | Topic → topic; symmetric |
+
+**Seeded system topics:**
+
+| Key | Label | Purpose |
+|-----|-------|---------|
+| `project` | Project | A topic with `instance-of project` is a durable operational project — software, research, event, publication, or anything else that collects work over time |
+
+**Seeded project-review properties:**
+
+These four global, topic-only custom properties hold the Rei-owned review state [`rei project`](/docs/commands/project) reads and writes. They are ordinary custom properties: `rei custom-property` can read and set them, and `rei topic show` lists them.
+
+| Key | Type | Values |
+|-----|------|--------|
+| `project-stage` | enum | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
+| `project-health` | enum | `healthy`, `watch`, `blocked` — unset means unknown |
+| `project-review-cadence-days` | integer (min 1) | Days between reviews |
+| `project-last-reviewed-at` | datetime | When the project was last reviewed |
+
+A definition that already exists and is *more permissive* than the seed — a wider enum, an extra allowed entity type, an absent integer bound — is accepted as already present, because seeding must not tighten something you are already relying on. One that cannot hold these values is reported as incompatible and left alone.
+
+The output reports the outcome for each entry, for example:
+
+```
+Created broader-than (predicate_01abc...)
+Already present about
+Incompatible related-to: symmetric flag differs
+Created topic project (topic_01xyz...)
+Created property project-stage (custom_property_01xyz...)
+Already present property project-health
+```
+
+Seeding never rewrites display text you have edited, and never restores a topic you archived on purpose: an archived `project` topic is reported as `Incompatible topic project: topic is archived` and nothing is written.
+
+You can define additional predicates with semantics of your own using [`rei predicate define`](/docs/commands/predicate).
+
+### validate
+
+Check every active edge against the semantics of its predicate. Validation reports edges whose source or target entity type falls outside the predicate's declared domain/range type constraints.
+
+```bash
+rei ontology validate [--json]
+```
+
+**Options:**
+- `--json` - Output the list of validation errors as JSON
+
+When there are no problems the command prints `Ontology validation passed.` Otherwise it lists each offending edge with its predicate key, source ID, target ID, and the reason:
+
+```
+Ontology validation errors:
+  broader-than note_01abc -> topic_01xyz: source type "note" not in domain ["topic"]
+```
+
+Validation reads stored facts only; it does not modify edges or predicates.
+
+## See Also
+
+- [`rei predicate`](/docs/commands/predicate) — define predicates and their ontology semantics
+- [`rei edge`](/docs/commands/edge) — create typed relationships between entities
+- [`rei topic`](/docs/commands/topic) — first-class topics, including the `related` and `tree` inference views that build on these semantics

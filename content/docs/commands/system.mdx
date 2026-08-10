@@ -1,49 +1,36 @@
 ---
 title: rei system
-description: Administrative commands for system maintenance
+description: Removed — dormancy is now owned by a durable keiro timer
 icon: Terminal
 ---
 
-Administrative commands for system maintenance.
+`rei system` has been removed.
 
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `evaluate-dormancy` | Mark inactive intentions as dormant |
-
-## Dormancy Overview
-
-Rei automatically tracks intention health and can mark intentions as "dormant" when they've had no activity for a configured threshold (default: 10 days). Dormancy is hierarchy-aware — a parent intention with active children is not considered dormant.
-
-## evaluate-dormancy
-
-Mark inactive intentions as dormant based on the inactivity threshold.
+Its only subcommand, `rei system evaluate-dormancy`, was a manual trigger for the legacy
+MessageDB dormancy evaluator. Dormancy marking is now owned by a durable keiro timer, so
+there is nothing to trigger by hand — run the worker instead:
 
 ```bash
-rei system evaluate-dormancy [options]
+rei worker kiroku
 ```
 
-**Options:**
-- `-t, --threshold <days>` — Inactivity threshold in days (default: from config or 10)
+## Migration
 
-**Examples:**
+| Previous command | Current behaviour |
+|------------------|-------------------|
+| `rei system evaluate-dormancy` | Automatic, via the dormancy timer in `rei worker kiroku` |
+| `rei system evaluate-dormancy -t DAYS` | Set `intentions.dormancy_threshold_days` in your config file |
 
-```bash
-# Use default threshold from config
-rei system evaluate-dormancy
+## Dormancy today
 
-# Use custom 30-day threshold
-rei system evaluate-dormancy -t 30
-```
+An intention is marked dormant after `intentions.dormancy_threshold_days` without activity
+(default 10), and a revisit reminder is scheduled `intentions.dormancy_reminder_days` later
+(default 21). Dormancy is hierarchy-aware: a parent with active children is not dormant.
 
-## Configuration
+The reminder is cancelled automatically when the intention awakens, and completed when the
+intention reaches a terminal state.
 
-The dormancy threshold can be configured in your config file:
-
-```yaml
-intention:
-  dormancyThresholdDays: 10
-```
-
-See [Configuration](/docs/configuration) for details.
+- Configuration: [Configuration](/docs/configuration#default-values)
+- Reminders: [`rei reminder`](/docs/commands/reminder)
+- Worker: [`rei worker`](/docs/commands/worker)
+- Inspecting dormant intentions: `rei intention list --dormant`

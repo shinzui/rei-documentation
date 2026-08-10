@@ -1,0 +1,46 @@
+---
+title: Automation Exit Contract
+description: Stable process statuses for release-facing checks and deployment gates
+icon: ShieldCheck
+---
+
+Rei's release-facing checks use stable process statuses. Normal reports are written to standard output. Failure diagnostics are written to standard error, and a failing command does not print a success message.
+
+## Status classes
+
+| Status | Meaning |
+|--------|---------|
+| `0` | The requested operation succeeded. |
+| `2` | Input, schema, or persisted-data validation failed. |
+| `64` | Required configuration is missing or invalid. |
+| `70` | A database, event store, or worker runtime operation failed. |
+
+## Covered commands
+
+The contract currently covers `knowledge verify`, `custom-property list`, `playbook validate`, the `worker` commands, and the `rei topic associate` / `dissociate` / `associations` / `entities` family. It also covers configuration loading and Kiroku connection startup for those commands.
+
+```bash
+rei knowledge verify >verification.txt
+status=$?
+if [ "$status" -ne 0 ]; then
+  echo "verification gate failed with status $status" >&2
+  exit "$status"
+fi
+```
+
+- `knowledge verify` returns `2` when files are modified or missing, and `70` when its database query cannot run.
+- `playbook validate` returns `2` for a missing, malformed, or schema-invalid playbook.
+- `custom-property list` returns `2` when persisted identifiers cannot be decoded, and `70` for other query failures.
+- Worker configuration errors return `64`; startup failures and forced drain return `70`.
+- The [topic-association commands](/docs/commands/topic#exit-status) return `2` for a missing topic, a missing, malformed, or ambiguous entity reference, a declared entity type that disagrees with the ID, an inactive endpoint, or an omitted argument with no terminal to prompt on, and `70` for store failures. They print nothing on standard output when they fail, so a `--json` consumer never sees a partial document followed by a nonzero status.
+- [`rei project`](/docs/commands/project#exit-status) follows the same contract, adding `64` for an unusable `MORI_API_URL`.
+
+## Deliberate exits are no longer rewritten
+
+Until 2026-07-24 a deliberate exit chosen inside a store-backed command was rewritten to `70` with a "Database connection failed" message, because the handler that classifies Kiroku acquisition failures also caught the `ExitCode` exception `exitWith` throws. Deliberate statuses now propagate unchanged, so any store-backed command converted to this contract reports the class it picked.
+
+## Not yet converted
+
+This is a deliberately bounded compatibility correction. Other legacy handlers may still print an error and return `0`; they are not safe as deployment gates until converted.
+
+That inventory includes the `action`, `agent`, `blocker`, `category`, `checkpoint`, `collection`, `cycle`, `day`, `dependency`, `disruption`, `doc`, `edge`, `focus`, `habit`, `intention`, `link`, `note`, `ontology`, `outcome`, `periodic-check`, `predicate`, `reflection`, `reminder`, `review`, `support`, `task`, `template`, `today`, `tomorrow`, `view`, and `yesterday` command families, the `topic` subcommands outside the association family, plus non-release-facing `custom-property` and `playbook` subcommands.

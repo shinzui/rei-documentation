@@ -63,7 +63,25 @@ rei completions zsh >> ~/.zshrc
 rei completions fish > ~/.config/fish/completions/rei.fish
 ```
 
-Restart your shell or source the config file to enable completions.
+Restart your shell or source the config file to enable completions. Completions are derived from the parser at runtime, so they stay in sync automatically when you update `rei`.
+
+### Completion caching (zsh)
+
+Deriving completions at runtime means each TAB press launches `rei`, which costs roughly 45 ms — enough to feel like a stutter. The zsh script therefore remembers the candidate list for each command path in two layers: an in-memory table that lasts as long as the shell session, and a file under `${XDG_CACHE_HOME:-~/.cache}/rei/completions`. The first TAB at a given position pays the full cost; every one after it is effectively instant, including in shells opened later.
+
+Both layers are stamped with the resolved path of the `rei` binary and its modification time, so updating `rei` invalidates them automatically. You should never need to clear the cache by hand, but it is safe to delete the directory:
+
+```bash
+rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/rei/completions"
+```
+
+Positions that follow a free-form argument, such as an entity ID or a quoted title, are not cached at all — they would produce an unbounded pile of entries that are never read twice — so completion there behaves exactly as it did before.
+
+To bypass the cache entirely and query `rei` on every TAB, set:
+
+```bash
+export REI_COMPLETION_CACHE=0
+```
 
 ## Next Steps
 
