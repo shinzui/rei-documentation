@@ -48,6 +48,7 @@ The `today` dashboard includes:
 |---------|-------------|
 | [`rei today`](/docs/commands/today) | Daily dashboard showing what needs attention |
 | [`rei tomorrow`](/docs/commands/tomorrow) | Preview tomorrow's dashboard for evening planning |
+| [`rei yesterday`](/docs/commands/yesterday) | Review yesterday's dashboard |
 | [`rei neglected`](/docs/commands/neglected) | Find intentions without recent activity |
 | [`rei review`](/docs/commands/review) | Review summaries for analyzing progress |
 
@@ -60,7 +61,10 @@ The `today` dashboard includes:
 | [`rei outcome`](/docs/commands/outcome) | Record outcomes |
 | [`rei blocker`](/docs/commands/blocker) | Track blockers |
 | [`rei support`](/docs/commands/support) | Manage support relationships |
+| [`rei dependency`](/docs/commands/dependency) | Manage dependencies between intentions |
 | [`rei disruption`](/docs/commands/disruption) | Track unplanned reactive work |
+| [`rei predicate`](/docs/commands/predicate) | Define reusable relationship types for edges |
+| [`rei edge`](/docs/commands/edge) | Create typed relationships between any two entities |
 
 ### Practice Commands
 
@@ -82,6 +86,9 @@ The `today` dashboard includes:
 | Command | Description |
 |---------|-------------|
 | [`rei agent`](/docs/commands/agent) | AI coaching, assistance, and delegation |
+| [`rei checkpoint`](/docs/commands/checkpoint) | Manage review checkpoints for delegated work |
+| [`rei playbook`](/docs/commands/playbook) | Manage and run playbooks |
+| [`rei kit`](/docs/commands/kit) | Install and manage skills and subagents from the rei-kit registry |
 
 ### Knowledge Commands
 
@@ -102,6 +109,7 @@ The `today` dashboard includes:
 | [`rei category`](/docs/commands/category) | Manage hierarchical categories for classifying entities |
 | [`rei custom-property`](/docs/commands/custom-property) | Define and manage custom properties for entities |
 | [`rei view`](/docs/commands/view) | Manage reusable multi-section views for intentions |
+| [`rei template`](/docs/commands/template) | Manage note and reflection templates |
 | [`rei topic`](/docs/commands/topic) | Manage first-class knowledge topics and associate entities with them |
 | [`rei project`](/docs/commands/project) | Create, review, and roll up projects as typed topics |
 | [`rei ontology`](/docs/commands/ontology) | Seed default predicates and validate the edge graph |
@@ -115,6 +123,17 @@ The `today` dashboard includes:
 | [`rei kiroku`](/docs/commands/kiroku) | Operator commands for the Kiroku event store (subscription status) |
 | [`rei periodic-check`](/docs/commands/periodic-check) | Manage periodic checks for automated dormancy and reminders |
 | [`rei workspace`](/docs/commands/workspace) | Workspace management and git integration |
+| `rei predeploy` | Inventory and gate deployment data (no documentation page yet) |
+
+### Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| [`rei help`](/docs/commands/help) | Display help topics for concepts and features |
+| `rei info` | Show workspace, database, and configuration status |
+| `rei version` | Show the installed version |
+| `rei alias` | List the command aliases defined in your config |
+| `rei completions` | Generate shell completions for bash, zsh, or fish |
 
 ## FZF Integration
 

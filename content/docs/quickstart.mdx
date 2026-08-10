@@ -4,7 +4,7 @@ description: Building a software project with rei, from architecture to deployme
 icon: Rocket
 ---
 
-This walkthrough follows a realistic software project from start to finish. You'll see how rei's primitives, custom properties, agent delegation, and scheduled automation work together to keep a complex effort organized and moving forward.
+This walkthrough follows a realistic software project from start to finish. You'll see how rei's primitives, project scope, custom properties, agent delegation, and scheduled automation work together to keep a complex effort organized and moving forward.
 
 ## The Project: Building an Event-Sourced API
 
@@ -49,26 +49,84 @@ Build a portfolio-quality API project [3m]
 
 Each child intention has its own actions, outcomes, blockers, and delegation. The parent holds the big picture. Notice there's no "deploy" intention: deployment is a phase in the workflow state machine, not a separate workstream.
 
+### Give the Work a Project
+
+The hierarchy says what you're doing. A **project** says what it all belongs to — and gives you a place to hang review state, roll up progress, and point agents at.
+
+A project in rei is a [topic classified `instance-of project`](/docs/concepts/topics), so this is one command, plus a one-time seed:
+
+```bash
+# Once per installation: creates the system 'project' topic and review properties
+rei ontology seed-system
+
+# For a repository Mori knows about, sync resolves the canonical identity
+rei project sync mori://you/my-api
+
+# Otherwise, create it directly
+rei project create my-api --label "Event-sourced API"
+```
+
+Now put the work in its scope. You only need the **root** — scope is inherited:
+
+```bash
+rei project scope add my-api <root-id>
+```
+
+That single association covers the whole tree: the four child intentions, every action, outcome, and blocker they own, and every note, doc, link, and task anchored to any of them. Nothing is copied onto the children, so reparenting an intention later just changes the next answer.
+
+```bash
+rei project show my-api
+```
+
+```
+Event-sourced API (my-api)
+  topic_01kv...
+
+Review:     never reviewed
+
+Intentions: 5 active, 0 dormant, 0 completed
+Blockers:   0 unresolved
+Actions:    0 recent
+
+Scope:      1 direct, 5 effective
+            direct: 1
+            ancestor: 4
+
+Identities:
+  mori://you/my-api [verified]
+```
+
+The `1 direct, 5 effective` split is the point: one edge you made, four rows derived from
+structure. As the project grows — actions on those intentions, notes anchored to them,
+tasks inside the notes — the effective count climbs without you writing another
+association. Ask why any single row is in scope with `rei project scope list my-api`.
+
+Review state is empty because you haven't reviewed it yet; that comes
+[later in the walkthrough](#review-the-project-on-a-cadence).
+
 ### Add Custom Properties for Shared Context
 
 Custom properties give both you and your agents structured context about each intention. Define them once, use them everywhere:
 
 ```bash
-# Project path: tells agents where the code lives
-rei custom-property create project-path \
-  --type-path --must-exist --must-be-directory \
-  -e intention
-
-# Repository URL: agents can reference PRs and issues
-rei custom-property create repo-url \
-  --type-url --allowed-schemes https \
-  -e intention
-
 # Workflow state machine: tracks each intention through a dev lifecycle
 rei custom-property create workflow \
   --type-state-machine --from-file dev-workflow.yaml \
   -e intention
+
+# Deploy target: which environment this workstream is aimed at
+rei custom-property create deploy-target \
+  --type-enum --values staging,production \
+  -e intention
 ```
+
+<Callout type="info">
+Notice what is *not* here: a path property saying where the code lives. That was the old
+`local-repo` convention, and it is [deprecated](/docs/commands/custom-property#local-repo-deprecated) —
+a path is a locator, not a relationship, and it can't be queried in reverse. The project's
+`mori://` reference carries that identity now, and Mori resolves the path on demand.
+Properties describe an entity; scope says what it belongs to.
+</Callout>
 
 The workflow state machine (`dev-workflow.yaml`) defines your full development process, from backlog through deployment:
 
@@ -127,15 +185,12 @@ transitions:
 The WIP limit of 3 on "In Progress" keeps you from spreading too thin. Deployment is a workflow phase, so every intention flows through the same lifecycle. Now assign properties to your intentions:
 
 ```bash
-# Set the project path and repo on the root intention
-rei intention set-property <root-id> project-path ~/projects/my-api
-rei intention set-property <root-id> repo-url https://github.com/you/my-api
-
 # Move the first workstream to in-progress
 rei intention set-property <design-id> workflow in-progress
+rei intention set-property <design-id> deploy-target staging
 ```
 
-When any agent coaches you, reviews your work, or executes a delegation, it sees these properties. It knows where the code lives, what repo to reference, and what workflow phase each intention is in.
+When any agent coaches you, reviews your work, or executes a delegation, it sees these properties *and* the project the intention is scoped to. It knows what phase each intention is in, which project it serves, and — through the project's Mori reference — where the code lives.
 
 ### Create a Project Dashboard View
 
@@ -193,7 +248,7 @@ project-board
 
 ━━━ Recent Actions (3) ━━━
   2026-03-25  Set up JWT middleware with refresh token rotation
-  2026-03-24  Chose MessageDB based on agent research
+  2026-03-24  Chose kiroku based on agent research
   2026-03-23  Initial project scaffolding
 ```
 
@@ -223,8 +278,8 @@ Read the source code and docs on disk to understand APIs and behavior.
 
 ## Project Context
 This is a Haskell project using GHC 9.12 with Effectful for effects,
-MessageDB for event sourcing, and optparse-applicative for CLI.
-Use `mori registry show rei --full` to see the full dependency graph.
+kiroku/keiro for the PostgreSQL event store, and optparse-applicative for CLI.
+Use `mori registry show my-api --full` to see the full dependency graph.
 
 ## When coaching
 Focus on whether the architecture supports the long-term vision, not just
@@ -242,7 +297,7 @@ rei intention delegate <design-id> \
   --to claude-code \
   --scope research \
   --autonomy supervised \
-  --instructions "Evaluate MessageDB vs EventStoreDB vs custom event store. Compare on: Haskell client support, subscription model, operational complexity, and PostgreSQL integration."
+  --instructions "Evaluate kiroku vs EventStoreDB vs a custom event store. Compare on: Haskell client support, subscription model, operational complexity, and PostgreSQL integration."
 ```
 
 The agent receives the delegation instructions, plus the intention's persistent guidance, the project path, the repo URL, and the parent context. It investigates and submits findings for your review.
@@ -283,13 +338,13 @@ rei review approve <review-id>
 
 # Or send it back with feedback
 rei review request-changes <review-id> \
-  --feedback "Good overview, but dig deeper into MessageDB's subscription model"
+  --feedback "Good overview, but dig deeper into kiroku's subscription model"
 ```
 
 Once approved, record your decision as an action:
 
 ```bash
-rei action record <design-id> "Chose MessageDB based on agent research. PostgreSQL-native, simple subscription model."
+rei action record <design-id> "Chose kiroku based on agent research. PostgreSQL-native, simple subscription model."
 ```
 
 Move the intention forward in the workflow:
@@ -313,7 +368,7 @@ rei agent-schedule add \
 rei agent-schedule add \
   --trigger on-blocker-declared \
   --scope children-of:<root-id> \
-  --guidance "Research the blocker using the project source code at the project-path property. Suggest concrete approaches to resolve it."
+  --guidance "Research the blocker using the project source code. Resolve the checkout through the project's mori:// reference. Suggest concrete approaches to resolve it."
 
 # Stall detection: catch intentions that go quiet
 rei agent-schedule add \
@@ -346,7 +401,7 @@ Hit a blocker:
 rei blocker declare <auth-id> "OAuth provider documentation is unclear on PKCE flow edge cases"
 ```
 
-Because you set up the `on-blocker-declared` schedule, an agent automatically picks this up. It reads the project source code (using the `project-path` property), investigates the PKCE flow, and posts findings as an action on the intention. You see it next time you check your dashboard.
+Because you set up the `on-blocker-declared` schedule, an agent automatically picks this up. It resolves the checkout through the project's `mori://` reference, investigates the PKCE flow, and posts findings as an action on the intention. You see it next time you check your dashboard.
 
 ### Delegate Documentation Drafting
 
@@ -357,7 +412,7 @@ rei intention delegate <docs-id> \
   --to claude-code \
   --scope draft \
   --autonomy supervised \
-  --instructions "Generate OpenAPI spec and a getting-started guide. Reference the actual endpoint implementations at the project-path. Follow the conventions in the existing README."
+  --instructions "Generate OpenAPI spec and a getting-started guide. Reference the actual endpoint implementations in the project checkout. Follow the conventions in the existing README."
 ```
 
 With `draft` scope, the agent creates artifacts (notes and files) for your review. With `supervised` autonomy, it submits a review checkpoint before anything is finalized. The agent also sees any guidance you've set on this intention, giving it persistent context about your preferences. You review the draft, request changes if needed, and approve when it's ready.
@@ -402,6 +457,40 @@ rei outcome record <auth-id> "Auth system passes all integration tests, ready fo
 rei intention set-property <auth-id> workflow in-review
 ```
 
+### Review the Project on a Cadence
+
+Individual intentions have workflow states. The *project* has its own review rhythm — a
+deliberate checkpoint on whether the whole effort is still healthy and still worth its
+place:
+
+```bash
+rei project review my-api --stage active --health watch --cadence-days 14
+```
+
+```
+Reviewed my-api; next review 2026-04-08
+```
+
+Health is your judgement, not a computed metric: `healthy`, `watch`, or `blocked`. Stage is
+an enum — `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` — with no
+transition graph imposed, because the legitimate moves differ per project.
+
+Later, when you have more than one project going, the attention queue tells you which have
+come due:
+
+```bash
+rei project review --due
+```
+
+```
+  my-api                 due 2026-04-08   Event-sourced API
+  thesis                 never reviewed   PhD thesis
+```
+
+A project that has *never* been reviewed is due immediately — a new effort should not hide
+until a timestamp happens to exist. A paused project stays on schedule too, because the
+review is exactly when you notice a pause has quietly become abandonment.
+
 ### Reflect on the Week
 
 At the end of the week, reflect with agent assistance:
@@ -434,12 +523,21 @@ rei outcome record <root-id> "API deployed, documented, and serving production t
 rei intention complete <root-id>
 ```
 
+The project outlives the intention tree that built it. Move it to a maintenance footing
+rather than deleting it, and the history, knowledge, and identity all stay queryable:
+
+```bash
+rei project review my-api --stage maintaining --health healthy --cadence-days 90
+```
+
 ## What This Walkthrough Covered
 
 | Capability | How it was used |
 |-----------|----------------|
 | **Intention hierarchy** | Root intention with four child workstreams, each with its own lifecycle |
-| **Custom properties** | `project-path`, `repo-url`, and a `workflow` state machine with WIP limits and a deploying phase |
+| **Projects and scope** | One `scoped-to` association on the root put the whole tree in the project; `rei project show` rolled it up |
+| **Project review** | Stage, health, and a 14-day cadence, with `--due` as an attention queue across projects |
+| **Custom properties** | A `workflow` state machine with WIP limits and a deploying phase, plus a `deploy-target` enum |
 | **Intention views** | Kanban board view grouped by workflow state for at-a-glance project status |
 | **Intention guidance** | Persistent agent context: coaching style, research preferences, constraints |
 | **Agent delegation** | Research (architecture evaluation), draft (API documentation), with task-specific `--instructions` and supervised review |
@@ -457,6 +555,7 @@ This is what agent-augmented intentional living looks like for a real project: y
 <Cards>
   <Card title="Installation" href="/docs/installation" description="Set up rei on your system" />
   <Card title="Core Concepts" href="/docs/concepts" description="Deep dive into the primitives and philosophy" />
+  <Card title="Topics & Projects" href="/docs/concepts/topics" description="Subjects, operational scope, and how a project is a typed topic" />
   <Card title="AI Agents" href="/docs/concepts/ai-coaching" description="Full guide to the agent system" />
   <Card title="Commands Reference" href="/docs/commands" description="Complete CLI documentation" />
 </Cards>

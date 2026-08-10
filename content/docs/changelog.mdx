@@ -54,6 +54,22 @@ where a project lives have been reworked — that is the shape of the deprecated
 `local-repo` convention, and project scope replaces it. Custom properties remain the right
 tool for typed metadata *about* an entity; membership in a larger effort is scope.
 
+### Quickstart Now Uses Projects
+
+The [walkthrough](/docs/quickstart) built a software project with intentions alone and a
+path property pointing at the checkout. It now creates a project, scopes the root intention
+to it — one association covering the whole tree — reads the rollup with `rei project show`,
+and reviews it on a cadence with the `--due` attention queue. The path property is gone,
+replaced by the project's `mori://` reference.
+
+### Complete Command Index
+
+The command index tables listed 33 of the 47 commands the CLI serves. Nine that already had
+pages were simply unlinked — `dependency`, `edge`, `predicate`, `checkpoint`, `playbook`,
+`kit`, `template`, `yesterday`, and `help` — and a new Utility Commands section covers
+`info`, `version`, `alias`, and `completions`. `predeploy` is listed as undocumented rather
+than omitted.
+
 ### New Guides: Projects and Reminders
 
 `rei help` gained two topics for the command families big enough to need a guide of their own, and both now have pages here:

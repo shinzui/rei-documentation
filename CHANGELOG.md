@@ -130,8 +130,19 @@ relationship, cannot be queried in reverse, and replaces rather than accumulates
   `path-list`, `note`, `topic`, `git-ref`, `uuid`) with a note on when a topic-valued
   property is the wrong tool.
 
-**Not done:** `quickstart.mdx` still narrates a software project using intentions alone and
-never reaches for `rei project`. Reworking it is a larger editorial change than this sync.
+#### Fourth pass — quickstart rework and the command enumeration
+
+**`quickstart.mdx`** — Reworked onto project scope:
+- New "Give the Work a Project" section after the intention hierarchy: `ontology seed-system`, `project sync mori://…` (or `project create`), and one `project scope add` on the root, with a `project show` rollup whose numbers are internally consistent with that point in the story (1 direct, 5 effective; review state empty until first reviewed).
+- New "Review the Project on a Cadence" section: stage/health/cadence, and `--due` as an attention queue with the never-reviewed and paused rules.
+- Removed the `project-path` custom property and its three downstream references (an agent-schedule guidance string, the blocker narrative, and a delegation instruction); a Callout now explains why a path property is the wrong shape and what replaced it. `repo-url` dropped in favour of the project's `mori://` reference; `deploy-target` added as an example of a property that genuinely describes an entity.
+- Completion step now moves the project to `maintaining` rather than implying it ends with the intention tree.
+- Summary table gained "Projects and scope" and "Project review" rows; cards link the new concept page.
+- Corrected the guidance example, which described rei's stack as MessageDB — retired in favour of the kiroku/keiro PostgreSQL event store. The narrative's event-store evaluation, decision action, and review feedback were updated to match.
+
+**`commands/index.mdx`** — The category tables enumerated 33 of the 47 commands the binary serves. Added `yesterday`, `dependency`, `predicate`, `edge`, `checkpoint`, `playbook`, `kit`, and `template` (all had pages already and were simply unlinked), plus a new Utility Commands section for `help`, `info`, `version`, `alias`, and `completions`, and a row marking `predeploy` as undocumented. Verified: every command in `rei --help` now appears.
+
+**Checked and correct, no change needed:** the state-machine system tags (`queue`, `active`, `done`, `terminal`), the `project-stage` and `project-health` enums, and the intention status filters all match the binary.
 
 ### 2026-06-14
 
