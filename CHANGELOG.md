@@ -5,11 +5,37 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `822780e0` (2026-08-09)
+**Last Source Commit Reviewed:** `54c0a685` (2026-09-27, release v7.0.0.0)
 
 ---
 
 ## Changelog
+
+### 2026-09-27
+
+**Reviewed commits:** `822780e0` through `54c0a685` (release v7.0.0.0)
+
+**Theme:** `rei ops` as the Keiro operations console, `rei config explain` / `describe`, the focus and note exit contract, and worker reactor-halt logging.
+
+**Scope note:** 281 commits touched `docs/` or `rei-cli/help/` in the range, but everything up to `a08ad262` (the 2026-08-09 reference-surface audit, including `api.md`, `observability.md`, the `projects` and `reminders` help topics, and the nine revised guides) was already synced from the working tree in the previous entry's second pass. The effective delta was `a08ad262..54c0a685`: five commits (`9bef6488`, `6c35fdb0`, `bca745e1`, `78d6d1cb`, `54c0a685`), none touching `rei-cli/help/`.
+
+**Help topics:** unchanged since the last sync. All 24 topics still have a 1:1 guide.
+
+**New command page:**
+- `commands/ops.mdx` — From the new `docs/user/cli/ops.md`: the safety model (`--force`, preview exit, schema-drift check, `--json`), the eleven command groups, the three common diagnostics (subscription lag, stuck timers, rebuild preview), and the two deliberately unmounted commands.
+
+**Updated pages:**
+- `configuration.mdx` — New "Inspecting Configuration" section (`rei config explain` / `describe`, the `<redacted>` / `<missing>` / `<not selected>` markers, environment-layer-only scope); database preference and empty-`REI_PG_CONNECTION_STRING` error; corrected pool defaults (20/10/60/60) and unit-less durations.
+- `commands/kiroku.mdx` — "`rei kiroku` or `rei ops`?" section; `ops` in See Also.
+- `commands/worker.mdx` — Reactor-halt log line, `checked-mapping-process-audit`, `ops` in See Also.
+- `commands/note.mdx` — Embeds recorded on the note's own stream.
+- `commands/task.mdx` — Completion recorded once, through the note.
+- `commands/index.mdx` — `rei ops` row, reworded `rei kiroku` row, `rei config` utility row.
+- `guides/automation-exit-contract.mdx` — Focus and note writes join the contract (new section); inventory narrowed accordingly.
+
+**Navigation:** `commands/meta.json` gained `ops` before `kiroku`.
+
+**Not synced:** the TypeID migration-component change (`78d6d1cb`) and the `rei-kioku-migrate` retirement (`9bef6488`) — developer/operator tooling (`just`, `rei-migrations`) with no `rei` CLI surface; the PGMQ envelope and cohort cutover notes in the release changelog — deployment concerns without a user-doc page in the source.
 
 ### 2026-08-09
 

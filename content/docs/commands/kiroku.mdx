@@ -6,6 +6,17 @@ icon: Database
 
 Operator commands for the Kiroku event store that backs Rei. These are low-level inspection tools for diagnosing the keiro reactive layer, not part of the day-to-day coaching workflow.
 
+## `rei kiroku` or `rei ops`?
+
+Both report on subscriptions, but they read different things, and only one of them is useful from a plain shell.
+
+| Question | Command |
+|----------|---------|
+| Where is each subscription durably checkpointed, and how far behind the log head? | [`rei ops stream subscriptions`](/docs/commands/ops) |
+| What phase is a **running** worker's subscription in right now? | `rei kiroku subscriptions status --remote-url ...` |
+
+`rei kiroku subscriptions status` **without** `--remote-url` inspects the current process's own in-memory registry. A CLI invocation registers no subscriptions, so it prints an empty table — that is expected, and it does not mean Rei has no subscriptions. Use `rei ops stream subscriptions` for that, or point this command at a running worker.
+
 ## Subcommands
 
 ### subscriptions status
@@ -47,5 +58,6 @@ Error: Kiroku operator commands require the Kiroku store runner
 
 ## See Also
 
+- [`rei ops`](/docs/commands/ops) — The full operations console: durable subscription checkpoints, timers, queues, rebuilds
 - [`rei worker`](/docs/commands/worker) — Run the keiro reactive layer and the kiroku-metrics server
 - [`rei subscription`](/docs/commands/subscription) — Migration notes from the removed `rei subscription` command

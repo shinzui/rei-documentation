@@ -133,6 +133,57 @@ dashboard:
 
 For full details and examples, see the [Dashboard Panels Guide](/docs/guides/dashboard).
 
+## Inspecting Configuration
+
+Every environment variable Rei reads is declared once, with a dotted key, a description, and whether it is a secret. Two commands make that declaration visible.
+
+`rei config explain` resolves the current environment and reports where each value came from:
+
+```text
+$ REI_PG_CONNECTION_STRING='postgresql://rei@localhost/rei' PG_POOL_SIZE=7 rei config explain
+database.connectionString = <redacted>
+  from environment variable REI_PG_CONNECTION_STRING
+database.legacyConnectionString = <not selected>
+database.maxConnectionIdleTime = 60s
+  from default rule pg-pool-max-connection-idle-time
+database.maxConnectionLifetime = 60s
+  from default rule pg-pool-max-connection-lifetime
+database.poolSize = "7"
+  from environment variable PG_POOL_SIZE
+database.poolTimeout = 10s
+  from default rule pg-pool-timeout
+llm.apiKey = <missing>
+...
+storage.backend = postgres
+  from default rule storage-backend-postgres
+telemetry.serviceName = rei
+  from default rule otel-service-name
+branch 1 [not selected]: database.connectionString -> database.legacyConnectionString
+```
+
+Three markers appear on the right of a key:
+
+- `<redacted>` — a secret value that was supplied. Connection strings and API keys are declared secret, so their values never appear in this report, in a warning, or in an error message.
+- `<missing>` — nothing supplied a value and the setting has no default.
+- `<not selected>` — the key was never consulted, because another key won ahead of it. This is what `database.legacyConnectionString` shows whenever `REI_PG_CONNECTION_STRING` is set.
+
+`rei config describe` lists every key Rei *can* read without reading anything:
+
+```text
+$ rei config describe
+database.connectionString [optional, necessary, secret] PostgreSQL connection string (preferred)
+database.legacyConnectionString [required, conditional, secret] PostgreSQL connection string (fallback, shared with other applications)
+database.poolSize [optional, necessary, public] PostgreSQL pool size
+...
+condition 1: database.connectionString -> database.legacyConnectionString
+```
+
+Both accept `--json` for scripting. The report goes to standard output and any warnings or errors to standard error, so `rei config explain --json | jq` works. `rei config explain` still prints its report when the configuration is broken — that is when you need it — and exits non-zero.
+
+<Callout type="info">
+**These commands cover the environment layer only.** Rei's YAML files (`~/.config/rei/config.yaml` and `.rei/config.yaml`) are read separately, and the per-command agent settings resolved from them follow the precedence ladder described under [AI Agent](#optional-ai-agent). Use `rei agent config` to explain those.
+</Callout>
+
 ## Environment Variables
 
 ### Required: Database
@@ -145,6 +196,10 @@ Rei stores events in PostgreSQL through the kiroku/keiro event store.
 | `PG_CONNECTION_STRING` | Database connection string (fallback) | Yes (if `REI_PG_CONNECTION_STRING` not set) |
 
 Rei checks `REI_PG_CONNECTION_STRING` first, then falls back to `PG_CONNECTION_STRING`. Using the Rei-specific variable avoids conflicts when Rei is installed globally alongside other applications.
+
+The preference is decided before either value is read, so setting `REI_PG_CONNECTION_STRING` means `PG_CONNECTION_STRING` is never consulted at all — `rei config explain` reports it as `<not selected>` rather than as overridden.
+
+**An explicitly empty `REI_PG_CONNECTION_STRING` is an error, not a fallback.** `export REI_PG_CONNECTION_STRING=` used to be treated as if the variable were unset, so Rei silently used `PG_CONNECTION_STRING` instead. It now fails with a message naming the variable. Unset the variable (`unset REI_PG_CONNECTION_STRING`) if you want the fallback.
 
 ```bash
 # Recommended: Rei-specific variable (won't conflict with other apps)
@@ -303,10 +358,14 @@ Use `rei agent models` to list API model identifiers known by baikai. With `tran
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PG_POOL_SIZE` | Connection pool size | 10 |
+| `PG_POOL_SIZE` | Connection pool size | 20 |
 | `PG_POOL_TIMEOUT` | Pool acquisition timeout (seconds) | 10 |
-| `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time (seconds) | 600 |
-| `PG_POOL_MAX_CONNECTION_LIFETIME` | Max connection lifetime (seconds) | 1800 |
+| `PG_POOL_MAX_CONNECTION_IDLE_TIME` | Max idle time (seconds) | 60 |
+| `PG_POOL_MAX_CONNECTION_LIFETIME` | Max connection lifetime (seconds) | 60 |
+
+The three duration variables accept a plain number of seconds or the same number with a trailing `s` — `PG_POOL_TIMEOUT=10` and `PG_POOL_TIMEOUT=10s` are the same setting. Only the `10s` spelling worked before Rei 6.
+
+Run `rei config explain` to see which of these are set and which are defaults.
 
 ### Optional: Observability
 

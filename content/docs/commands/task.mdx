@@ -118,6 +118,7 @@ rei task complete task_01abc... --at "2 hours ago"
 **Notes:**
 - Automatically syncs checkbox state to the original markdown file(s)
 - Updates all notes containing the task
+- The completion is recorded once, through the note that carries the task; only a task no note takes the change for (an archived note, or a deleted note's orphan) is completed on the task directly. Before 2026-09-11 a completion could be recorded twice
 - Use `--at` to backdate completions when you forgot to mark them
 
 ### abandon

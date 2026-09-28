@@ -1,0 +1,101 @@
+---
+title: rei ops
+description: Operations console for the Keiro runtime — streams, subscriptions, timers, queues, and rebuilds
+icon: Wrench
+---
+
+`rei ops` is the operations console for the runtime underneath Rei — the event log, the projections that derive read models from it, the reactors and timers that react to it, and the queues that carry work between them. It answers questions like "why has this read model stopped updating", "what is this timer stuck on", and "what would a rebuild actually touch".
+
+It is not part of the coaching workflow. Reach for it when something in the background has stopped working.
+
+The console ships with the `keiro` runtime rather than being written by Rei, so it cannot drift from the tables it reports on. Rei mounts it over its own database connection, so `rei ops` always operates the database every other `rei` command does — there is no `--database-url`.
+
+## Safety Model
+
+Most commands read. The ones that write refuse to do so until you ask twice:
+
+```bash
+rei ops rebuild start rei_note_models          # prints what it WOULD do, exits non-zero
+rei ops --force rebuild start rei_note_models  # actually does it
+```
+
+That non-zero exit is deliberate — it is how a preview says "nothing changed". Global flags come **before** the subcommand, which differs from the standalone `keiro-ops` binary.
+
+Before a mutating command runs, the console checks the live database schema against the one this `rei` binary was built for and refuses to write if they disagree. Pass `--allow-schema-drift` to override once you understand the difference.
+
+Add `--json` for scripting. The JSON shape is stable and carries a `schema` field.
+
+| Global flag | Description |
+|-------------|-------------|
+| `--force` | Actually perform a mutating command instead of previewing it |
+| `--allow-schema-drift` | Write even when the live schema differs from the one this binary was built for |
+| `--json` | Machine-readable output with a stable, versioned (`schema`) shape |
+
+## Command Groups
+
+| Group | What it operates |
+|-------|------------------|
+| `stream` | Kiroku streams: show events, trace causation, list durable subscription checkpoints, soft/hard delete, truncate markers |
+| `rebuild` | Projection catalog rebuild groups: list, preview, start, status, resume, abandon, adopt |
+| `timer` | Durable timers: find stuck ones, requeue, cancel, dead-letter |
+| `wf` | Durable workflows: list, show, journal, steps, awakeables, cancel, resurrect, leases, gc |
+| `outbox` | The transactional outbox: backlog, list, show, requeue stuck, gc sent |
+| `inbox` | The integration-event inbox: backlog, list, show, mark failed, gc |
+| `pgmq` | Keiro PGMQ queues and their dead-letter queues: read, archive, purge, redrive |
+| `projection` | Projection dedup state: inspect members, prune |
+| `shard` | Sharded-subscription ownership: status, relinquish |
+| `snapshot` | Advisory snapshots: show, delete, truncation preflight |
+| `replay-audit` | Replay stored events through this binary's codecs and report divergence |
+
+Run `rei ops <group> --help` for a group's subcommands.
+
+## The Three Questions You Will Actually Ask
+
+### "Is a read model falling behind?"
+
+```bash
+rei ops stream subscriptions
+```
+
+One row per durable subscription with its checkpoint position, the store head, and the distance between them. A large or growing `global_position_distance` means that subscription is behind; a `checkpoint_updated_at` that stopped moving means it is stuck rather than merely slow.
+
+This reads **durable** state, so it works whether or not a worker is running. For the live phase of a *running* worker, see [`rei kiroku`](/docs/commands/kiroku).
+
+### "Why did that scheduled thing never happen?"
+
+```bash
+rei ops timer stuck list
+rei ops timer stuck list --min-age 1h --min-attempts 3
+```
+
+A timer left in `firing` was claimed by a worker that died before finishing it. Nothing retries it on its own. Once you know which it is:
+
+```bash
+rei ops timer requeue <timer-id>        # preview
+rei ops --force timer requeue <id>      # put it back in the scheduled queue
+rei ops --force timer cancel <id>       # it is obsolete; withdraw it
+rei ops --force timer dead-letter <id> --reason "poison payload"
+```
+
+### "What would a rebuild touch?"
+
+```bash
+rei ops rebuild list
+rei ops rebuild preview rei_note_models
+```
+
+The preview names every target in the group, each target's reset policy, and the log position the rebuild would capture. Read the reset policies before running it — a target marked to clear before replay loses any data that is not reproducible from the event log.
+
+The full operator runbook, including how to unstick a wedged subscription, lives in the source repository at `docs/dev/architecture/keiro-operations.md`.
+
+## Commands Rei Does Not Mount
+
+Two of the console's commands are absent on purpose, and `rei ops <group> --help` will not list them:
+
+- **`timer drain-once`** — firing a Rei timer needs the whole worker environment, and `rei worker kiroku` already claims and fires due timers once a second. A second firer from the command line would compete with it for the same claim.
+- **`wf resume-once`** — Rei registers no durable workflows, so there is nothing to resume. The `wf` inspection commands remain, and report an empty list.
+
+## See Also
+
+- [`rei kiroku`](/docs/commands/kiroku) — Live subscription phase from a **running** worker's metrics endpoint
+- [`rei worker`](/docs/commands/worker) — Running the workers this console inspects

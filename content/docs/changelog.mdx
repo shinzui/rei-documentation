@@ -6,6 +6,48 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-09-27
+
+Rei 7.0.0.0.
+
+### New Command: `rei ops`
+
+`rei ops` is now the full operations console for the runtime underneath Rei — the event log, projections, reactors, timers, and queues. Reach for it when something in the background has stopped working.
+
+- `rei ops stream subscriptions` — Durable checkpoint position and distance behind the log head for every subscription, whether or not a worker is running.
+- `rei ops timer stuck list` — Find timers stranded in `firing`, then `requeue`, `cancel`, or `dead-letter` them.
+- `rei ops rebuild list|preview|start` — Inspect and run projection rebuild groups, with each target's reset policy shown up front.
+- Also: `wf`, `outbox`, `inbox`, `pgmq`, `projection`, `shard`, `snapshot`, and `replay-audit`.
+- Writes only happen with `--force` (a preview exits non-zero), and are refused when the live schema differs from the binary's unless you pass `--allow-schema-drift`.
+
+See [`rei ops`](/docs/commands/ops).
+
+### New Command: `rei config`
+
+- `rei config explain` — Every configuration value and where it came from: an environment variable, a default rule, `<missing>`, or `<not selected>` when a preferred key won first.
+- `rei config describe` — Every key Rei can read, without reading anything.
+
+Both take `--json`. See [Inspecting Configuration](/docs/configuration#inspecting-configuration).
+
+### Breaking Changes
+
+- **Focus and note writes exit by meaning.** A refused write (not found, archived, deleted) now exits `2` and a store failure `70`; both used to print on stdout and exit `0`. Covers every `focus` write, every primary `note` write, and the note-anchored `doc attach` / `detach` / `retitle`. See the [automation exit contract](/docs/guides/automation-exit-contract#focus-and-note-writes).
+- **An explicitly empty `REI_PG_CONNECTION_STRING` is an error** rather than a silent fall-through to `PG_CONNECTION_STRING`. Unset it to get the fallback.
+
+### Feature Enhancements
+
+- **Secrets are redacted.** Connection strings and API keys render as `<redacted>` in every report, warning, and error — a malformed connection string no longer echoes your password.
+- **`PG_POOL_TIMEOUT=10` works.** The pool duration variables accept plain seconds as well as `10s`.
+- **`rei version`, `rei help`, and `rei completions`** no longer need a database connection string.
+- **`rei worker`** — Logs `[worker] router <name> halted at global position <n>: <reason>` whenever a reactor halts for good, and gained the `checked-mapping-process-audit` operator subcommand.
+- **`rei kiroku`** — Now explains when to use it versus `rei ops`: without `--remote-url`, `subscriptions status` prints an empty table from a CLI process by design.
+
+### Fixes
+
+- **`rei task complete` / `reopen`** record the change once, through the note that carries the task, instead of twice.
+- **Note embeds** live on the note's own stream; the embed-propagation subscription no longer runs.
+- **Connection-pool defaults** in the configuration reference were wrong on all four rows. They are 20 / 10 / 60 / 60.
+
 ## 2026-08-09
 
 ### New Command: `rei topic`

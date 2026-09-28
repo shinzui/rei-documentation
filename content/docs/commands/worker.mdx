@@ -56,6 +56,22 @@ REI_KIROKU_METRICS_PORT=9200 rei worker kiroku
 REI_KIROKU_METRICS_PORT=disabled rei worker kiroku
 ```
 
+When a router or process manager halts for good, the worker writes one error line for it, inside the reactor's trace span:
+
+```text
+[worker] router <name> halted at global position <n>: <reason>
+```
+
+A halted reactor makes no further progress until it is fixed and the worker is restarted, and `rei kiroku subscriptions status` cannot yet show a halted state, so watch the worker log for this line.
+
+### checked-mapping-process-audit
+
+Run only the Note-to-Task process manager, for an isolated checked-mapping audit on a restored database. It is an operator tool for release rehearsals, not a production worker.
+
+```bash
+rei worker checked-mapping-process-audit
+```
+
 ### Kioku Memory Embeddings
 
 Kioku owns memory embedding storage and backfill. Rei hosts Kioku's distillation timers in `rei worker kiroku`, but embedding backfill and continuous embedding work should be run with the Kioku worker companion until Rei grows a first-class embedding worker subcommand.
@@ -148,6 +164,7 @@ For example, the git sync flow:
 
 ## See Also
 
+- [`rei ops`](/docs/commands/ops) — Operations console for the runtime these workers drive: durable checkpoints, stuck timers, queues, rebuilds
 - [`rei kiroku`](/docs/commands/kiroku) — Inspect live subscription status (incl. `--remote-url` against this worker)
 - [`rei periodic-check`](/docs/commands/periodic-check) — Manual triggering of periodic checks
 - [`rei workspace`](/docs/commands/workspace) — Git integration configuration

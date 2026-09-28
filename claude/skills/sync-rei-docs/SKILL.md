@@ -41,6 +41,8 @@ Current help topics and their required guides:
 | `journal-entries.md` | `journal-entries.mdx` |
 | `kit.md` | `kit.mdx` |
 | `multi-agent-orchestration.md` | `multi-agent-orchestration.mdx` |
+| `projects.md` | `projects.mdx` |
+| `reminders.md` | `reminders.mdx` |
 | `review-checkpoints.md` | `review-checkpoints.mdx` |
 | `state-machines.md` | `state-machines.mdx` |
 | `templates.md` | `templates.mdx` |
@@ -61,12 +63,12 @@ Current help topics and their required guides:
 - `docs/user/concepts.md` - Core concepts
 - `docs/user/CHANGELOG.md` - User-facing changelog
 
-**CLI commands in source** (`docs/user/cli/`, as of the 2026-08-09 sync):
+**CLI commands in source** (`docs/user/cli/`, as of the 2026-09-27 sync):
 - action.md, agent-memory.md, agent-schedule.md, agent.md, automation-exit-contract.md
 - blocker.md, category.md, checkpoint.md, collection.md, configuration.md
 - custom-property.md, cycle.md, day.md, dependency.md, disruption.md, doc.md, edge.md
 - focus.md, habit.md, help.md, intention.md, kiroku.md, kit.md, knowledge.md
-- link.md, note.md, ontology.md, outcome.md, periodic-check.md, playbook.md, predicate.md
+- link.md, note.md, ontology.md, ops.md, outcome.md, periodic-check.md, playbook.md, predicate.md
 - project.md, reflect.md, reminder.md, review.md, subscription.md, support.md, system.md
 - task.md, template.md, today.md, tomorrow.md, topic.md, view.md, worker.md
 - workspace.md, yesterday.md
@@ -284,6 +286,7 @@ Use these Lucide icons for command pages:
 - link: `ExternalLink`
 - neglected: `Clock`
 - note: `FileText`
+- ops: `Wrench`
 - ontology: `Network`
 - outcome: `Trophy`
 - project: `FolderKanban`

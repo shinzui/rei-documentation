@@ -120,7 +120,8 @@ The `today` dashboard includes:
 |---------|-------------|
 | [`rei system`](/docs/commands/system) | Removed — dormancy is now a keiro timer in `rei worker kiroku` |
 | [`rei worker`](/docs/commands/worker) | Run event-stream and queue workers |
-| [`rei kiroku`](/docs/commands/kiroku) | Operator commands for the Kiroku event store (subscription status) |
+| [`rei ops`](/docs/commands/ops) | Operate the Keiro runtime: streams, subscriptions, timers, queues, rebuilds |
+| [`rei kiroku`](/docs/commands/kiroku) | Live subscription phase from a running worker's metrics endpoint |
 | [`rei periodic-check`](/docs/commands/periodic-check) | Manage periodic checks for automated dormancy and reminders |
 | [`rei workspace`](/docs/commands/workspace) | Workspace management and git integration |
 | `rei predeploy` | Inventory and gate deployment data (no documentation page yet) |
@@ -133,6 +134,7 @@ The `today` dashboard includes:
 | `rei info` | Show workspace, database, and configuration status |
 | `rei version` | Show the installed version |
 | `rei alias` | List the command aliases defined in your config |
+| [`rei config`](/docs/configuration#inspecting-configuration) | Explain where configuration values came from (`explain`, `describe`) |
 | `rei completions` | Generate shell completions for bash, zsh, or fish |
 
 ## FZF Integration

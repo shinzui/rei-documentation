@@ -1109,7 +1109,7 @@ Reference: ![[research-paper.pdf]]
 **Processing:**
 - Embeds are discovered when notes are created or updated
 - The file path is resolved relative to the workspace docs directory
-- Embed events are propagated to the anchor entity's stream
+- Embeds are recorded on the note's own stream; `rei note embeds` and `rei note show` read them from there
 - Use `rei knowledge verify --embeds` to check for missing embedded files
 
 ## Wikilinks

@@ -45,6 +45,7 @@
 		"system",
 		"subscription",
 		"worker",
+		"ops",
 		"kiroku",
 		"periodic-check",
 		"workspace"
