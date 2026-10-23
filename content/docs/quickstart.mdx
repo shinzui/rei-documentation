@@ -464,16 +464,16 @@ deliberate checkpoint on whether the whole effort is still healthy and still wor
 place:
 
 ```bash
-rei project review my-api --stage active --health watch --cadence-days 14
+rei project review my-api --health watch --cadence-days 14
 ```
 
 ```
 Reviewed my-api; next review 2026-04-08
 ```
 
-Health is your judgement, not a computed metric: `healthy`, `watch`, or `blocked`. Stage is
-an enum — `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` — with no
-transition graph imposed, because the legitimate moves differ per project.
+Health is your judgement, not a computed metric: `healthy`, `watch`, or `blocked`. Whether
+the project is still being *pursued* is not something you type: Rei derives it from the
+active intentions and habits in its scope.
 
 Later, when you have more than one project going, the attention queue tells you which have
 come due:
@@ -488,8 +488,8 @@ rei project review --due
 ```
 
 A project that has *never* been reviewed is due immediately — a new effort should not hide
-until a timestamp happens to exist. A paused project stays on schedule too, because the
-review is exactly when you notice a pause has quietly become abandonment.
+until a timestamp happens to exist. A project with no active work left in scope drops out of
+the queue on its own.
 
 ### Reflect on the Week
 
@@ -523,11 +523,13 @@ rei outcome record <root-id> "API deployed, documented, and serving production t
 rei intention complete <root-id>
 ```
 
-The project outlives the intention tree that built it. Move it to a maintenance footing
-rather than deleting it, and the history, knowledge, and identity all stay queryable:
+The project outlives the intention tree that built it. Once no active intention or habit
+remains in scope, its pursuit becomes idle and it stops coming due. The history, knowledge,
+and identity all stay queryable. If you keep it on a slower maintenance rhythm, record the
+review with a longer cadence:
 
 ```bash
-rei project review my-api --stage maintaining --health healthy --cadence-days 90
+rei project review my-api --health healthy --cadence-days 90
 ```
 
 ## What This Walkthrough Covered

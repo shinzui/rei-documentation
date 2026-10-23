@@ -8,7 +8,10 @@ icon: Server
 
 It is a **separate long-running process**. Installing or running the CLI does not start it, and nothing in the CLI talks to it.
 
-The endpoint surface is deliberately narrow: intentions and categories. Everything else Rei can do is still CLI-only.
+The v2 surface covers work, properties, knowledge, projects, workflows, reporting and durable agent operations. MasterPlan 29 classifies every registered CLI command; local editing and explicit operator commands retain their own boundaries. 
+<Callout type="info">
+**v1 is removed.** Every domain route moved to `/api/v2` in release 8.0.0.0, paired with the 0.2 Haskell client. Migrating a v1 client is described in the release cohort (`docs/api/release-0.2.0.0.md` in `mori://shinzui/rei`) and the migration guide (`docs/api/migration.md` in `mori://shinzui/rei`).
+</Callout>
 
 ## Running the server
 
@@ -23,7 +26,8 @@ cabal run rei-api
 |---|---|---|
 | `REI_PG_CONNECTION_STRING` | *(required)* | PostgreSQL connection string. `PG_CONNECTION_STRING` is accepted as a fallback. The server refuses to start without one. |
 | `REI_API_PORT` | `8080` | Listen port. An unparseable value falls back to `8080` rather than failing. |
-| `REI_API_TOKENS` | unset | Bearer tokens, see [Authentication](#authentication). Unset means every write is rejected. |
+| `REI_API_TOKENS` | unset | Bearer tokens, see [Authentication](#authentication). Unset means every protected operation is rejected. |
+| `MORI_API_URL` | unset | Mori's API, read by `POST /api/v2/projects/commands/sync` only. Unset or unusable, the server still starts and a sync answers `503 mori_unconfigured`. |
 
 The server also reads Rei's ordinary config file and the OpenTelemetry variables described in [Observability](/docs/observability); tracing is on by the same switches the CLI uses.
 
@@ -35,43 +39,65 @@ The store's connection pool is opened **once per process**, so the server holds 
 
 ## Endpoints
 
-Operational endpoints live at the root; every domain endpoint lives under `/api/v1`.
+Operational endpoints live at the root; every domain endpoint lives under `/api/v2`.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | `GET` | `/health/live` | — | Liveness. Answers `200` while the process is responsive; **never** touches PostgreSQL. |
 | `GET` | `/health/ready` | — | Readiness. `SELECT 1` on the store pool; `503` when the database is unreachable. |
-| `GET` | `/version` | — | `{"version":"5.0.0.0"}` — the compiled package version. |
+| `GET` | `/version` | — | `{"version":"8.0.0.0"}` — the compiled package version. |
 | `GET` | `/docs` | — | Interactive Swagger UI over the derived OpenAPI document. |
 | `GET` | `/openapi.json` | — | The OpenAPI 3.1 document itself. |
-| `GET` | `/api/v1/intentions` | — | Paginated page of non-terminal intentions. |
-| `GET` | `/api/v1/intentions/{id}` | — | One intention's read-model row. |
-| `GET` | `/api/v1/intentions/{id}/full-view` | — | The projected graph: children, actions, outcomes, blockers, notes, docs, links, reminders, properties. |
-| `POST` | `/api/v1/intentions` | Bearer | Create an intention. |
-| `POST` | `/api/v1/intentions/{id}/commands/complete` | Bearer | Complete it. |
-| `POST` | `/api/v1/intentions/{id}/commands/abandon` | Bearer | Abandon it. |
-| `POST` | `/api/v1/intentions/{id}/commands/defer` | Bearer | Defer it to `Future`. |
-| `POST` | `/api/v1/intentions/{id}/actions` | Bearer | Record an action against it. |
-| `GET` | `/api/v1/categories` | — | Paginated page of active categories, flat — every row carries its `parentId`, so a client assembles the hierarchy itself. |
-| `GET` | `/api/v1/categories/{id}` | — | One category. |
+| `GET` | `/api/v2/intentions` | — | Paginated page of non-terminal intentions. |
+| `GET` | `/api/v2/intentions/{id}` | — | One intention's read-model row. |
+| `GET` | `/api/v2/intentions/{id}/details` | — | Bounded `{intention, counts}` metadata and scalar relationship counts; no graph arrays. |
+| `POST` | `/api/v2/intentions` | Bearer | Create an intention. |
+| `POST` | `/api/v2/intentions/{id}/commands/complete` | Bearer | Complete it. |
+| `POST` | `/api/v2/intentions/{id}/commands/abandon` | Bearer | Abandon it. |
+| `POST` | `/api/v2/intentions/{id}/commands/defer` | Bearer | Defer it to `Future`. |
+| `POST` | `/api/v2/intentions/{id}/actions` | Bearer | Record an action against it. |
+| `GET` | `/api/v2/categories` | — | Paginated page of active categories, flat — every row carries its `parentId`, so a client assembles the hierarchy itself. |
+| `GET` | `/api/v2/categories/{id}` | — | One category. |
+| `GET` | `/api/v2/projects` | — | Paginated page of projects in key order. `?includeArchived` adds archived ones. |
+| `GET` | `/api/v2/projects/{id}` | — | One project: identity, review state, and a work rollup. `{id}` is its topic id. |
+| `GET` | `/api/v2/projects/by-key/{key}` | — | The same, looked up by topic key (`shinzui-mina`). |
+| `GET` | `/api/v2/projects/by-mori/{namespace}/{name}` | — | The same, looked up by Mori reference (`mori://{namespace}/{name}`). |
+| `GET` | `/api/v2/projects/{id}/scope/intentions/{intentionId}` | — | Whether an intention is in the project's effective scope, and how it got there. |
+| `GET` | `/api/v2/intentions?project={id}` | — | The intention list restricted to one project's effective scope. |
+| `POST` | `/api/v2/projects/commands/sync` | Bearer | Create or refresh a project from Mori. |
+| `POST` | `/api/v2/projects/{id}/commands/add-to-scope` | Bearer | Scope an entity to the project. |
+| `POST` | `/api/v2/projects/{id}/commands/remove-from-scope` | Bearer | Remove the entity's direct scope. |
+| `POST` | `/api/v2/projects/{id}/commands/record-review` | Bearer | Record a project review. |
 
-`{id}` is a TypeID string (`intention_01k...`, `category_01k...`). A malformed id answers `400` with a problem document, not a `404` and not plain text. Because the capture refuses anything that is not a well-formed TypeID, it can never swallow a literal path segment such as `full-view`.
+`{id}` is a TypeID string (`intention_01k...`, `category_01k...`). A malformed id answers `400` with a problem document, not a `404` and not plain text. Because the capture refuses anything that is not a well-formed TypeID, it can never swallow a literal path segment such as `by-key`.
 
 <Callout type="warn">
-**Reads are currently unauthenticated.** Only the write endpoints carry the bearer combinator. Do not expose this server to a network you would not give read access to.
+Ordinary domain reads are public. Sensitive Agent Session/Memory reads, Today agent summary, execution evidence and operational status require bearer authentication, as declared per operation in OpenAPI. Mutations also require authentication. Do not expose this server to a network you would not give read access to.
 </Callout>
 
-### The API is not the CLI
+## Projects
 
-The API exposes a subset of what the CLI can express, and a few things differ on purpose:
+A project is a Topic classified `instance-of project`; its canonical ID is the Topic ID. Resolve it through `/projects/{id}`, `/projects/by-key/{key}` or `/projects/by-mori/{namespace}/{name}`. An archived project still resolves.
 
-- `POST /api/v1/intentions` takes `title`, and optionally `parentId` and `context`. There is no `horizon` field — the free-text horizon parser lives in the CLI package.
-- Timestamps are **UTC**. `occurredAt` on a recorded action defaults to the server clock; the server has no notion of the caller's local timezone, which is exactly why the CLI (which runs on the operator's machine) uses the operator's.
-- Intention ids are generated server-side and never taken from the request body.
+```bash
+curl -s 'http://localhost:8080/api/v2/projects?pursuit=pursued&due=true&timezone=America/Los_Angeles&as-of=2026-10-19'
+```
+
+The portfolio applies pursuit, health and due filters in SQL before pagination. Metadata contains derived `review.pursuit`, fixed review/work/knowledge/scope counts and `externalRefCount`. `timezone` and `as-of` select the reporting calendar and bind cursors. Ordinary reads need no Mori connection; optional enrichment is one separate `/projects/{id}/enrichment/{referenceId}` request after paging the Topic's external references.
+
+Traverse `/projects/{id}/scope/entities` for effective membership, with `entity-type`, `direct-only` and `include-inactive` controls. Singleton membership, traversal diagnostics and scoped `/notes`, `/docs` and `/links` have their own resources. Complete paths and hops use the canonical Topic scope resources.
+
+Project mutations require bearer authentication. Scope add/remove return the resolved entity and authoritative `changed`; observe membership separately. `record-review` takes optional health, positive `cadenceDays` and UTC `reviewedAt`, returning three fixed per-step outcomes. Preserve successful steps if a later assignment fails. Stored stage is retired; pursuit is derived from current work. `sync` retains its finite, at-most-four-step workflow. Creations use Topic creation and classification, including ordinary projects without a Mori reference.
+
+See project migration (`docs/api/migration.md` in `mori://shinzui/rei`) for request records and partial outcomes, and OpenAPI (`docs/api/openapi.json` in `mori://shinzui/rei`) for complete fields.
+
+### CLI boundary
+
+Both front ends use the same Core owners. The CLI retains terminal editing, filesystem and serialization work. HTTP accepts typed horizons and explicit IANA action calendars. New identities are generated by the owning command; clients preserve receipts and do not automatically retry creation or recording.
 
 ## Authentication
 
-Write endpoints require `Authorization: Bearer <token>`. The resolved token decides the **actor stamped on every event** the request records — the same provenance the CLI stamps.
+Protected operations require `Authorization: Bearer <token>`. The resolved token determines provenance for Rei-owned writers; owner facades retain their existing provenance contract. Legacy Memory archive facts preserve unknown attribution.
 
 `REI_API_TOKENS` is a comma-separated list of `token=actor` pairs, where `actor` is the literal `human` or `agent:<agentId>`:
 
@@ -79,7 +105,7 @@ Write endpoints require `Authorization: Bearer <token>`. The resolved token deci
 export REI_API_TOKENS="s3cret=human,botkey=agent:claude-code"
 ```
 
-This is **fail-closed** and single-tenant. An unset or empty variable yields an empty token map, and an empty map rejects every write; an unparseable entry is dropped rather than defaulting to something permissive. A typo costs access — it never grants it.
+This is **fail-closed** and single-tenant. An unset or empty variable yields an empty token map, and an empty map rejects every protected operation; an unparseable entry is dropped rather than defaulting to something permissive. A typo costs access — it never grants it.
 
 A missing header, a malformed one, and an unknown token are all answered identically with `401`, an `unauthorized` problem document, and a `WWW-Authenticate: Bearer` challenge. They are not told apart on purpose: distinguishing them would turn the error into a token-enumeration oracle.
 
@@ -89,7 +115,7 @@ This is an authentication *seam*, not an identity system. There is no per-object
 
 ## Pagination
 
-Both list endpoints use Relay cursor pagination and have done since their first release — there is no unpaginated variant and no `?limit=`/`?offset=`.
+Every list endpoint uses Relay cursor pagination and have done since their first release — there is no unpaginated variant and no `?limit=`/`?offset=`.
 
 | Parameter | Meaning |
 |---|---|
@@ -101,7 +127,7 @@ Both list endpoints use Relay cursor pagination and have done since their first 
 A request above the maximum is **rejected, not clamped**.
 
 ```bash
-curl -s 'http://localhost:8080/api/v1/intentions?first=2'
+curl -s 'http://localhost:8080/api/v2/intentions?first=2'
 ```
 
 Each `node` is the full read-model row (abbreviated here):
@@ -156,13 +182,22 @@ Every error except the pagination `400` above is an [RFC 9457](https://www.rfc-e
 | `bad_request` | 400 | no | A malformed value in a request body, e.g. an unparseable `parentId`. |
 | `body_parse_error` | 400 | no | The JSON body did not parse or was missing a required field. |
 | `unauthorized` | 401 | no | Missing, malformed, or unknown bearer token. |
-| `not_found` | 404 | no | No such entity — or a lifecycle command that was a no-op (see below). |
+| `not_found` | 404 | no | No such entity; a valid lifecycle no-op is 200 with changed:false. |
 | `method_not_allowed` | 405 | no | The path exists but not with that method. |
 | `conflict` | 409 | no | Optimistic-concurrency clash, duplicate event, or retry exhaustion. |
 | `intention_has_active_children` | 409 | no | `complete` on an intention with Active children. The offending ids are in `detail`. |
 | `unprocessable` | 422 | no | The domain rejected the command. |
 | `internal` | 500 | no | Rei is broken — a decode failure, corrupt stored data. Retrying cannot help. |
 | `store_unavailable` | 503 | **yes** | PostgreSQL is unreachable, the connection was lost, or the pool timed out. |
+| `project_not_found` | 404 | no | No project answers to that id, key, or Mori reference — or the topic that does is not classified as a project (`detail` says it exists). Also a `?project=` value that is not a topic id. |
+| `not_in_project_scope` | 404 | no | The project exists; the intention is not in its effective scope. |
+| `project_ontology_unseeded` | 409 | no | The system `project` topic or the review properties were never seeded. Run `rei ontology seed-system`. |
+| `project_sync_refused` | 409 | no | Rei refused to converge a sync, e.g. the reference belongs to another topic or its topic is archived. |
+| `mori_project_not_found` | 422 | no | Mori has no project with that reference or repository id. |
+| `mori_unconfigured` | 503 | no | `MORI_API_URL` is unset or unusable, or what answers there is not Mori. An operator must fix it. |
+| `mori_unavailable` | 503 | usually | Mori could not answer. `retryable` is `true` for an outage or timeout and `false` for an answer that will not change on retry. |
+
+For `internal`, `store_unavailable`, `conflict` from retry exhaustion, and Mori transport, timeout, and decode failures, `detail` is a fixed sentence — for example "the server could not complete the request" — and never contains SQL, parameter values, host names, or upstream response text. The server records what actually failed in its own diagnostic log, correlated with the request's trace.
 
 A dead database is `503 retryable:true` on every route, including the paginated ones. That distinction is load-bearing: a lost connection is the most common production failure there is, and reporting it as a non-retryable `500` would tell clients to give up on something that will work in a moment.
 
@@ -171,7 +206,7 @@ A dead database is `503 retryable:true` on every route, including the paginated 
 A successful write answers with what the **command itself produced** — the aggregate and the status the command yielded — never with a re-read of a read model:
 
 ```bash
-curl -s -X POST http://localhost:8080/api/v1/intentions \
+curl -s -X POST http://localhost:8080/api/v2/intentions \
   -H 'Authorization: Bearer s3cret' \
   -H 'Content-Type: application/json' \
   -d '{"title":"Ship the API","context":"work"}'
@@ -196,19 +231,25 @@ This is the one consistency rule to understand before writing a client:
 
 > **A write is durable the moment it answers `2xx`. The `GET` endpoints may not show it yet.**
 
-The `intentions` read model those `GET`s serve is fed by an asynchronous keiro projection running in a *separate* worker process. A handler that re-read it to build its response would be racing that worker, and would have to answer something when the row is not there yet — but the write has already succeeded, so a `5xx` or a `404` would misreport a success. Clients that need the projected graph ask for `GET /api/v1/intentions/{id}/full-view` after the fact, which is honest about reading a projection.
+The `intentions` read model those `GET`s serve is fed by an asynchronous keiro projection running in a *separate* worker process. A handler that re-read it to build its response would be racing that worker, and would have to answer something when the row is not there yet — but the write has already succeeded, so a `5xx` or a `404` would misreport a success. Clients that need bounded projected metadata ask for `GET /api/v2/intentions/{id}/details` after the fact, which is honest about reading a projection. Its relationship counts have fixed shape regardless of attachment cardinality; traverse its relationships through the separate scoped Connections.
 
 Two more behaviors worth knowing:
 
-- `POST /api/v1/intentions` and `POST .../actions` answer `201`; the lifecycle commands answer `200`.
-- A lifecycle command that is a **no-op** answers `404`. The intention may be absent, or already in a state where the transition emits nothing — the handler cannot tell those apart. Abandoning an already-abandoned intention therefore gets `404`, not an idempotent `200`.
+- `POST /api/v2/intentions` and `POST .../actions` answer `201`; the lifecycle commands answer `200`.
+- A valid repeated lifecycle command answers `200` with `changed:false` and appends nothing. An absent target is `404`; an invalid transition is a typed refusal. Read the mutation receipt before deciding whether further work is required.
+
+## v2 identity, dates and cursors
+
+Response IDs use their canonical resource prefixes. Closed statuses and horizons reject unknown values; a horizon is `{type,value}` with a nonnegative integer for calendar units or text for `custom`. Extension JSON stays open only where the domain permits it. Timestamps represent UTC instants; project review dates/due use the selected reporting calendar. Action recording and time editing accept an explicit IANA timezone and backdated UTC instant; Core derives the historical local day.
+
+Keep cursors opaque and reuse the same filters. A cursor binds resource family, parent and normalized semantic filters; project pages additionally bind server timezone and local date. A mismatch or old v1 cursor produces JSON `400 invalid_cursor` before the query; restart the walk. HTTP 405 is a problem document. Protocol rejections 406 (Accept) and 415 (Content-Type) have empty bodies and no Content-Type; they are not declared handler results.
 
 ## The OpenAPI document
 
 The document is a **build artifact**, derived from the very types the server serves. It is never hand-written and never hand-edited: if it is wrong, the types are wrong.
 
 - Live, from a running server: `GET /openapi.json`, or the viewer at `/docs`.
-- Committed, for tooling and code generation without a server: `docs/api/openapi.json` in the source repository.
+- Committed, for tooling and code generation without a server: `docs/api/openapi.json` in `mori://shinzui/rei`.
 
 Regenerate and verify the committed copy with:
 
@@ -222,3 +263,4 @@ A red diff means someone changed the API and did not regenerate.
 
 - [Observability](/docs/observability) — tracing and the structured access log
 - [Commands](/docs/commands) — the other front end
+- [Projects guide](/docs/guides/projects) — the CLI view of the same project resources

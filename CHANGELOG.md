@@ -5,11 +5,45 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `54c0a685` (2026-09-27, release v7.0.0.0)
+**Last Source Commit Reviewed:** `13e14845` (2026-10-23, release v8.0.0.0)
 
 ---
 
 ## Changelog
+
+### 2026-10-23
+
+**Reviewed commits:** `54c0a685` through `13e14845` (release v8.0.0.0)
+
+**Theme:** HTTP API v2 (v1 removed), Topic profiles and recoverable TopicReviews, Mori artifact reference properties, classification-scoped properties, project stage retired in favour of derived pursuit.
+
+**Scope note:** 267 commits in range. User-facing changes were confined to `docs/user/` (api, CHANGELOG, concepts, and 21 CLI pages including the new `topic-profile.md`) and two help topics (`custom-properties.md`, `projects.md`). The rest — ADRs, `docs/api/` (OpenAPI, migration guide, standards audit), plans, evidence, improvement requests, bug reports, use cases — is developer material and was not synced; `docs/api/*` is referenced from `api.mdx` via `mori://shinzui/rei`.
+
+**Help topics:** `custom-properties` and `projects` changed; all 24 topics still have a 1:1 guide.
+
+**New command page:**
+- `commands/topic-profile.mdx` — From `docs/user/cli/topic-profile.md`: declarations, members/scope/attention, review and repair, identity rules and sync.
+
+**Updated pages:**
+- `api.mdx` — Rewritten from `docs/user/api.md`: `/api/v2` endpoints, v1-removed callout, read authentication, Projects section, CLI boundary, project problem codes, safe `detail` text, `changed:false` lifecycle no-ops, `/details` instead of `full-view`, v2 identity/dates/cursors.
+- `commands/custom-property.mdx` — Mori artifact references and classification scopes sections; `mori-ref` value types and create flags; canonical scope receipts; state-qualified note identity rules; condition operator parsing; git-ref/UUID format validation.
+- `commands/intention.mdx` — `complete` with `--reason` / `--explain` / `--request-id`; `--json` for the four property writes and a JSON output section.
+- `commands/project.mdx` — Patched from source: Mori-first quick start, `--pursuit`, stage retired, narrative reviews, three review properties, required `MORI_API_URL`, exit 64.
+- `commands/reflect.mdx` — Topic reviews section.
+- `commands/topic.mdx` — Topic-profile pointer and See Also entry.
+- `commands/{action,blocker,collection,day,disruption,habit,intention,link,note,outcome,topic}.mdx` — "Mori property writes" section.
+- `commands/ontology.mdx` — `--confirm-stage-retirement`, `scope-project-properties`, three seeded review properties (corrected against `rei-cli` source; `docs/user/cli/ontology.md` still lists `project-stage`).
+- `commands/index.mdx`, `commands/meta.json` — `topic profile` row and nav entry.
+- `configuration.mdx` — `MORI_API_URL` required (no default) with rationale, `MORI_API_TOKEN`, `MORI_API_URL` for `rei-api`, "protected operation" wording.
+- `guides/automation-exit-contract.mdx` — Intention property writes with `--json`; intention lifecycle, topic-profile, TopicReview and completion workflows; "remaining legacy paths" inventory wording.
+- `guides/projects.mdx` — Help-topic changes (Mori-first quick start, examples, required `MORI_API_URL`) plus stage → pursuit corrections against the CLI reference.
+- `guides/custom-properties.mdx` — Mori artifact references section; `references` / `reverify-refs` in the command summary.
+- `guides/config.mdx` — `MORI_API_URL` has no default.
+- `quickstart.mdx`, `concepts/topics.mdx`, `observability.mdx` — Removed `--stage`, introduced topic profiles, `/api/v2` access-log example.
+
+**Source drift found (not fixed upstream):** `rei-cli/help/projects.md` still documents `--stage` and the `project-stage` table; `rei-cli/help/config.md` still says `MORI_API_URL` defaults to `http://127.0.0.1:8080`; `docs/user/cli/ontology.md` still lists `project-stage` as seeded; `docs/user/observability.md` still shows an `/api/v1` access-log line. The site follows the CLI code and the CLI reference pages instead.
+
+**Not synced:** `docs/user/concepts.md` (Anatomy mapping table — not mirrored on the site); planned features named in the source changelog (note frontmatter, wikilink-derived relationships, API-backed everyday CLI).
 
 ### 2026-09-27
 

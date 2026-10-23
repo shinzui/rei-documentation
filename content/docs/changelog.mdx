@@ -6,6 +6,44 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-10-23
+
+Rei 8.0.0.0.
+
+### New Command: `rei topic profile`
+
+Declare how any classifier — `client`, `course`, `project` — organizes and reviews its member topics, then work its attention queue.
+
+- `rei topic profile declare|show|list|amend|archive|restore` — Map health, cadence, and last-reviewed properties, choose a due policy, and require completion explanations.
+- `rei topic profile members CLASSIFIER create|list|show|scope|review|sync` — Manage members and their scope, and record recoverable reviews with an optional narrative.
+- `rei topic profile due` — The cross-profile attention queue, paged and filterable by health and pursuit.
+- `rei topic profile preview-identity` — Check existing members against a Mori identity rule before enabling it.
+
+See [`rei topic profile`](/docs/commands/topic-profile).
+
+### HTTP API v2
+
+The HTTP API moved from `/api/v1` to `/api/v2`, and **v1 is removed**. v2 covers work, properties, knowledge, projects, workflows, reporting, and durable agent operations, with bounded Relay pages and opaque, filter-bound cursors. A repeated lifecycle command now answers `200` with `changed:false` instead of `404`, `full-view` is replaced by the bounded `/details` resource, and sensitive agent and operational reads require a bearer token. See [HTTP API](/docs/api).
+
+### Mori Artifact References
+
+- **`--type mori-ref` / `--type mori-ref-list`** — Custom properties whose values are canonical `mori://` artifact URIs, verified against Mori and restricted by kind, namespace, or project.
+- **`rei custom-property references`** — Reverse lookup: which entities point at an artifact, or at anything under a URI prefix.
+- **`rei custom-property reverify-refs`** — Recheck stored references, with `--dry-run`.
+- Every entity's `set-property` / `append-property` accept `--allow-unresolved`, and set/append/remove accept `--json`. Writers are off by default (`REI_MORI_REF_WRITES_ENABLED`).
+
+See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references).
+
+### Feature Enhancements
+
+- **Projects** — Project stage is retired: `--stage` is refused, and a project's *pursuit* (`pursued`, `dormant`, `idle`) is derived from the work in scope. `rei project list --pursuit` filters by it; `rei project review` can record a narrative TopicReview with `--reflection-text` and repair it with `--request-id`. `MORI_API_URL` no longer has a default and a server that is not Mori is reported as such (exit 64).
+- **`rei intention complete`** — `--reason` records a completion explanation (required by some topic profiles), `--explain` shows why, and `--request-id` makes an authored completion recoverable.
+- **`rei intention set-property` / `clear-property` / `append-property` / `remove-property-value`** — `--json` prints one `{"changed": …}` receipt and follows the [automation exit contract](/docs/guides/automation-exit-contract). Clearing an unset property now reports `Property unchanged`.
+- **`rei reflect topic`** — Write a TopicReview anchored to a topic; reflection schedules accept `--topic` and `--kind topic-review`, and `history` / `pending` page with `--first` / `--after`.
+- **Classification-scoped properties** — `--classification` scopes a topic property to members of a classifier, and `--allowed-classification` restricts a topic-valued property's targets. `rei ontology scope-project-properties` narrows the three project review properties.
+- **`rei ontology seed-system --confirm-stage-retirement`** — Archive the legacy `project-stage` definition while keeping its assignments readable.
+- **`rei custom-property` scope commands** — Print canonical `Changed property` / `Unchanged property` receipts. Condition values keep everything after the first operator, so URLs and `?` / `!` survive intact.
+
 ## 2026-09-27
 
 Rei 7.0.0.0.

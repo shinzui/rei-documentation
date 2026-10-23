@@ -64,7 +64,7 @@ performer = recorder = whatever `--actor` resolves to.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MORI_API_URL` | Mori HTTP API base URL | `http://127.0.0.1:8080` |
+| `MORI_API_URL` | Mori HTTP API base URL, e.g. `http://127.0.0.1:8780` | none; required by commands that contact Mori |
 
 Used by [`rei project`](/docs/commands/project#sync) when resolving software projects. Rei
 never contacts Mori unless a command asks it to.

@@ -24,7 +24,9 @@ The same primitive covers both because they are the same shape of fact: a durabl
 
 That is a deliberate design choice, not an implementation shortcut. A separate project entity would have needed its own attachments, its own graph edges, its own property support, and its own lifecycle — a second, parallel copy of what topics already do, guaranteed to drift. One primitive, one set of rules.
 
-It also means "project" is not restricted to software. A kitchen renovation, a research programme, a book, and a conference talk are all projects to rei. Only the software kind gains anything from [Mori federation](/docs/commands/project#sync).
+It also means "project" is not restricted to software. A cross-repo migration, a research programme, a book, and a conference talk are all projects to rei. A repository registered in Mori gains the most: [Mori federation](/docs/commands/project#sync) links the project to its canonical `mori://` identity and can show Mori's live view of it alongside your work.
+
+And `project` is not the only classifier that can organize work. A [topic profile](/docs/commands/topic-profile) declares how *any* classifier — `client`, `course`, `household` — reviews its member topics: which custom properties hold health and cadence, when a member comes due, and whether completing an intention in its scope needs an explanation. `project` is simply the built-in profile with its own facade.
 
 ## Scope is inherited, not repeated
 

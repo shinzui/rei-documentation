@@ -8,20 +8,21 @@ Work with projects: create them, see what needs attention, and review them on a 
 
 A project in Rei is a **topic classified `instance-of project`** — there is no separate project record, no `project_...` ID, and no projects table. `rei project` is a facade over the [topic commands](/docs/commands/topic), so anything you can do with `rei topic` still applies, and nothing here is a second source of truth.
 
-That has a practical consequence worth stating up front: this works for *any* durable subject that collects work over time. A kitchen renovation, a research programme, a book, a conference talk, and a software repository are all projects to Rei. Only the last kind gains anything from Mori.
+That has a practical consequence worth stating up front: this works for *any* durable subject that collects work over time. A software repository, a cross-repo migration, a research programme, and a conference talk are all projects to Rei. A repository registered in Mori gains the most: Rei links the project to its canonical `mori://` identity and can show Mori's live view of it alongside your work.
 
 ## Quick start
 
 ```bash
 rei ontology seed-system                                    # once per installation
-rei project create kitchen-renovation --label "Kitchen renovation"
-rei project scope add kitchen-renovation intention_01kv...
-rei project review kitchen-renovation --stage active --health healthy --cadence-days 14
+export MORI_API_URL=http://127.0.0.1:8780                   # where `mori serve` listens
+rei project sync mori://shinzui/rei                         # creates topic shinzui-rei
+rei project scope add shinzui-rei intention_01kv...
+rei project review shinzui-rei --health healthy --cadence-days 14
 rei project list
 rei project review --due
 ```
 
-`rei ontology seed-system` is a prerequisite: it creates the system `project` topic that classification points at, and the four custom properties that hold review state. Without it, `rei project` reports that no topic can be a project yet and tells you to run it.
+`rei ontology seed-system` is a prerequisite: it creates the system `project` topic that classification points at, and the three review properties that hold review state. Without it, `rei project` reports that no topic can be a project yet and tells you to run it.
 
 ## Subcommands
 
@@ -34,8 +35,8 @@ rei project create KEY --label LABEL [--description TEXT] [--json]
 Creates a topic and classifies it `instance-of project`.
 
 ```bash
-rei project create kitchen-renovation --label "Kitchen renovation"
-Created project kitchen-renovation (topic_01kv...)
+rei project create postgres-18-upgrade --label "PostgreSQL 18 upgrade"
+Created project postgres-18-upgrade (topic_01kv...)
 ```
 
 Both steps look before they write, so this is safe to rerun. If it created the topic and then failed to classify it, running it again repairs the classification; if everything already exists, it reports that rather than failing on the existing key.
@@ -45,7 +46,7 @@ For a *software* project, prefer [`sync`](#sync): it resolves the canonical `mor
 ### list
 
 ```bash
-rei project list [--stage STAGE] [--health HEALTH] [--due]
+rei project list [--pursuit pursued|dormant|idle] [--health HEALTH] [--due]
                  [--include-archived] [--with-mori] [--json]
 ```
 
@@ -53,8 +54,8 @@ Every project, with its review state and a rollup of the work in scope.
 
 ```bash
 rei project list
-!  kitchen-renovation        active        watch     3 active 1 blocked 12 recent
-   shinzui-rei               maintaining   healthy   1 active 0 blocked 40 recent
+!  postgres-18-upgrade       pursued       watch     3 active 1 blocked 12 recent
+   shinzui-rei               pursued       healthy   1 active 0 blocked 40 recent
 ```
 
 The leading `!` marks a project whose review is due. Counts cover **effective scope**: an intention scoped to the project brings its descendants and the actions, outcomes, blockers, notes, docs, links, and tasks they own, so scoping one root intention is usually all you need.
@@ -72,11 +73,11 @@ rei project show PROJECT [--direct] [--with-mori|--no-mori] [--json]
 `PROJECT` may be a topic key, a `topic_...` ID, or a canonical external reference such as `mori://shinzui/rei`.
 
 ```bash
-rei project show kitchen-renovation
-Kitchen renovation (kitchen-renovation)
+rei project show postgres-18-upgrade
+PostgreSQL 18 upgrade (postgres-18-upgrade)
   topic_01kv...
 
-Review:     active, watch, every 14d
+Review:     pursued, watch, every 14d
             due now
 
 Intentions: 3 active, 1 dormant, 2 completed
@@ -118,8 +119,8 @@ rei project scope list   PROJECT [--direct] [--entity-type TYPE] [--json]
 What belongs to the project. This is exactly `rei topic associate` / `dissociate` / `entities` with the `scoped-to` relation — same validation, same output, same JSON — so you can move between the two families freely.
 
 ```bash
-rei project scope add kitchen-renovation intention_01kv...
-Scoped intention:intention_01kv... scoped-to kitchen-renovation (edge_01kv...)
+rei project scope add postgres-18-upgrade intention_01kv...
+Scoped intention:intention_01kv... scoped-to postgres-18-upgrade (edge_01kv...)
 ```
 
 `ENTITY` accepts a full Rei ID or a bare 26-character TypeID suffix; `--entity-type` asserts the type of a full ID and disambiguates a bare suffix.
@@ -129,28 +130,30 @@ Scoped intention:intention_01kv... scoped-to kitchen-renovation (edge_01kv...)
 ### review
 
 ```bash
-rei project review [PROJECT] [--due] [--stage STAGE] [--health HEALTH]
+rei project review [PROJECT] [--due] [--health HEALTH]
                    [--cadence-days N] [--at ISO8601] [--json]
+                   [--request-id ID] [--reflection-id ID]
+                   [--reflection-text TEXT | --edit-reflection] [--expected-version N]
 ```
 
 With **no** `PROJECT`, this is the attention queue:
 
 ```bash
 rei project review --due
-  kitchen-renovation        due 2026-07-15   Kitchen renovation
+  postgres-18-upgrade       due 2026-07-15   PostgreSQL 18 upgrade
   thesis                    never reviewed   PhD thesis
 ```
 
 With a `PROJECT`, it records a review:
 
 ```bash
-rei project review kitchen-renovation --stage active --health healthy --cadence-days 14
-Reviewed kitchen-renovation; next review 2026-08-07
+rei project review postgres-18-upgrade --health healthy --cadence-days 14
+Reviewed postgres-18-upgrade; next review 2026-08-07
 ```
 
-`project-last-reviewed-at` is always written. Stage, health, and cadence are written **only when supplied**, so reviewing a project without changing your mind about its stage does not clear the stage.
+`project-last-reviewed-at` is recorded for each review. Health and cadence change only when supplied. Pursuit is derived from active intentions and habits in scope; it is not an authored review field.
 
-Use `--at` to record a review at the moment it actually happened rather than when you got round to typing it. Rerunning with the same `--at` and the same values repairs a partial write.
+Use `--at` to record a review at the moment it actually happened rather than when you got round to typing it. Rerunning with the same `--at` and the same values repairs a partial write, and with `--json` reports `"changed": false` when nothing needed writing. The review time is stored to the second.
 
 #### When a project is due
 
@@ -159,10 +162,10 @@ Use `--at` to record a review at the moment it actually happened rather than whe
 | Never reviewed | **Yes** — a new or migrated project should not hide until a timestamp happens to exist |
 | Reviewed, and today is on or after the next review date | **Yes** — a 14-day cadence reviewed on the 1st comes up on the 15th |
 | Reviewed, and the next review date is still ahead | No |
-| Stage is `completed` or `retired` | **No** — the cycle is over, though the project stays queryable by stage |
-| Stage is `paused` | **Yes**, on schedule — a pause is worth revisiting, and the review is when you notice it has become abandonment |
+| No active intention or habit remains in scope | No under the built-in while-pursued policy |
+| Only an active habit remains | Yes when its review date is due |
 
-Days are counted in **your local timezone**, so a review at 22:00 local on the 3rd counts as the 3rd.
+Dates use the selected IANA timezone (`--timezone`, default local). `--as-of YYYY-MM-DD` pins the attention queue date. An active intention remains a commitment even when its display metrics call it dormant.
 
 An unset cadence displays as 30 days without writing anything, so changing the default later still moves every project that never chose one.
 
@@ -181,7 +184,7 @@ Archiving is soft and delegates to the topic's lifecycle. Associations, external
 rei project sync MORI_REF|--repo-id REPO_ID [--json]
 ```
 
-Materializes a **software** project from Mori. Looks the project up in Mori's HTTP API (`MORI_API_URL`, default `http://127.0.0.1:8080`), then creates or reuses one topic classified `instance-of project`, attaches the canonical `mori://` reference, and marks it verified.
+Materializes a **software** project from Mori. Looks the project up in Mori's HTTP API (`MORI_API_URL`, required; see [configuration](/docs/configuration#optional-mori-federation)), then creates or reuses one topic classified `instance-of project`, attaches the canonical `mori://` reference, and marks it verified.
 
 ```bash
 rei project sync mori://shinzui/rei
@@ -266,16 +269,25 @@ Mori must be reachable: an empty snapshot would classify every assignment `unres
 
 ## Review state
 
-Review state is four ordinary global custom properties on the topic, seeded by `rei ontology seed-system`. You can read and set them with `rei custom-property` like any other, and `rei topic show` lists them.
+The built-in `project` profile maps three Topic review properties. New installations seed classification-scoped definitions; existing global definitions need the explicit narrowing procedure before cutover.
 
 | Property | Type | Values |
 |---|---|---|
-| `project-stage` | enum | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
-| `project-health` | enum | `healthy`, `watch`, `blocked` — unset means unknown |
-| `project-review-cadence-days` | integer (min 1) | Days between reviews |
-| `project-last-reviewed-at` | datetime | When it was last reviewed |
+| `project-health` | enum | `healthy`, `watch`, `blocked`; unset is unknown |
+| `project-review-cadence-days` | integer (min 1) | Days between portfolio reviews |
+| `project-last-reviewed-at` | datetime | Last review instant |
 
-Stage is an **enum, not a state machine**: no transition graph is imposed, because the legitimate moves differ per project kind — a publication goes `active → completed` and never reaches `maintaining`, while a library may oscillate for years.
+`--stage` is refused. Commitment lifecycle belongs to intentions and habits. Historical `project-stage` assignments remain readable after definition retirement; `rei ontology seed-system` reports the existing retirement inventory, and `--confirm-stage-retirement` applies its existing confirmation flow after writers are quiescent.
+
+For a narrative review, the declared profile uses the same request service as [`rei topic profile`](/docs/commands/topic-profile):
+
+```bash
+rei project review thesis --health watch --request-id thesis-review-42 \
+  --reflection-text 'The next chapter needs source verification.' --json
+rei reflect history --topic thesis --kind topic-review --json
+```
+
+Reuse the request ID and exact authored inputs to repair. Generated repair metadata is printed to stderr before effects; JSON stdout is one result. Explicit narrative/repair flags require a declared profile. Without these flags, the existing timestamp-based review identity remains compatible. `show` includes reflection counts, latest completed review identity/time, and cadence comparison. Explicit Reflection recurrence and portfolio cadence are independent; comparison never changes either setting.
 
 ## Exit status
 
@@ -285,7 +297,7 @@ Stage is an **enum, not a state machine**: no transition graph is imposed, becau
 |---|---|
 | 0 | Success. **Includes** a `show` or `list` where Mori was unavailable — the Rei data is still complete |
 | 2 | Rei refused the request: no such project, the topic is not classified as one, a malformed reference, a stale migration token, or a `migrate-local-repos --verify` whose coverage is incomplete |
-| 64 | `MORI_API_URL` is unusable |
+| 64 | `MORI_API_URL` is unset or unusable, or the server it names is not Mori's API |
 | 70 | The store, or Mori during a `sync`, could not be reached |
 
 ## JSON
@@ -295,7 +307,7 @@ Stage is an **enum, not a state machine**: no transition graph is imposed, becau
 ```json
 {
   "identity":     { "topicId": "topic_01kv...", "key": "shinzui-rei", "label": "shinzui/rei", "status": "active", "active": true },
-  "review":       { "stage": "maintaining", "health": "healthy", "cadenceDays": 30, "nextReviewOn": "2026-08-14", "due": false },
+  "review":       { "pursuit": "pursued", "health": "healthy", "cadenceDays": 30, "nextReviewOn": "2026-08-14", "due": false },
   "work":         { "intentions": { "active": 1, "dormant": 0, "completed": 4 }, "blockers": { "unresolved": 0 }, "actions": { "recent": 40 } },
   "knowledge":    { "notes": 6, "docs": 1, "links": 0 },
   "associations": { "direct": 1, "effective": 27, "truncatedBranches": 0 },
@@ -309,6 +321,7 @@ Stage is an **enum, not a state machine**: no transition graph is imposed, becau
 
 ## See also
 
+- [`rei topic profile`](/docs/commands/topic-profile) — generic profiles and narrative repair
 - [`rei topic`](/docs/commands/topic) — the underlying topics, associations, properties, and external references
 - [`rei ontology`](/docs/commands/ontology) — seeding the system `project` topic and the review properties
 - [`rei custom-property`](/docs/commands/custom-property) — reading and setting review state directly

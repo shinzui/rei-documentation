@@ -408,7 +408,8 @@ Read by the `rei-api` server only; the CLI ignores them. See [HTTP API](/docs/ap
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `REI_API_PORT` | Listen port. An unparseable value falls back to the default rather than failing | 8080 |
-| `REI_API_TOKENS` | Comma-separated `token=actor` pairs, where actor is `human` or `agent:<id>`. Unset means every write is rejected | unset (fail-closed) |
+| `REI_API_TOKENS` | Comma-separated `token=actor` pairs, where actor is `human` or `agent:<id>`. Unset means every protected operation is rejected | unset (fail-closed) |
+| `MORI_API_URL` | Mori's API, read only by the project sync command. Unset or unusable, the server still starts and a sync answers `503 mori_unconfigured` | unset |
 
 The server reads the same `REI_PG_CONNECTION_STRING`/`PG_CONNECTION_STRING` and OpenTelemetry variables as the CLI, and refuses to start without a connection string.
 
@@ -418,7 +419,10 @@ Used by `rei project` when it resolves software projects against [Mori](/docs/co
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `MORI_API_URL` | Base URL of the Mori HTTP API | `http://127.0.0.1:8080` |
+| `MORI_API_URL` | Base URL of the Mori HTTP API, e.g. `http://127.0.0.1:8780` | none: required by any command that contacts Mori |
+| `MORI_API_TOKEN` | Bearer token for an authenticated Mori service, used when resolving [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) | unset |
+
+There is deliberately no default. `mori serve` listens on 8080 unless told otherwise, and 8080 is commonly held by something else. A client that silently dialled it would read that service's 404s as "no such project". Rei also checks what answers. A readiness probe that is not Mori's `ProbeStatus` document, or a 404 on a Mori route without Mori's problem document, is reported as *the server at `MORI_API_URL` is not Mori's API* (exit 64), never as a missing project.
 
 ### Optional: Worker and Storage
 

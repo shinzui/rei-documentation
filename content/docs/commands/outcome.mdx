@@ -194,3 +194,7 @@ Outcomes appear in:
 - `rei intention show --full` — When viewing an intention
 - `rei intention timeline` — Chronological history
 - Weekly reviews
+
+## Mori property writes
+
+The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.

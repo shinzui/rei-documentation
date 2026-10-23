@@ -76,7 +76,7 @@ Copy the value after `trace=` into your trace backend's search UI. When no span 
 The [HTTP API server](/docs/api) additionally writes one JSON line per request to stdout:
 
 ```json
-{"time":"2026-08-09T17:04:11.412Z","method":"GET","path":"/api/v1/intentions","status":200,"duration_ms":7.31,"user_agent":"curl/8.7.1","trace_id":"4bf92f...","span_id":"00f067..."}
+{"time":"2026-08-09T17:04:11.412Z","method":"GET","path":"/api/v2/intentions","status":200,"duration_ms":7.31,"user_agent":"curl/8.7.1","trace_id":"4bf92f...","span_id":"00f067..."}
 ```
 
 - The field set is a **whitelist**. `User-Agent` is the only header logged, the path excludes the query string, and no request or response body is ever written. Adding a field is a deliberate act — the alternative, a redaction list, fails open on the next header somebody adds.

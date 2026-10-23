@@ -52,6 +52,8 @@ Custom properties support the following value types:
 | `uuid` | UUID (optionally version-constrained) | external ticket ID |
 | `tag-set` | Free-form set of tags (no predeclared values) | topics, keywords |
 | `path-list` | Unique, sorted set of file paths | related specs, source paths |
+| `mori-ref` | One canonical `mori://` artifact URI, with verification evidence | source plan, design doc |
+| `mori-ref-list` | Insertion-ordered list of `mori://` artifact URIs | related plans and concepts |
 
 ## State Machine YAML Format
 
@@ -196,6 +198,8 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 - `-d, --description <desc>` — Property description
 - `-e, --entity-type <type>` — Entity type to apply to (can be repeated). Valid types: intention, habit, disruption, note, journal_entry, collection, link
 - `-c, --category <slug>` — Scope to a specific category (must be a leaf category with no children)
+- `--classification <topic>` — Scope a Topic property to members of a classifier Topic (repeatable; requires `--entity-type topic`). See [Classification scopes](#classification-scopes-and-topic-value-restrictions)
+- `--allowed-classification <topic>` — Restrict the referenced value of a `--type-topic` definition to members of a classifier (repeatable)
 - `--inheritable` — Mark the property as inheritable. When set on an intention, descendants in the intention tree see the value (nearest ancestor wins) unless they set their own local value. State-machine value types cannot be inheritable. See [Inheritance in the Intention Tree](#inheritance-in-the-intention-tree).
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
@@ -263,6 +267,10 @@ rei custom-property create KEY [options] --type-<TYPE> [type-options]
 
 - `--type-uuid` — UUID type
   - `--uuid-version <version>` — Allowed UUID version: `v4`, `v7`, or `any` (default: `any`)
+
+  Unknown `--ref-format` or `--uuid-version` spellings fail validation before creation; omitting either retains the unrestricted default.
+
+- `--type mori-ref` / `--type mori-ref-list` — One canonical `mori://` artifact URI, or an insertion-ordered list of them. See [Mori artifact references](#mori-artifact-references) for restrictions (`--allowed-kind`, `--allowed-namespace`, `--allowed-project`, `--allow-project-refs`).
 
 - `--type-tag-set` — Free-form tag set (no predeclared values)
   - No options. Tags are provided at assignment time as a comma-separated list and validated per-tag (must be non-empty after trim, no newlines). Unlike `--type-label-set`, there is no allowed-values list on the definition, so no `add-label` / `remove-label` evolution commands apply.
@@ -595,7 +603,7 @@ rei custom-property add-scope-categories KEY_OR_ID -c SLUG [-c SLUG ...]
 - `-c, --category <slug>` — Category slug to add (can be repeated; at least one required)
 - `--lookup-category <slug>` — Disambiguate property lookup when multiple properties share the same key (has no effect when a KindID is given)
 
-If every supplied category is already in the scope the command is a no-op and prints `No changes to scope for property: <key>`.
+If every supplied category is already in the scope the command is a no-op and prints `Unchanged property: <id>`.
 
 **Examples:**
 
@@ -605,12 +613,12 @@ rei custom-property add-scope-categories local-repo -c 個人/制作 -c 個人/�
 
 # Re-running with the same slug is a no-op
 rei custom-property add-scope-categories local-repo -c 個人/制作
-# No changes to scope for property: local-repo
+# Unchanged property: custom_property_…
 ```
 
 ### remove-scope-categories
 
-Remove categories from a property's scope without replacing the existing set. The supplied slugs are subtracted from the property's current `scopedToCategories`. If the resulting set is empty the property becomes **global** (applies to all categories) and the command prints a distinct "Scope cleared to global" message.
+Remove categories from a property's scope without replacing the existing set. The supplied slugs are subtracted from the property's current `scopedToCategories`. If the resulting set is empty the property becomes **global** (applies to all categories). The canonical receipt prints `Changed property: <id>`; `show` displays the resulting scope.
 
 ```bash
 rei custom-property remove-scope-categories KEY_OR_ID -c SLUG [-c SLUG ...]
@@ -623,7 +631,7 @@ rei custom-property remove-scope-categories KEY_OR_ID -c SLUG [-c SLUG ...]
 - `-c, --category <slug>` — Category slug to remove (can be repeated; at least one required)
 - `--lookup-category <slug>` — Disambiguate property lookup when multiple properties share the same key (has no effect when a KindID is given)
 
-If every supplied category is already absent from the scope the command is a no-op and prints `No changes to scope for property: <key>`.
+If every supplied category is already absent from the scope the command is a no-op and prints `Unchanged property: <id>`.
 
 **Examples:**
 
@@ -633,8 +641,10 @@ rei custom-property remove-scope-categories local-repo -c 個人/研究
 
 # Drain the last category — property becomes global
 rei custom-property remove-scope-categories local-repo -c corpus
-# Scope cleared to global for property: local-repo
+# Changed property: custom_property_…
 ```
+
+Scope commands use the same canonical refusal and receipt rules as other definition writes. An archived property is refused even when the requested category membership already appears present.
 
 ## State Machine Evolution
 
@@ -1356,7 +1366,11 @@ rei custom-property add-state custom_property_01abc blocked --label "Blocked"
 
 ## State-Qualified Notes
 
-State machine properties support attaching notes that are qualified by the entity's current state. This lets you maintain per-state documentation (e.g., notes for "in-progress" vs "in-review").
+State machine properties support one note per intention, property definition ID and state. Same-key definitions in different scopes keep separate notes. Without `--state`, the command reads the selected definition's canonical current value; an override must name a state in that definition.
+
+Qualified creation is currently unavailable, including legacy-key creation. `REI_STATE_NOTE_IDENTITY_WRITES_ENABLED=true` cannot enable it: the required public atomic guard is planned in `mori://shinzui/keiro/plans/306-support-atomic-relational-preconditions-for-synchronous-catalog-commands` and has not been released. Existing notes remain readable. Legacy keys are display information, not stable definition bindings; an explicit audited migration must resolve them before creation can resume. Definition-filtered listings omit unbound legacy notes, which remain accessible by note ID.
+
+The adoption contract preserves first-write content, tags and provenance and requires concurrent ensures to return the same winner, including an archived note, without another creation fact. Identity claims survive deletion as tombstones; new qualified re-anchoring is disabled. The editor requires an active note and a materialized local file. If another request wins after a local draft is edited, the CLI preserves that draft and reports the winner. Listings include archived notes and notes for states removed from the definition.
 
 ### note
 
@@ -1374,7 +1388,7 @@ rei custom-property note PROPERTY_KEY [options]
 - `-s, --state <state_id>` — Override state (default: current state from property value)
 - `-p, --print` — Print the note path instead of opening editor
 - `-t, --tag <tag>` — Tag to add to the note (can be repeated)
-- `--actor <actor>` — Actor name
+- `--actor <actor>` — Actor name (overrides global `--actor`)
 - `-c, --category <slug>` — Category scope for property disambiguation
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from available intentions.
@@ -1459,6 +1473,8 @@ rei custom-property add-condition PROPERTY_KEY --when CONDITION
 | `key~v1,v2` | One of | `--when lifecycle~completed,failed` |
 | `key?` | Is set (any value) | `--when assigned-to?` |
 | `key!` | Is not set | `--when review-notes!` |
+
+The first binary operator separates the key and value. Everything after it stays in the value: `--when 'summary=ready?'` compares text with `ready?`, and `--when 'source-url=https://example.com/?x=a!=b'` preserves the complete URL. Quote expressions containing shell operators. Two-character operators such as `>=` take precedence at their position; use `key?` or `key!` without a binary operator for presence checks.
 
 **Examples:**
 
@@ -1563,10 +1579,89 @@ rei project migrate-local-repos --verify           # exits non-zero if anything 
 
 One difference is worth understanding before you run it. Under the old model a descendant's own `local-repo` value **replaced** its ancestor's; under the new one, scope **adds up**, so that descendant ends up in both projects. The migration reports those rows as `additive-override-review` and refuses to write them until you pass `--accept-additive-overrides` — because whether that is the right answer depends on what you meant, and nothing in the data says which.
 
+## Mori artifact references
+
+`mori-ref` stores one canonical artifact URI. `mori-ref-list` stores an insertion-ordered list with no duplicate active URI. Each record includes `uri`, `verification`, optional `checkedAt` and `reason`, and `supersededUris`. The values point to artifacts; project membership continues to use `scoped-to` Topic associations.
+
+A compatible build enables writers with `REI_MORI_REF_WRITES_ENABLED=true`; the default is false. Follow the reader-first rollout procedure (`docs/dev/architecture/mori-reference-properties-rollout.md` in `mori://shinzui/rei`) before enabling writers. Reads, clears, and reverse lookup work with writers disabled.
+
+```bash
+rei custom-property create source-plan --type mori-ref \
+  --allowed-kind plans --allowed-project shinzui/rei --entity-type intention
+rei custom-property create artifacts --type mori-ref-list \
+  --entity-type intention --entity-type action --entity-type note
+rei intention set-property -i INTENTION_ID source-plan \
+  mori://shinzui/rei/plans/246-add-typed-mori-artifact-references-to-custom-properties --json
+rei action set-property --action ACTION_ID artifacts \
+  '["mori://shinzui/rei/docs/guide","mori://shinzui/rei/okf/improvement-requests/concepts/IR-12"]' --json
+rei note append-property --note NOTE_ID artifacts mori://shinzui/rei/docs/guide --json
+rei note remove-property-value --note NOTE_ID artifacts mori://shinzui/rei/docs/guide --json
+```
+
+Set a list with a JSON array of URI strings. Append/remove take separate shell arguments; commas inside keys are data. Set replaces the order, append adds new identities at the tail, and removing a missing identity changes nothing. Removing by a recorded superseded URI works offline. An empty list remains an assigned value; clear removes the assignment.
+
+Repeat `--allowed-kind`, `--allowed-namespace`, and `--allowed-project` to allow alternatives within each restriction. Restriction families combine with AND. A qualified project is `namespace/project`. Kind selectors include `docs`, `plans`, `ddd/flows`, and `okf/BUNDLE/concepts`. Returned canonical identities must also satisfy restrictions. `--allow-project-refs` explicitly permits project-only URIs and does not establish project membership. Unknown grammar kinds are refused until Rei has their grammar.
+
+Set `MORI_API_URL` to the Mori API root and, for an authenticated service, set `MORI_API_TOKEN`. Rei uses the published GET/POST `/v1/refs/resolve` contract, sending batches of at most 100 inputs without requesting host paths. Resolution describes the registry's current knowledge. Until `mori://shinzui/mori/okf/improvement-requests/concepts/IR-36` lands, plan availability follows Mori's current agent-plans catalog.
+
+- `verified`: Mori resolved the artifact and returned its canonical identity.
+- `unverified`: no URL is configured, or a transport/timeout/retryable outage prevented a check. New values carry a warning.
+- `unresolved`: Mori authoritatively reported a missing project or artifact. Set/append require explicit `--allow-unresolved` to create this evidence.
+
+Authentication failures, invalid configuration, malformed responses, ambiguity, and unsupported kinds are refusals. One refused element rejects the whole assignment. Neither `--force` nor `--allow-unresolved` bypasses syntax, restrictions, or disabled writers. Ordinary repeated writes preserve stored evidence and emit no event. Reverification is the explicit way to refresh it.
+
+All eleven entity set/append commands accept `--allow-unresolved`; set/append/remove accept `--json`. JSON writes require an explicit entity selector and literal input. They return one object derived from the authoritative mutation, retaining the existing requested-input fields and adding `references`, `removedReferences`, and `warnings` for Mori values. The ID field follows the entity, such as `intentionId`, `actionId`, or `journalEntryId` for `day`. Refusals print diagnostics on stderr with exit 2 for invalid input or policy, and 70 for infrastructure/protocol failures.
+
+```bash
+rei custom-property references mori://shinzui/rei/docs/guide --json
+rei custom-property references mori://shinzui/rei/okf/improvement-requests/concepts --prefix --json
+rei custom-property reverify-refs --entity-type intention --entity-id INTENTION_ID --json
+rei custom-property reverify-refs --property artifacts --dry-run --json
+rei custom-property reverify-refs --property-id CUSTOM_PROPERTY_ID --json
+rei custom-property reverify-refs --all --json
+```
+
+Lookup returns direct current assignments in the caller's Space, in stable entity/property/list order. Prefix matching respects path boundaries and literal wildcard characters. A prefix without a fragment includes anchored references at that path. `--all` on `references` includes archived definitions; superseded history never creates an active match.
+
+Reverify requires an entity pair, property key/ID, URI prefix, or explicit `--all`. An ambiguous key requires `--property-id`. It preserves the original effective time and updates each assignment through guarded commands. Renames add history; alias collisions collapse at the earliest list position. Identical evidence keeps its check time and emits nothing. Outages preserve existing evidence and are reported as unavailable. Dry-run reports proposed values without appending. JSON reports every assignment, including committed changes and `failureClass`; a mixed result exits 2 or 70 when any assignment failed, so retain its result before retrying.
+
+
+
+## Classification scopes and Topic value restrictions
+
+A classification scope names active classifier Topics. A Topic can receive the property when it has an active, direct `instance-of` edge to at least one named classifier. Classification is not transitive. A classification scope requires `--entity-type topic` and cannot be combined with category scopes.
+
+```bash
+rei custom-property create account-tier --type-text --entity-type topic --classification client
+rei custom-property create primary-client --type-topic --entity-type topic --allowed-classification client
+rei custom-property set-scope account-tier --classification client --classification partner
+rei custom-property add-scope-classifications account-tier --classification vendor
+rei custom-property remove-scope-classifications account-tier --classification partner
+rei custom-property set-scope account-tier --clear-classification
+rei custom-property list --classification client --json
+rei custom-property show account-tier --classification client --json
+```
+
+Both flags accept Topic keys or canonical IDs and can be repeated. `--classification` restricts assignment targets; `--allowed-classification` restricts the referenced value of a `--type-topic` definition. With several allowed classifications, one active direct membership is sufficient. An unrestricted Topic value keeps its previous behavior. Use a `custom_property_…` ID when a key has several applicable definitions. A matching global and a matching classified definition are ambiguous together.
+
+Definition writers default to disabled. The declared setting `properties.classificationWrites`, bound to `REI_CLASSIFICATION_WRITES_ENABLED`, must remain false until the reader rollout (`docs/dev/architecture/classification-properties-rollout.md` in `mori://shinzui/rei`) is verified. Invalid boolean values fail configuration loading. Force does not bypass classification eligibility or the writer gate.
+
+Historical assignments stay readable and clearable after membership withdrawal or classification-definition archival. `rei topic show` adds `scopeDiagnostics` to ineligible properties in JSON and prints current scope diagnostics in text output. A diagnostic never deletes a value or synthesizes membership.
+
+The three retained project review definitions have a separate inventory and narrowing operation. This preserves their IDs, labels and values:
+
+```bash
+rei ontology scope-project-properties --json
+rei ontology scope-project-properties --apply --json
+```
+
+Apply refuses a definition with incompatible retained assignments. Resolve those values explicitly by clearing them or migrating them through normal property commands, then repeat the inventory. Apply rechecks eligibility inside the append transaction. It does not narrow other definitions or change the retired `project-stage` property. After writer enablement, new system seeds use the active `project` classifier; ordinary seeding does not silently narrow existing global definitions.
+
 ## Related Commands
 
 - [`rei project`](/docs/commands/project) — Projects, scope, and the `local-repo` migration
 - [`rei topic`](/docs/commands/topic) — Topics, including topic-valued properties and associations
+- [`rei topic profile`](/docs/commands/topic-profile) — Classifier profiles that map classification-scoped review properties
 - [`rei intention set-property`](/docs/commands/intention) — Set properties on intentions
 - [`rei habit set-property`](/docs/commands/habit) — Set properties on habits
 - [`rei disruption set-property`](/docs/commands/disruption) — Set properties on disruptions

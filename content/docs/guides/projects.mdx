@@ -10,9 +10,10 @@ the topic commands, so anything you can do with `rei topic` still applies and no
 is a second source of truth.
 
 That has a practical consequence worth stating up front: this works for *any* durable
-subject that collects work over time. A kitchen renovation, a research programme, a book, a
-conference talk, and a software repository are all projects to Rei. Only the last kind gains
-anything from Mori.
+subject that collects work over time. A software repository, a cross-repo migration, a
+research programme, and a conference talk are all projects to Rei. A repository registered in
+Mori gains the most: Rei links the project to its canonical `mori://` identity, and can show
+Mori's live view of it alongside your work.
 
 <Callout type="info">
 This guide mirrors `rei help projects`. For the full command reference see
@@ -27,23 +28,30 @@ This guide mirrors `rei help projects`. For the full command reference see
    rei ontology seed-system
    ```
 
-2. Create a project:
+2. Create a project from a Mori-registered repository:
 
    ```bash
-   rei project create kitchen-renovation --label "Kitchen renovation"
+   export MORI_API_URL=http://127.0.0.1:8780   # where 'mori serve' listens
+   rei project sync mori://shinzui/rei         # creates topic shinzui-rei
+   ```
+
+   For work that is not one Mori project — say, an upgrade spanning several repositories —
+   create the topic yourself:
+
+   ```bash
+   rei project create postgres-18-upgrade --label "PostgreSQL 18 upgrade"
    ```
 
 3. Put work in its scope:
 
    ```bash
-   rei project scope add kitchen-renovation intention_01kv...
+   rei project scope add shinzui-rei intention_01kv...
    ```
 
 4. Review it on a cadence:
 
    ```bash
-   rei project review kitchen-renovation \
-     --stage active --health healthy --cadence-days 14
+   rei project review shinzui-rei --health healthy --cadence-days 14
    ```
 
 5. See the portfolio and the attention queue:
@@ -54,7 +62,7 @@ This guide mirrors `rei help projects`. For the full command reference see
    ```
 
 `rei ontology seed-system` is a **prerequisite**. It creates the system `project` topic that
-classification points at, and the four custom properties that hold review state. Without it,
+classification points at, and the three review properties that hold review state. Without it,
 `rei project` reports that no topic can be a project yet and tells you to run it.
 
 ## Scope
@@ -80,34 +88,49 @@ the type of a full ID and disambiguates a bare one.
 
 ## Review state
 
-Four Rei-owned custom properties on the project topic:
+The built-in `project` [topic profile](/docs/commands/topic-profile) maps three Topic review
+properties. New installations seed them as classification-scoped definitions; existing global
+definitions need the explicit narrowing procedure
+([`rei ontology scope-project-properties`](/docs/commands/custom-property#classification-scopes-and-topic-value-restrictions))
+before cutover.
 
 | Property | Values |
 |----------|--------|
-| `project-stage` | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
 | `project-health` | `healthy`, `watch`, `blocked` |
 | `project-review-cadence-days` | Minimum 1 |
 | `project-last-reviewed-at` | Written by `rei project review` |
 
-Stage is an **enum, not a state machine**. No transition graph is imposed, because the
-legitimate moves differ per project: a publication goes `active → completed` and never
-reaches `maintaining`, while a library may oscillate for years.
-
 There is no `unknown` health. An unset property already means unknown.
+
+**Stage is retired.** `--stage` is refused: commitment lifecycle belongs to intentions and
+habits. A project's **pursuit** — `pursued`, `dormant`, or `idle` — is derived from the active
+intentions and habits in its scope, not authored. Historical `project-stage` assignments
+remain readable.
 
 ## Recording a review
 
 ```bash
-rei project review PROJECT [--stage S] [--health H] [--cadence-days N] [--at ISO8601]
+rei project review PROJECT [--health H] [--cadence-days N] [--at ISO8601]
+                   [--request-id ID] [--reflection-text TEXT | --edit-reflection]
 ```
 
-`project-last-reviewed-at` is **always** written. Stage, health, and cadence are written only
-when supplied, so reviewing a project without changing your mind about its stage does not
-clear the stage.
+`project-last-reviewed-at` is recorded for each review. Health and cadence change only when
+supplied.
 
 Use `--at` to record a review at the moment it actually happened rather than when you got
 round to typing it. Rerunning with the same `--at` and the same values repairs a partial
-write.
+write, and with `--json` reports `"changed": false` when nothing needed writing.
+
+A review can also carry a **narrative**: `--reflection-text` (or `--edit-reflection`) records a
+TopicReview reflection alongside the property changes, through the same recoverable request
+service as [`rei topic profile`](/docs/commands/topic-profile#review-and-repair). Keep the
+`--request-id` and exact authored inputs to repair a partial write.
+
+```bash
+rei project review thesis --health watch --request-id thesis-review-42 \
+  --reflection-text 'The next chapter needs source verification.' --json
+rei reflect history --topic thesis --kind topic-review --json
+```
 
 ## The attention queue
 
@@ -121,13 +144,13 @@ A project is due when:
   timestamp happens to exist; or
 - today is on or after its next review date.
 
-It is **not** due when its stage is `completed` or `retired`: the cycle is over, though the
-project stays queryable by stage. A **paused** project *is* due on schedule — a pause is
-worth revisiting, and the review is exactly when you notice it has quietly become
-abandonment.
+Under the built-in *while-pursued* policy, a project with no active intention or habit left
+in scope is **not** due. One kept alive only by an active habit is still due when its review
+date arrives. An active intention remains a commitment even when its display metrics call it
+dormant.
 
-Days are counted in **your local timezone**, so a review at 22:00 local on the 3rd counts as
-the 3rd.
+Dates use the selected IANA timezone (`--timezone`, default local); `--as-of YYYY-MM-DD` pins
+the date the queue is computed for.
 
 An unset cadence displays as 30 days without writing anything, so changing the default later
 still moves every project that never chose one.
@@ -135,13 +158,13 @@ still moves every project that never chose one.
 ## Listing
 
 ```bash
-rei project list [--stage S] [--health H] [--due] [--include-archived]
+rei project list [--pursuit P] [--health H] [--due] [--include-archived]
                  [--with-mori] [--json]
 ```
 
 ```
-!  kitchen-renovation   active        watch     3 active 1 blocked 12 recent
-   shinzui-rei          maintaining   healthy   1 active 0 blocked 40 recent
+!  postgres-18-upgrade  pursued       watch     3 active 1 blocked 12 recent
+   shinzui-rei          pursued       healthy   1 active 0 blocked 40 recent
 ```
 
 A leading `!` marks a project whose review is due. Counts cover effective scope, and
@@ -161,7 +184,7 @@ rei project sync MORI_REF | --repo-id REPO_ID
 
 For a software project, prefer `sync` over `create`: it resolves the canonical identity from
 Mori instead of asking you to assert one. It looks the project up in Mori's HTTP API
-(`MORI_API_URL`, default `http://127.0.0.1:8080`), then creates or reuses one topic
+(`MORI_API_URL`, required, e.g. `http://127.0.0.1:8780`, where `mori serve` listens), then creates or reuses one topic
 classified `instance-of project`, attaches the canonical `mori://` reference, and marks it
 verified. Rerunning is a no-op that reports what was reused.
 
@@ -215,5 +238,6 @@ row statuses and what fixes each.
 ## See also
 
 - [Topics guide](/docs/guides/topics) — associations, effective scope, external references
+- [`rei topic profile`](/docs/commands/topic-profile) — generic classifier profiles; `project` is the built-in one
 - [Configuration guide](/docs/guides/config) — `MORI_API_URL` and other environment variables
 - [`rei project`](/docs/commands/project) — full command reference

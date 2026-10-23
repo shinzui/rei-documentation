@@ -63,14 +63,14 @@ Current help topics and their required guides:
 - `docs/user/concepts.md` - Core concepts
 - `docs/user/CHANGELOG.md` - User-facing changelog
 
-**CLI commands in source** (`docs/user/cli/`, as of the 2026-09-27 sync):
+**CLI commands in source** (`docs/user/cli/`, as of the 2026-10-23 sync):
 - action.md, agent-memory.md, agent-schedule.md, agent.md, automation-exit-contract.md
 - blocker.md, category.md, checkpoint.md, collection.md, configuration.md
 - custom-property.md, cycle.md, day.md, dependency.md, disruption.md, doc.md, edge.md
 - focus.md, habit.md, help.md, intention.md, kiroku.md, kit.md, knowledge.md
 - link.md, note.md, ontology.md, ops.md, outcome.md, periodic-check.md, playbook.md, predicate.md
 - project.md, reflect.md, reminder.md, review.md, subscription.md, support.md, system.md
-- task.md, template.md, today.md, tomorrow.md, topic.md, view.md, worker.md
+- task.md, template.md, today.md, tomorrow.md, topic-profile.md, topic.md, view.md, worker.md
 - workspace.md, yesterday.md
 
 Other user docs worth checking each sync: `docs/user/api.md` (→ `content/docs/api.mdx`) and
@@ -300,6 +300,7 @@ Use these Lucide icons for command pages:
 - today: `CalendarDays`
 - tomorrow: `CalendarArrowUp`
 - topic: `Hash`
+- topic-profile: `LayoutList`
 - workspace: `FolderGit2`
 - api (root page): `Server`
 

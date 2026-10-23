@@ -399,3 +399,21 @@ rei reflect schedule cancel reflection_01abc...
 
 **Notes:**
 - Cancelled reflections cannot be resumed; create a new schedule instead
+
+## Topic reviews
+
+```bash
+rei reflect topic acme --stdin --json
+rei reflect topic acme                       # author in the editor
+rei reflect schedule weekly --day monday --topic acme --kind topic-review
+rei reflect schedule on 2026-11-01 --topic acme --kind topic-review
+rei reflect history --topic acme --kind topic-review --first 25 --json
+rei reflect pending --topic acme --first 25 --json
+```
+
+`topic` creates a TopicReview anchored to the resolved Topic. It accepts a stable Topic ID or key. Empty editor content or a nonzero editor exit cancels before writing. The reflection identity is printed to stderr before the editor/effects; JSON stdout remains one result. Use [`rei topic profile members CLASSIFIER review TOPIC`](/docs/commands/topic-profile#review-and-repair) to combine narrative and profile metadata in one recoverable request.
+
+Every schedule creation verb (`daily`, `weekly`, `quarterly`, `yearly`, `on`) accepts `--topic` and `--kind topic-review`. A Topic anchor defaults to TopicReview; TopicReview requires an anchor. The existing pause/resume/cancel commands preserve it. Recurrence and portfolio review cadence remain independent. Profile and project detail report mismatch counts; calendar recurrences such as quarterly are reported as non-comparable.
+
+History and pending lists return one bounded page. Use `--first` (1–100), and continue with `--after` using `pageInfo.endCursor` while `hasNextPage` is true. History also accepts `--limit` as a page-size alias, and retains `--context`. Topic/kind filters apply before limiting. Historical authored snapshots retain their original identity and hash even if current narrative files change.
+

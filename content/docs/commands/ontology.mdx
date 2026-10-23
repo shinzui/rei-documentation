@@ -25,8 +25,11 @@ rei ontology validate
 Create the default ontology predicates and system topics if they are not already defined. The command is idempotent: entries that already exist are reported as already-present, and an existing entry that conflicts with the seed definition is reported as incompatible rather than overwritten.
 
 ```bash
-rei ontology seed-system
+rei ontology seed-system [--confirm-stage-retirement]
 ```
+
+**Options:**
+- `--confirm-stage-retirement` - Archive the legacy `project-stage` definition while retaining its reported assignments. Quiesce assignment writers during cutover.
 
 `rei ontology seed-predicates` is kept as an alias for the same command, so existing setup scripts keep working; it now seeds the system topics too.
 
@@ -49,11 +52,10 @@ rei ontology seed-system
 
 **Seeded project-review properties:**
 
-These four global, topic-only custom properties hold the Rei-owned review state [`rei project`](/docs/commands/project) reads and writes. They are ordinary custom properties: `rei custom-property` can read and set them, and `rei topic show` lists them.
+These three topic-only custom properties hold the review state the built-in `project` [topic profile](/docs/commands/topic-profile) maps and [`rei project`](/docs/commands/project) reads and writes. They are ordinary custom properties: `rei custom-property` can read and set them, and `rei topic show` lists them. New installations seed them scoped to the `project` classification; existing global definitions are narrowed explicitly with [`scope-project-properties`](#scope-project-properties).
 
 | Key | Type | Values |
 |-----|------|--------|
-| `project-stage` | enum | `idea`, `active`, `maintaining`, `paused`, `completed`, `retired` |
 | `project-health` | enum | `healthy`, `watch`, `blocked` — unset means unknown |
 | `project-review-cadence-days` | integer (min 1) | Days between reviews |
 | `project-last-reviewed-at` | datetime | When the project was last reviewed |
@@ -67,13 +69,29 @@ Created broader-than (predicate_01abc...)
 Already present about
 Incompatible related-to: symmetric flag differs
 Created topic project (topic_01xyz...)
-Created property project-stage (custom_property_01xyz...)
-Already present property project-health
+Created property project-health (custom_property_01xyz...)
+Already present property project-review-cadence-days
 ```
 
 Seeding never rewrites display text you have edited, and never restores a topic you archived on purpose: an archived `project` topic is reported as `Incompatible topic project: topic is archived` and nothing is written.
 
+**Retiring `project-stage`.** Project stage is retired: pursuit is derived from the work in scope. If a legacy `project-stage` definition still has assignments, `seed-system` reports the retirement inventory and leaves the definition in place. Quiesce assignment writers and rerun with `--confirm-stage-retirement` to archive the definition; its historical assignments remain readable.
+
 You can define additional predicates with semantics of your own using [`rei predicate define`](/docs/commands/predicate).
+
+### scope-project-properties
+
+Inventory, or narrow, the three project review definitions to the `project` classification, preserving their IDs, labels, and values.
+
+```bash
+rei ontology scope-project-properties [--apply] [--json]
+```
+
+**Options:**
+- `--apply` - Apply narrowing only when every retained assignment is compatible
+- `--json` - Output the inventory as JSON
+
+Without `--apply` this is a read-only inventory. Apply refuses a definition with incompatible retained assignments: resolve those values by clearing them or migrating them through normal property commands, then repeat the inventory. Apply rechecks eligibility inside the append transaction. It does not narrow other definitions or change the retired `project-stage` property. See [classification scopes](/docs/commands/custom-property#classification-scopes-and-topic-value-restrictions).
 
 ### validate
 

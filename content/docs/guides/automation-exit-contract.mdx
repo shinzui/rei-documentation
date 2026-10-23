@@ -17,7 +17,7 @@ Rei's release-facing checks use stable process statuses. Normal reports are writ
 
 ## Covered commands
 
-The contract currently covers `knowledge verify`, `custom-property list`, `playbook validate`, the `worker` commands, and the `rei topic associate` / `dissociate` / `associations` / `entities` family, the `focus` write commands, and every primary `note` write (plus the note-anchored `doc attach`, `detach`, and `retitle`). It also covers configuration loading and Kiroku connection startup for those commands.
+The contract currently covers `knowledge verify`, `custom-property list`, `playbook validate`, the `worker` commands, the `rei topic associate` / `dissociate` / `associations` / `entities` family, the `focus` write commands, every primary `note` write (plus the note-anchored `doc attach`, `detach`, and `retitle`), and the four intention property writes — `set-property`, `clear-property`, `append-property`, `remove-property-value` — **when run with `--json`**. It also covers configuration loading and Kiroku connection startup for those commands.
 
 ```bash
 rei knowledge verify >verification.txt
@@ -33,7 +33,19 @@ fi
 - `custom-property list` returns `2` when persisted identifiers cannot be decoded, and `70` for other query failures.
 - Worker configuration errors return `64`; startup failures and forced drain return `70`.
 - The [topic-association commands](/docs/commands/topic#exit-status) return `2` for a missing topic, a missing, malformed, or ambiguous entity reference, a declared entity type that disagrees with the ID, an inactive endpoint, or an omitted argument with no terminal to prompt on, and `70` for store failures. They print nothing on standard output when they fail, so a `--json` consumer never sees a partial document followed by a nonzero status.
-- [`rei project`](/docs/commands/project#exit-status) follows the same contract, adding `64` for an unusable `MORI_API_URL`.
+- [`rei project`](/docs/commands/project#exit-status) follows the same contract, adding `64` for an unset or unusable `MORI_API_URL`, or a server there that is not Mori's API.
+
+## Intention property writes
+
+The [intention property writes](/docs/commands/intention#json-output-for-property-writes) with `--json` print one `{"changed": …}` object on success, exit `2` with nothing on standard output for a refused write (unknown key, invalid value, unsupported value type, an intention that did not resolve), and `70` for a store failure. Without `--json` they keep their historical behaviour, an `Error:` line on standard output and status `0`.
+
+Successful JSON property receipts also identify the entity, property key and operation; set/append/remove receipts include their authored values. Mori-valued writes include reference evidence and warnings when present. Consumers should read named fields rather than require an object containing only `changed`.
+
+## Intention lifecycle, Topic profiles and recoverable workflows
+
+The typed intention creation, lifecycle and metadata command paths now classify aggregate refusals as `2` and store failures as `70`. Repeating a valid lifecycle transition succeeds and prints `Intention unchanged`. Some argument-resolution and legacy command paths still have their older behavior, so this is not a guarantee for every intention subcommand.
+
+[Topic-profile](/docs/commands/topic-profile) writes, recoverable [Topic reviews](/docs/commands/reflect#topic-reviews) and [completion explanations](/docs/commands/intention#complete) also use `2` for domain refusals and `70` for unavailable stores/readers or failed I/O. Their receipts retain accepted progress; preserve the request identity and exact authored inputs when repairing a partial workflow.
 
 ## Focus and note writes
 
@@ -53,4 +65,4 @@ Until 2026-07-24 a deliberate exit chosen inside a store-backed command was rewr
 
 This is a deliberately bounded compatibility correction. Other legacy handlers may still print an error and return `0`; they are not safe as deployment gates until converted.
 
-That inventory includes the `action`, `agent`, `blocker`, `category`, `checkpoint`, `collection`, `cycle`, `day`, `dependency`, `disruption`, `doc` (outside the note-anchored writes), `edge`, `habit`, `intention`, `link`, `note` reads, `ontology`, `outcome`, `periodic-check`, `predicate`, `reflection`, `reminder`, `review`, `support`, `task`, `template`, `today`, `tomorrow`, `view`, and `yesterday` command families, the `topic` subcommands outside the association family, plus non-release-facing `custom-property` and `playbook` subcommands.
+That inventory includes remaining legacy paths in the `action`, `agent`, `blocker`, `category`, `checkpoint`, `collection`, `cycle`, `day`, `dependency`, `disruption`, `doc` (outside the note-anchored writes), `edge`, `habit`, `intention`, `link`, `note` reads, `ontology`, `outcome`, `periodic-check`, `predicate`, `reflection`, `reminder`, `review`, `support`, `task`, `template`, `today`, `tomorrow`, `view`, and `yesterday` command families, the `topic` subcommands outside the association family, plus non-release-facing `custom-property` and `playbook` subcommands.

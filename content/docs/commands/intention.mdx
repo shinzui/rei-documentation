@@ -503,11 +503,20 @@ Scroll with `j`/`k`, press `a` to add a child intention, press `y` to yank (copy
 Mark an intention as completed.
 
 ```bash
-rei intention complete [id] [options]
+rei intention complete [ID] [--at TIME] [--json]
+rei intention complete ID --reason TEXT [--request-id ID] [--expected-version N] [--at TIME] [--json]
+rei intention complete ID --explain [--request-id ID] [--topic TOPIC] [--profiles] [--first 25] [--after CURSOR] [--json]
 ```
 
 **Options:**
 - `-t, --at <time>` — When the intention was completed (e.g., `yesterday`, `2 hours ago`, `2024-01-15T14:30:00Z`)
+- `--reason <text>` — Record a completion explanation
+- `--request-id <id>` — Durable request identity for an authored completion (requires `--reason` when writing)
+- `--expected-version <n>` — Optimistic version check (requires `--reason` when writing)
+- `--explain` — Read the completion policy without writing
+- `--topic <topic>` / `--profiles` — With `--explain`, page observed intentions/habits for one Topic, or the triggering profiles
+- `--first <n>` / `--after <cursor>` — Page size and continuation cursor for `--explain`
+- `--json` — Print one JSON result
 
 **Examples:**
 
@@ -517,10 +526,25 @@ rei intention complete intention_01h455vb4pex
 
 # Backdate completion to yesterday
 rei intention complete intention_01h455vb4pex --at yesterday
+
+# Complete with an explanation that can be recovered by request ID
+rei intention complete intention_01h455vb4pex --reason "Shipped; the rest moves to Q4" \
+  --request-id finish-42 --json
+
+# Inspect why an explanation is required
+rei intention complete intention_01h455vb4pex --explain --profiles --json
 ```
 
+**Completion explanations:** A [topic profile](/docs/commands/topic-profile) can require an explanation when you complete an intention directly scoped to one of its Topics while another active intention remains there. Habit-only pursuit does not trigger this requirement. A refusal returns the bounded explanation and leaves the intention active. `--reason` can also record a voluntary explanation for directly scoped Topics.
+
+`--explain` reads the policy and one Topic page without writing. With `--request-id`, it inspects the immutable accepted request and its narrative progress instead of current scope. Each JSON response contains one header and one bounded page; pass `page.pageInfo.endCursor` to `--after` while `hasNextPage` is true. Cursors belong to their specific owner, request and collection.
+
+**Recovery:** For an authored completion, keep the request ID and exact reason text. Recovery metadata is printed to stderr before effects. Repeating the same request recovers the original version and completion instant when those flags are omitted, finishes missing narrative work, and reports actual changes. A settled retry cannot re-complete an intention that was reopened. Different text or explicit original inputs under the same ID are refused; use a new ID for a new decision.
+
 **Notes:**
+- Without a reason, ordinary completion creates no narrative or durable request.
 - Completion is refused while any immediate child is still `Active`. The error lists the offending children (id + title) so you know what to complete or defer first.
+- Omit the ID to use the FZF selector.
 - If you complete an intention by mistake, use `rei intention reopen` to restore it to Active.
 
 ### reopen
@@ -1166,7 +1190,7 @@ rei intention view int_01abc123
 Set a custom property on an intention.
 
 ```bash
-rei intention set-property [-i ID] PROPERTY_KEY VALUE [--force]
+rei intention set-property [-i ID] PROPERTY_KEY VALUE [--force] [--at TIME] [--json]
 ```
 
 **Arguments:**
@@ -1177,6 +1201,7 @@ rei intention set-property [-i ID] PROPERTY_KEY VALUE [--force]
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
 - `--force` — Bypass state machine transition rules (still blocked from terminal states)
 - `--at <time>` — When the change actually happened (e.g. `"2 hours ago"`, `-1h`, `2024-01-15T14:30:00Z`). Defaults to now.
+- `--json` — Print one JSON object with `changed` instead of text; see [JSON output for property writes](#json-output-for-property-writes)
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -1213,7 +1238,7 @@ rei intention set-property -i intention_01h455vb4pex workflow done --at "2 hours
 Remove a custom property from an intention.
 
 ```bash
-rei intention clear-property [-i ID] PROPERTY_KEY
+rei intention clear-property [-i ID] PROPERTY_KEY [--json]
 ```
 
 **Arguments:**
@@ -1221,6 +1246,7 @@ rei intention clear-property [-i ID] PROPERTY_KEY
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--json` — Print one JSON object with `changed` instead of text
 
 > **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
@@ -1235,6 +1261,7 @@ rei intention clear-property priority
 ```
 
 **Notes:**
+- Clearing a property the intention has no value for writes no event and prints `Property unchanged: <key> was not set`.
 - For inheritable properties, clearing a local value reverts the intention to its inherited value from the nearest ancestor (if any). See [`rei custom-property`](/docs/commands/custom-property#inheritance-in-the-intention-tree). On `intention show`, inherited values are rendered with `(inherited from "<ancestor title>")` in dim style.
 
 ### append-property
@@ -1242,7 +1269,7 @@ rei intention clear-property priority
 Append one or more values to a multi-value custom property (path-list, label-set, or tag-set). Idempotent: appending a value that is already present writes no event.
 
 ```bash
-rei intention append-property [-i ID] PROPERTY_KEY VALUE [VALUE...]
+rei intention append-property [-i ID] PROPERTY_KEY VALUE [VALUE...] [--json]
 ```
 
 **Arguments:**
@@ -1251,6 +1278,7 @@ rei intention append-property [-i ID] PROPERTY_KEY VALUE [VALUE...]
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--json` — Print one JSON object with `changed` instead of text
 
 **Examples:**
 
@@ -1269,14 +1297,14 @@ rei intention append-property -i intention_01h455vb4pex tags 'comma,inside,one-t
 - Only works on `path-list`, `label-set`, and `tag-set` value types. Other value types fail with a `MultiValueExpected` error — use `set-property` instead.
 - Re-appending an existing value writes no `PropertySet` event and prints `(no change)`.
 - Both changed and no-change cases exit 0; only errors exit non-zero.
-- Pairs cleanly with automation: a single shell-out replaces a read-modify-write loop, and the operation is safe to retry.
+- Pairs cleanly with automation: a single shell-out replaces a read-modify-write loop, and the operation is safe to retry. Use `--json` rather than matching the text.
 
 ### remove-property-value
 
 Remove one or more values from a multi-value custom property. Idempotent: removing a value that is already absent writes no event.
 
 ```bash
-rei intention remove-property-value [-i ID] PROPERTY_KEY VALUE [VALUE...]
+rei intention remove-property-value [-i ID] PROPERTY_KEY VALUE [VALUE...] [--json]
 ```
 
 **Arguments:**
@@ -1285,6 +1313,7 @@ rei intention remove-property-value [-i ID] PROPERTY_KEY VALUE [VALUE...]
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--json` — Print one JSON object with `changed` instead of text
 
 **Examples:**
 
@@ -1300,6 +1329,25 @@ rei intention remove-property-value -i intention_01h455vb4pex master-plans /old/
 - Only works on `path-list`, `label-set`, and `tag-set` value types.
 - Re-removing an absent value writes no event.
 - See `append-property` for the inverse operation.
+
+### JSON output for property writes
+
+`set-property`, `clear-property`, `append-property`, and `remove-property-value` accept `--json`. A program should use it rather than reading the first words of the text output.
+
+```bash
+rei intention set-property -i intention_01h455vb4pex lifecycle planning --json
+```
+
+```json
+{"changed":true,"intentionId":"intention_01h455vb4pex","operation":"set","propertyKey":"lifecycle","value":"planning"}
+```
+
+- `changed` is whether an event was written. It is `false` for a value that was already set, a clear of a property that was not set, and an append or removal that found every element already present or already absent. A partial append is `true`.
+- `operation` is `set`, `clear`, `append`, or `remove`. `set` echoes `value`; `append` and `remove` echo the `values` requested; `clear` carries neither.
+- Mori-valued writes add `references`, `removedReferences`, and `warnings`. Read named fields rather than requiring an object containing only `changed`.
+- A refused write (unknown key, invalid value, unsupported value type, an intention that did not resolve) prints nothing on stdout, writes the error to stderr, and exits `2`. A database failure exits `70`. See the [automation exit contract](/docs/guides/automation-exit-contract).
+
+Without `--json` the text output and its exit status are unchanged: an error is printed as `Error: …` on stdout and the command exits `0`.
 
 ### set-addresses
 
@@ -1508,3 +1556,7 @@ rei intention note list --recursive --json
 - Shows notes attached directly to the intention plus notes on its actions, outcomes, and reflections
 - Use `--recursive` to aggregate notes from the entire subtree of intentions
 - JSON output is useful for scripting and integration
+
+## Mori property writes
+
+The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.

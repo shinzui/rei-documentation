@@ -1,0 +1,94 @@
+---
+title: rei topic profile
+description: Declare classifier profiles, review members, and page due queues
+icon: LayoutList
+---
+
+Declare how a classifier organizes durable Topics, then review its members using their existing work and properties. Classification (`instance-of`) and operational scope (`scoped-to`) remain separate relations. A declaration creates no properties or member vocabulary automatically.
+
+```bash
+rei ontology seed-system
+rei topic create client Client
+rei custom-property create client-health --type-enum --values calm,watch --entity-type topic --classification client
+rei topic profile declare client --health-property client-health --default-cadence-days 14 --due-policy while-pursued --json
+rei topic profile members client create acme --label Acme --json
+rei topic profile members client scope add acme intention_...
+rei topic profile members client scope add acme habit_...
+rei topic profile members client review acme --health watch --reflection-text 'Budget risk needs attention.' --request-id acme-review-42 --json
+rei reflect history --topic acme --kind topic-review --json
+rei topic profile due --json
+```
+
+The installation must have completed its reader rollout and enabled profile/review writes. Reads report unavailable infrastructure explicitly. The commands operate in the current personal home; they do not grant shared-Space access.
+
+## Declarations
+
+```bash
+rei topic profile declare CLASSIFIER [--label LABEL] [--description TEXT] [--json]
+rei topic profile show CLASSIFIER [--json]
+rei topic profile list [--archived] [--first 50] [--after CURSOR] [--json]
+rei topic profile amend CLASSIFIER [OPTIONS] [--json]
+rei topic profile archive CLASSIFIER [--json]
+rei topic profile restore CLASSIFIER [--json]
+```
+
+Classifier and member references accept Topic IDs or keys. Review settings are optional: `--review` enables reviews without mapped properties. `--health-property`, `--cadence-property`, and `--last-reviewed-property` accept definition IDs or eligible keys; `--default-cadence-days` must be positive. `--due-policy` accepts `while-active` or `while-pursued`. A profile without review settings reports no review semantics.
+
+Property keys resolve through the shared classifier binding rules. An ambiguous key returns a bounded candidate selector. Page eligible definitions, then pass the chosen stable ID:
+
+```bash
+rei topic profile property-candidates client client-health --first 25 --json
+```
+
+Amend retains omitted settings. Use `--clear-description`, `--clear-review`, `--clear-health-property`, `--clear-cadence-property`, or `--clear-last-reviewed-property` to clear them. Completion policy uses `--explain-on-complete` or `--no-explain-on-complete`. Incompatible set/clear combinations refuse before writes.
+
+## Members, scope and attention
+
+```bash
+rei topic profile members CLASSIFIER create KEY [--label LABEL] [--description TEXT] [--json]
+rei topic profile members CLASSIFIER list [--health TEXT] [--pursuit pursued|dormant|idle] [--due] [--archived] [--timezone IANA] [--as-of YYYY-MM-DD] [--first 50] [--after CURSOR] [--json]
+rei topic profile members CLASSIFIER show TOPIC [--json]
+rei topic profile members CLASSIFIER scope add TOPIC ENTITY [--json]
+rei topic profile members CLASSIFIER scope remove TOPIC ENTITY [--json]
+rei topic profile members CLASSIFIER scope list TOPIC [--direct] [--first 50] [--after CURSOR] [--json]
+rei topic profile members CLASSIFIER archive TOPIC [--json]
+rei topic profile members CLASSIFIER restore TOPIC [--json]
+rei topic profile due [--health TEXT] [--pursuit pursued|dormant|idle] [--timezone IANA] [--as-of YYYY-MM-DD] [--first 50] [--after CURSOR] [--json]
+```
+
+Create can repair classification after a partial failure without recreating the Topic. Scope reads explain direct and inherited membership. Active intentions and active habits determine pursuit; supporting habits are reported separately. Filters apply before pagination. Member detail includes reflection counts, latest completed TopicReview identity/time, and explicit-schedule cadence comparison. Archiving retains identity, history and assignments.
+
+Collections return one bounded page with `edges` and `pageInfo`. Continue with `--after pageInfo.endCursor` while `hasNextPage` is true. Keep the classifier, filters and calendar unchanged. A cursor from another collection or serving generation is refused.
+
+## Review and repair
+
+```bash
+rei topic profile members CLASSIFIER review TOPIC [--health TEXT] [--cadence-days N] [--reviewed-at UTC] [--request-id ID] [--expected-version N] [--reflection-id ID] [--reflection-text TEXT | --edit-reflection] [--json]
+```
+
+The classifier is always explicit. Health values use the mapped property's vocabulary. Without narrative text, no editor or Reflection is created. Editor cancellation writes nothing.
+
+Save the printed request ID, normalized review instant, expected version and Reflection ID. These appear on stderr before effects and in the result. Retry with the same ID and exact authored inputs; omitted time/version/Reflection ID recover their original values. A settled retry reports unchanged. Different authored inputs under the same ID refuse, including when the first review changed no property values. A new identity records a new review and reports the newly accepted operation as changed; separate fields describe property, content and Reflection effects.
+
+For an editor retry, original bytes must still match the accepted hash. If unavailable, resupply the exact original `--reflection-text`; later file edits do not become historical content. A property-only request cannot acquire a narrative on retry. Use a new ID for a new decision.
+
+## Identity rules and sync
+
+```bash
+rei topic profile preview-identity CLASSIFIER --identity-scheme mori --allowed-kind docs --first 25 --json
+rei topic profile amend CLASSIFIER --identity-scheme mori --allowed-kind docs --json
+rei topic profile members CLASSIFIER sync mori://namespace/project/docs/guide --json
+```
+
+Preview pages violations before enabling a rule. Existing members must satisfy it. Repeated `--allowed-kind` values restrict Mori artifact kinds. Omission retains restrictions; `--clear-allowed-kinds` clears that restriction, and `--clear-identity` removes the rule. A required external identity prevents creating an unsupported new member; sync resolves the artifact through Mori and reports acknowledged progress for repair.
+
+Writes report actual `changed` and partial progress. Domain refusals exit 2; unavailable stores/readers or failed I/O exit 70. JSON stdout contains one value, with diagnostics on stderr. See [intention completion](/docs/commands/intention#complete), [Topic reflections](/docs/commands/reflect#topic-reviews), and the [project adapter](/docs/commands/project).
+
+
+## See also
+
+- [`rei topic`](/docs/commands/topic) — the underlying topics, classification, and associations
+- [`rei project`](/docs/commands/project) — the built-in `project` profile with its own facade
+- [`rei custom-property`](/docs/commands/custom-property#classification-scopes-and-topic-value-restrictions) — classification-scoped properties that profiles map
+- [`rei reflect`](/docs/commands/reflect#topic-reviews) — Topic reviews and their schedules
+- [Topics guide](/docs/guides/topics) and [Projects guide](/docs/guides/projects)

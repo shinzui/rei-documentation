@@ -10,6 +10,8 @@ A topic serves two roles. As a *subject*, it is what a note or link is about. As
 
 A topic classified `instance-of project` is a **project**, and [`rei project`](/docs/commands/project) is a purpose-built facade over exactly these commands for that case: review state, work rollups, and an attention queue. Everything below still applies to a project topic — the two families are two views of the same rows.
 
+Use [`rei topic profile`](/docs/commands/topic-profile) to declare review, completion and identity rules for any classifier, then manage its members and attention queue.
+
 ## Subcommands
 
 ### create
@@ -436,8 +438,13 @@ rei topic tree rdf --direction narrower --include-inferred
 
 JSON output keeps direct attachments under `attachments`, explicit graph rows under `graphEdges`, and topic relation facts under `relations` with `provenance.kind` set to `explicit` or `inferred`.
 
+## Mori property writes
+
+The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.
+
 ## Related
 
 - [Topics guide](/docs/guides/topics) — the end-to-end walkthrough
 - [`rei project`](/docs/commands/project) — projects as typed topics
+- [`rei topic profile`](/docs/commands/topic-profile) — classifier profiles, member reviews, and due queues
 - [`rei ontology`](/docs/commands/ontology) — seeding predicates and validating the graph

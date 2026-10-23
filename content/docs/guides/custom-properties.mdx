@@ -529,6 +529,29 @@ Property keys must be unique within their scope:
 
 The same key CAN exist in different categories.
 
+## Mori artifact references
+
+Create `--type mori-ref` or `--type mori-ref-list`. Optional restrictions are repeatable `--allowed-kind`, `--allowed-namespace`, and `--allowed-project namespace/project`; `--allow-project-refs` permits a project-only URI. Artifact properties do not establish project membership.
+
+Scalar set takes one `mori://` URI. List set takes a JSON array of URI strings. Append/remove take one shell argument per URI, preserve insertion order, and deduplicate by canonical identity. Set/append accept `--allow-unresolved`; set/append/remove accept `--json` on every entity command. JSON mode requires an explicit subject and literal value. Day commands report `journalEntryId`.
+
+```bash
+rei custom-property create artifacts --type mori-ref-list --entity-type intention
+rei intention set-property -i INTENTION_ID artifacts '["mori://shinzui/rei/docs/guide"]' --json
+rei custom-property references mori://shinzui/rei/docs --prefix --json
+rei custom-property reverify-refs --property artifacts --dry-run --json
+```
+
+Values show `verified`, `unverified`, or `unresolved`, with check/reason/history evidence. `MORI_API_URL` and optional `MORI_API_TOKEN` configure the published resolver. An unset URL or retryable outage permits unverified new values with warnings. Authoritative missing targets require explicit allow-unresolved on creation; ambiguity, authentication, and protocol failures are refused. Force cannot bypass Mori policy.
+
+<Callout type="warn">
+Writers default off via `REI_MORI_REF_WRITES_ENABLED=false`. Release compatible readers before enabling them; clear and reverse lookup remain available.
+</Callout>
+
+Reverification needs a selector or explicit `--all`, supports `--property-id` for ambiguous keys, preserves effective time, and reports partial committed changes. Reverse lookup excludes archived definitions unless `--all` is passed, scopes to Space, and does not match superseded history.
+
+See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) in the command reference for the full reader/writer and recovery boundaries.
+
 ## Command Summary
 
 ### Property Definition
@@ -542,6 +565,8 @@ The same key CAN exist in different categories.
 | `custom-property archive` | Archive a property |
 | `custom-property set-inheritable` | Mark property as inheritable in intention tree |
 | `custom-property unset-inheritable` | Stop propagating values to descendants |
+| `custom-property references` | Reverse lookup of `mori://` artifact references |
+| `custom-property reverify-refs` | Recheck stored Mori references against Mori |
 
 ### Enum Evolution
 
