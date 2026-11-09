@@ -8,7 +8,9 @@ icon: Wrench
 
 It is not part of the coaching workflow. Reach for it when something in the background has stopped working.
 
-The console ships with the `keiro` runtime rather than being written by Rei, so it cannot drift from the tables it reports on. Rei mounts it over its own database connection, so `rei ops` always operates the database every other `rei` command does — there is no `--database-url`.
+The console ships with the `keiro` runtime rather than being written by Rei, so it cannot drift
+from the tables it reports on. Rei supplies the operator database connection from
+`REI_PG_CONNECTION_STRING` (or `PG_CONNECTION_STRING`); there is no `--database-url`.
 
 ## Safety Model
 
@@ -38,16 +40,62 @@ Add `--json` for scripting. The JSON shape is stable and carries a `schema` fiel
 | `stream` | Kiroku streams: show events, trace causation, list durable subscription checkpoints, soft/hard delete, truncate markers |
 | `rebuild` | Projection catalog rebuild groups: list, preview, start, status, resume, abandon, adopt |
 | `timer` | Durable timers: find stuck ones, requeue, cancel, dead-letter |
-| `wf` | Durable workflows: list, show, journal, steps, awakeables, cancel, resurrect, leases, gc |
+| `wf` | Durable workflows: list, show, journal, steps, status counts, awakeables, cancel, resurrect, leases, gc |
 | `outbox` | The transactional outbox: backlog, list, show, requeue stuck, gc sent |
 | `inbox` | The integration-event inbox: backlog, list, show, mark failed, gc |
 | `pgmq` | Keiro PGMQ queues and their dead-letter queues: read, archive, purge, redrive |
-| `projection` | Projection dedup state: inspect members, prune |
+| `projection` | Projection status, category consumer coverage and dedup state: inspect members, prune |
 | `shard` | Sharded-subscription ownership: status, relinquish |
 | `snapshot` | Advisory snapshots: show, delete, truncation preflight |
 | `replay-audit` | Replay stored events through this binary's codecs and report divergence |
+| `aggregate` | Discover all mounted aggregate types, browse instances and inspect folded state, registers and snapshot status |
+| `serve-http` | Serve the Keiro inspection API under `/keiro` on a dedicated loopback listener |
 
 Run `rei ops <group> --help` for a group's subcommands.
+
+## Inspect aggregate state in the browser
+
+Rei mounts all 36 current aggregate families. Discover their names and instance IDs through
+the console:
+
+```bash
+rei ops aggregate types
+rei ops aggregate list --name focus --limit 5
+rei ops aggregate show --name focus --id FOCUS_ID
+rei ops aggregate snapshot --name focus --id FOCUS_ID
+```
+
+To connect keiro-ui, start the dedicated host with the browser's exact origin:
+
+```bash
+rei ops serve-http --allow-origin http://localhost:5173
+```
+
+The default listener is `127.0.0.1:9093`; configure the console's Keiro base URL as
+`http://127.0.0.1:9093/keiro`. This native operator command uses the configured database
+without application API credentials. It starts inspection resources without migrating,
+registering projections or launching application workers. Mutations are disabled by default;
+`--enable-mutations` enables the upstream HTTP preview/confirmation protocol. Ctrl-C releases
+the listener and its resources. See the keiro-ui runbook (`docs/dev/architecture/keiro-ui.md` in `mori://shinzui/rei`; artifact-level URI pending)
+for target configuration, origins, proxy paths and controlled mutations.
+
+## Additional native inspection
+
+The mounted console also provides bounded projection status and category-consumer
+reads, workflow inspection, pending timers and shard discovery:
+
+```bash
+rei ops projection status
+rei ops projection consumers --category note
+rei ops wf inspect counts
+rei ops timer pending list
+rei ops shard list
+```
+
+`rei ops wf inspect` has `list`, `header`, `journal`, `steps`, `children` and
+`awakeables` views as well as counts. Use each leaf's `--help` for its required
+selectors and paging options. `aggregate snapshot` reports snapshot health;
+Rei's current aggregate streams disable snapshots and state-codec comparison.
 
 ## The Three Questions You Will Actually Ask
 

@@ -14,7 +14,8 @@ That has a practical consequence worth stating up front: this works for *any* du
 
 ```bash
 rei ontology seed-system                                    # once per installation
-export MORI_API_URL=http://127.0.0.1:8780                   # where `mori serve` listens
+export REI_API_URL=https://rei.example.net                   # configured Rei server
+export REI_API_TOKEN=...                                    # your API credential
 rei project sync mori://shinzui/rei                         # creates topic shinzui-rei
 rei project scope add shinzui-rei intention_01kv...
 rei project review shinzui-rei --health healthy --cadence-days 14
@@ -23,6 +24,12 @@ rei project review --due
 ```
 
 `rei ontology seed-system` is a prerequisite: it creates the system `project` topic that classification points at, and the three review properties that hold review state. Without it, `rei project` reports that no topic can be a project yet and tells you to run it.
+
+Ordinary Project commands use `REI_API_URL` and, for writes, `REI_API_TOKEN`.
+The caller needs no database credentials or server workspace mount. Configure
+`MORI_API_URL` on the Rei server; a caller-side value is not used. Editors run on
+the caller with private temporary files. `migrate-local-repos` remains an operator
+command with its existing database and mapping-file requirements.
 
 ## Subcommands
 
@@ -60,7 +67,7 @@ rei project list
 
 The leading `!` marks a project whose review is due. Counts cover **effective scope**: an intention scoped to the project brings its descendants and the actions, outcomes, blockers, notes, docs, links, and tasks they own, so scoping one root intention is usually all you need.
 
-Listing reads only Rei's own data and **issues no network request**. `--with-mori` opts in to live Mori data for software projects; it asks Mori once whether it is ready before enriching anything, so a Mori that is down costs one request rather than one timeout per project.
+Listing reads Rei through the configured API and does not consult Mori by default. `--with-mori` opts in to live Mori data for software projects; it asks Mori once whether it is ready before enriching anything, so a Mori that is down costs one request rather than one timeout per project.
 
 Archived projects are excluded unless you pass `--include-archived`.
 
@@ -184,7 +191,7 @@ Archiving is soft and delegates to the topic's lifecycle. Associations, external
 rei project sync MORI_REF|--repo-id REPO_ID [--json]
 ```
 
-Materializes a **software** project from Mori. Looks the project up in Mori's HTTP API (`MORI_API_URL`, required; see [configuration](/docs/configuration#optional-mori-federation)), then creates or reuses one topic classified `instance-of project`, attaches the canonical `mori://` reference, and marks it verified.
+Materializes a **software** project from Mori. The Rei server looks the project up in Mori's HTTP API (server-side `MORI_API_URL`, required; see [configuration](/docs/configuration#optional-mori-federation)), then creates or reuses one topic classified `instance-of project`, attaches the canonical `mori://` reference, and marks it verified.
 
 ```bash
 rei project sync mori://shinzui/rei
@@ -289,6 +296,32 @@ rei reflect history --topic thesis --kind topic-review --json
 
 Reuse the request ID and exact authored inputs to repair. Generated repair metadata is printed to stderr before effects; JSON stdout is one result. Explicit narrative/repair flags require a declared profile. Without these flags, the existing timestamp-based review identity remains compatible. `show` includes reflection counts, latest completed review identity/time, and cadence comparison. Explicit Reflection recurrence and portfolio cadence are independent; comparison never changes either setting.
 
+The profile revision and assignment version are captured before a fresh narrative
+editor opens and checked by the server before acceptance. Cancellation is a
+successful no-op and retains the private draft. A refused or uncertain submission
+also retains the authored body, exact request and repair identities; inspect the
+acknowledged progress before retrying. The CLI never automatically resends a write.
+For `--edit-reflection` on an existing request, only the immutable original bytes
+are usable. If those bytes have been edited or removed, resupply the exact original
+`--reflection-text`; current content is not relabeled as the historical narrative.
+
+Migration for narrative/explicit-request JSON: the outer outcome fields and the
+`reflection` identity/status/hash retain their names. The nested `review` now holds
+the public request status: original inputs, `appliedFieldCount`, `staged`,
+`finalized`, `conflict` and `completed`. Consumers of the former private
+`review.request`/`applied`/`failed` manifest should use those status fields and the
+Reflection snapshot API for the original three review-field snapshots. Partial
+failures include the server's bounded progress and uncertain step. Without a usable
+receipt, JSON `changed` is null rather than a claim that nothing was committed.
+
+Optional Mori failures remain soft read results. Their JSON `error.kind` is
+`rei-api`, with safe API problem details and retryability; consumers should use
+`available`/`retryable` rather than native transport-error constructors. Scope reads
+refuse incomplete cycle/depth traversals through the API's typed problem instead
+of presenting partial membership as a complete result; diagnostics remain available
+through the Topic/Project scope diagnostics API.
+
+
 ## Exit status
 
 `rei project` follows the [automation exit contract](/docs/guides/automation-exit-contract).
@@ -297,7 +330,7 @@ Reuse the request ID and exact authored inputs to repair. Generated repair metad
 |---|---|
 | 0 | Success. **Includes** a `show` or `list` where Mori was unavailable — the Rei data is still complete |
 | 2 | Rei refused the request: no such project, the topic is not classified as one, a malformed reference, a stale migration token, or a `migrate-local-repos --verify` whose coverage is incomplete |
-| 64 | `MORI_API_URL` is unset or unusable, or the server it names is not Mori's API |
+| 64 | Rei API client configuration or credentials are invalid, or the Rei server has no usable Mori configuration for sync |
 | 70 | The store, or Mori during a `sync`, could not be reached |
 
 ## JSON
@@ -318,6 +351,14 @@ Reuse the request ID and exact authored inputs to repair. Generated repair metad
 `external.mori` is absent when no lookup was attempted, and carries `{"available": false, "retryable": …}` when one failed — `retryable` is Mori's own answer about whether trying again can help, not something Rei inferred from a status code.
 
 `list` emits an array of the same objects, and `show` adds `samples` and `scope` sections. A consumer that parses a `list` row parses a `show` unchanged.
+
+## Outcomes on a project
+
+Record release evidence directly with `rei outcome record "Released 5.0.0" --project PROJECT --id OUTCOME_ID --at ORIGINAL_TIME`. `rei outcome list --project PROJECT --json` drains bounded pages of effective project scope.
+`project show` includes a five-item recent sample with descriptions and original
+dates, alongside the full recent-outcome count. Backdated facts remain backdated
+on replay. Query visibility can lag a completed write. See
+[outcome](/docs/commands/outcome) for recovery and conflict behavior.
 
 ## See also
 

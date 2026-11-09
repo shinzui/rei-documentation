@@ -13,6 +13,12 @@ rei tomorrow [options]
 **Options:**
 - `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
 
+This command uses `REI_API_URL` without caller database settings. The caller's
+`TZ` (or detected system IANA timezone) is sent explicitly to the server. The
+returned date, timezone and context fix subsequent page requests. Applicable
+sections are read completely; a missing section or changed total fails visibly
+instead of appearing empty. Repeat a read to observe a changed report.
+
 ## Dashboard Sections
 
 The tomorrow preview displays the following sections:

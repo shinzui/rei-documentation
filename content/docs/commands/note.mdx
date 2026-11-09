@@ -6,6 +6,59 @@ icon: FileText
 
 Create and manage markdown notes attached to entities, including daily notes.
 
+
+Tags, categories, properties, title overrides, task links, filing, lifecycle and
+reminders use the configured Rei API and authenticated server owners. They need
+no caller database settings. Tag changes seal all input before execution, including
+more than 100 tags; selectors and success displays traverse complete pages.
+Command receipts decide changed/no-op status. Prepared input survives refused or
+uncertain writes, which are never automatically resent. Existing native property
+JSON and text policies remain supported; API authentication and infrastructure
+errors keep their stable exit classes.
+
+`delete` soft-deletes through the existing server Note owner. It does not remove
+an unrelated caller-local file or promise physical server-file cleanup. `open`,
+`print` and `export` use recorded content; editing a private local draft submits
+explicit whole-body bytes. No atomic stale-write protection is implied.
+
+
+`show`, `embeds`, `backlinks`, `outgoing-links` and `broken-links` read complete
+bounded API pages. Full inspection preserves native keyed JSON, including retained
+facts after soft deletion. If the source changes during full inspection or embed
+expansion, repeat the read; this check does not lock later edits. Embed paths,
+resolution and verification timestamps are recorded server facts, not paths opened
+on the caller or a new filesystem verification. Human detail output identifies
+optional category/property display failures instead of reporting them as empty.
+
+
+`list` uses complete API pages, including Collection membership, native filter
+precedence and archive/descendant options. It keeps native flat JSON and grouped
+Intention text. The local picker offers real anchors with recorded Note hashes
+and retains its active/all toggle. Action-backed Notes use their canonical parent
+metadata to distinguish ordinary Actions from Disruption actions. If filing
+changes while that metadata is read, repeat the read; it does not lock writes.
+
+`new` and `today` also use the API. Templates come from the caller's configured
+workspace; the server renders their explicit source with its allocated Note ID,
+creation time and the caller's timezone. Editors receive private caller-local
+files, never server paths. Stdin creation preserves the supplied UTF-8 bytes and
+ignores template selection. System checklist/journal categories use their existing
+server owner and a separate category-assignment command.
+
+For a fresh editor-based Note, initial rendered content is recorded before the
+editor opens. Cancelling or refusing the subsequent edit leaves that initial Note
+on the server and retains the edited local draft. Recovery output identifies the
+created Note and the saved request/receipt history; inspect it before continuing,
+since independent creation, content, category and archive stages are not one
+transaction. A known successful edit removes its temporary file.
+
+`today` selects the caller's local date unless `--date` is supplied. Reopening an
+existing daily Note refreshes its frontmatter from current public journal
+properties, preserving the remainder of its recorded body. Creation-only tags and
+template options are ignored on reopen. Property-read failure is reported and
+preserves the existing frontmatter. Whole-body submission remains sequential and
+has no conditional revision protection.
+
 ## Features
 
 ### Automatic Title Extraction
@@ -330,15 +383,18 @@ rei note open [note-id] [--stdin]
 > **FZF Support:** If note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
 **Behavior (default):**
-1. Opens the note file in your `$EDITOR`
-2. After editing, computes content hash and compares with stored hash
-3. If content changed, emits a `NoteContentUpdated` event
-4. Title and tasks are re-extracted automatically
+1. Fetches recorded Markdown from `REI_API_URL` into a private local temporary file.
+2. Opens that file in `$EDITOR` (then `$VISUAL`, otherwise `vim`) and waits.
+3. Submits the complete UTF-8 body through the authenticated Note writer after a successful editor exit.
+4. Title and task processing continues asynchronously on the server.
 
 **Behavior (`--stdin`):**
-1. Reads content from stdin and writes it to the note file
-2. Computes content hash and emits a `NoteContentUpdated` event
-3. No editor is opened — fully non-interactive
+1. Reads explicit UTF-8 content from stdin and keeps a local recovery copy.
+2. Submits that complete body through the same Note writer. No editor is opened.
+
+Set `REI_API_URL` and `REI_API_TOKEN`; these commands need no database or shared workspace. A successful full-body submission is processed even when its text is unchanged. Current editing is sequential whole-body replacement, without atomic stale-write protection; coordinate concurrent edits until revisioned content is available.
+
+Cancellation, editor failure and failed submission retain the local draft and print its recovery path on stderr. A transport failure may have applied the write: inspect with `rei note print <id>` before explicitly retrying. No write is retried automatically. Legacy unrecorded content cannot be opened as an empty document; supply an explicit authorized import with `--stdin` when appropriate. Recorded empty documents remain valid.
 
 This is useful for programmatic note updates from scripts or agents (e.g., Claude Code) where launching `$EDITOR` is not possible.
 
@@ -523,6 +579,25 @@ rei note remind "Follow up on notes" --at "1 week"
 
 See [`rei reminder`](/docs/commands/reminder) for full reminder documentation.
 
+### reconcile-topic-references
+
+```bash
+rei note reconcile-topic-references [--dry-run] [--json]
+```
+
+This database operator command reclassifies pre-rollout `topic:KEY` references on
+their source Note streams, retaining their IDs and hashes, and reconciles current
+Topic resolution. It never edits Note content or files. Archived and deleted
+sources are skipped and counted. Run it after the coordinated schema/catalog
+cutover, with explicit database settings and an isolated workspace config for a clone.
+
+`--dry-run` predicts both reclassification and resolution without appending.
+The JSON summary includes `candidates`, `sourceNotes`, `reclassified`, `resolved`,
+`unresolved`, `unchanged`, `skippedInactive`, `alreadyTopic`, `proposed`, `dispatched`
+and `dryRun`. A dry run has zero `dispatched`; a converged repeat also dispatches
+zero events. Contention or infrastructure failure exits unsuccessfully and reports
+incomplete work; rerun after resolving it.
+
 ### backlinks
 
 Show notes that link to a given note via wikilinks (`[[Note Title]]`).
@@ -536,7 +611,7 @@ rei note backlinks [note-id] [--include-archived] [--json]
 
 **Options:**
 - `--include-archived` — Include backlinks whose source note is archived. Excluded by default.
-- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"backlinks": [<NoteReferenceRow>, ...], "warnings": [...]}` over the wikilink reference rows (fields: `referenceId`, `sourceNoteId`, `targetNoteId`, `targetTitle`, `displayText`, `referenceHash`, `lineNumber`, `discoveredAt`, `resolvedAt`). Non-fatal diagnostics ride in `warnings`; the command exits zero on the JSON path.
+- `--json` — Emit JSON output instead of the human-readable listing. Output is `{"backlinks": [<NoteReferenceRow>, ...], "warnings": [...]}` over the wikilink reference rows (fields: `referenceId`, `sourceNoteId`, `targetNoteId`, `targetTitle`, `displayText`, `referenceHash`, `lineNumber`, `discoveredAt`, `resolvedAt`, `targetKind`, `topicKey`, `targetTopicId`). Non-fatal diagnostics ride in `warnings`; the command exits zero on the JSON path.
 
 > **FZF Support:** If the ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from existing notes.
 
@@ -562,7 +637,7 @@ rei note backlinks
 
 ### broken-links
 
-Show unresolved wikilinks (references to notes that don't exist).
+Show unresolved Note and Topic wikilinks. Topic references are marked `(topic)`.
 
 ```bash
 rei note broken-links [note-id] [--include-archived]
@@ -931,6 +1006,8 @@ Print note contents to stdout. Useful for piping to other tools or viewing conte
 rei note print [note-id]
 ```
 
+Content is read from the API and printed without an added newline. Unrecorded, deleted or missing content produces an explicit failure; it is never treated as an empty document.
+
 **Arguments:**
 - `[note-id]` — Note ID (optional if fzf is available)
 
@@ -954,7 +1031,7 @@ rei note print note_01h455vb4pex | wc -l
 
 ### export
 
-Copy a note's markdown file to a directory on disk. Useful for sharing a note with a colleague, seeding another vault, or snapshotting it into an unrelated git repo.
+Fetch a note's recorded Markdown from the API into a caller-local directory. Useful for sharing a note with a colleague, seeding another vault, or snapshotting it into an unrelated git repo.
 
 ```bash
 rei note export [note-id] [--path <dir>]
@@ -966,13 +1043,13 @@ rei note export [note-id] [--path <dir>]
 **Options:**
 - `--path <dir>`, `-p <dir>` — Destination directory for the exported `.md` file. Required for the file to actually be written; optional at the parser layer so the FZF picker can run first.
 
-> **FZF Support:** If the note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker launches to let you select from every note in the workspace. This happens whether or not `--path` is supplied, so running bare `rei note export` still shows the picker — but if you then have no `--path` set, the command prints an error reminding you to supply it and exits.
+> **FZF Support:** If the note ID is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker launches to let you select from all active Notes returned by the API, across every page. This happens whether or not `--path` is supplied, so running bare `rei note export` still shows the picker — but if you then have no `--path` set, the command prints an error reminding you to supply it and exits.
 
 **Behavior:**
 1. Resolves the note (argument or FZF selection).
 2. If `--path` was not supplied, prints a usage reminder and exits.
 3. Looks up the note's title (used to derive the destination filename).
-4. Copies `<workspaceRoot>/notes/<noteId>.md` into `<dir>/<slug-of-title>.md` (or `<dir>/<noteId>.md` when the note has no title).
+4. Writes the complete recorded UTF-8 body into `<dir>/<slug-of-title>.md` (or `<dir>/<noteId>.md` when the note has no title). No server path is opened locally.
 5. Creates `<dir>` if it does not exist. Overwrites existing files silently.
 6. Emits no events — this is a read-only, side-effecting operation.
 
@@ -1114,7 +1191,7 @@ Reference: ![[research-paper.pdf]]
 
 ## Wikilinks
 
-Notes support wikilink syntax for linking between notes:
+Notes support links to Note titles and Topic keys. Note-title syntax is:
 
 ```markdown
 See [[Project Notes]] for more details.
@@ -1130,18 +1207,39 @@ Check [[Meeting Notes|the meeting notes]] from last week.
 - Wikilinks are discovered when notes are created or updated
 - The note content processor reactor extracts references
 - The reference inline read model projects them to the database
-- References are automatically resolved when a matching note title exists
-- If a note is deleted or renamed, references may become "broken"
 
-**Resolution:**
-- When a note's title is extracted, any unresolved references matching that title are automatically resolved
-- Use `rei note broken-links` to find unresolved references
+Use `rei note broken-links` to find unresolved references.
+
+Automatic resolution of newly discovered Note-title references is not implemented.
+Existing stored Note resolutions remain readable through `backlinks` and
+`outgoing-links`. Topic links use the active resolution described below.
+
+### Topic wikilinks
+
+Write `[[topic:rdf]]` or `[[topic:rdf|RDF]]` to mention the Topic whose key is `rdf`.
+Only the exact lowercase prefix `topic:` and a valid lowercase Topic key select this
+kind. Keys contain lowercase letters, digits and hyphens, with no leading or
+trailing hyphen. `[[Topic:rdf]]`, `[[topic:RDF]]` and invalid keys remain Note-title
+references.
+Links inside code blocks and inline code are ignored.
+
+With `rei worker kiroku` running, mentions resolve to active Topics in the source
+Note's Space. Missing keys appear as unresolved Topic references. Archiving a Topic
+unresolves its mentions; restoring it resolves them again. A mention creates no
+`about` association and does not change the Note's anchor. Archived source Notes
+receive no new reconciliation until unarchived. Use
+[`rei topic mentions KEY_OR_ID`](/docs/commands/topic#mentions) to find resolved occurrences;
+`--include-archived` includes archived sources.
+
+`rei note outgoing-links NOTE` prints `[[topic:rdf]] -> topic_… (topic)` or
+`[[topic:rdf]] (unresolved topic)`. Its JSON reference rows include `targetKind`
+(`note` or `topic`), nullable `topicKey` and nullable `targetTopicId` alongside the
+existing fields. `targetNoteId` remains specific to Note references. A resolved Topic
+reference is excluded from `broken-links`.
 
 ## Workspace
 
-Notes are stored as markdown files in your workspace directory (default: `.rei/notes/`).
-
-You can edit them directly with any text editor or use `rei note open`.
+Recorded Note content lives on the server, and managed Note files describe server storage. Use `rei note open` to edit through a private local draft, or `rei note export` to copy content to a directory you choose. Editing a file in a local `.rei/notes/` directory does not change the recorded Note.
 
 ## Workflow: capture and summarize
 

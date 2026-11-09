@@ -180,6 +180,18 @@ Every piece of agent work in rei is fully observable:
 
 ## Configuration
 
+### API Credentials and Recovery
+
+Configure the caller with `REI_API_URL` and a secret `REI_API_TOKEN`. The server operator grants that credential the selected provider's named recorder profile (`claude-code` or `codex`); see [foreground API credentials](/docs/commands/agent#foreground-api-credentials). The caller needs no database settings, projection workers or server workspace mount, and it does not start the server automatically. Provider credentials, prompt overrides and local tools stay on the caller. `rei agent config` and `rei agent models` inspect local configuration and the installed model catalog without API or database setup.
+
+Coaching returns advice. Explicit Note creation, revision and help-output commands apply the output you requested through the API, and attended tools can invoke ordinary commands with the admitted recorder context. You choose the command, execution mode and local provider.
+
+`agent create-note CATEGORY --input TEXT --intention ID` (or `--habit ID`) uses the category's recorded guidance. Without an explicit anchor it offers the remote anchor picker. `agent update-note ID --instructions TEXT` also accepts instructions from stdin. Both support one-shot and debug modes; explicit interactive mode refuses before launching a provider.
+
+A one-shot result is recorded before its output is applied. On refusal or an uncertain write, the CLI retains private input/result files, acknowledged target IDs and output progress. Inspect those files and remote state before invoking a provider or applying output again. No write is automatically replayed. Note replacement currently has no conditional revision check, so coordinate concurrent full-body edits.
+
+`note get-help ID` preserves focus/guidance and question/answer follow-ups. Use `--append` to append through the content writer, `--interactive` for an attended caller tool, or `--debug` to inspect its prompt. `--include-doc` downloads managed text and binary attachments into a private caller directory; missing or external bytes refuse. Historical file-only Notes need an explicit import before remote help, for example `rei note open NOTE_ID --stdin < caller-copy.md`. The caller-hosted recording contract is documented in `docs/api/haskell-client.md` in `mori://shinzui/rei` (artifact-level URI pending).
+
 ### LLM Provider, Transport, Model, and Effort
 
 Rei's LLM access is provider-neutral, built on the in-house **baikai** library and selected by **provider** (`anthropic` or `openai`), **transport** (`cli` or `api`), **model**, and reasoning **effort**. The `cli` transport runs the vendor's command-line tool (`claude -p` / `codex exec`), billed against your subscription with no API key; the `api` transport calls the vendor's HTTP API, billed per token and requiring a key.

@@ -6,6 +6,25 @@ icon: CalendarCheck
 
 Display review summaries for analyzing your progress over time periods.
 
+This command uses `REI_API_URL` without caller database settings. The caller's
+`TZ` (or detected system IANA timezone) is sent explicitly to the server. The
+returned date, timezone and context fix subsequent page requests. Applicable
+sections are read completely; a missing section or changed total fails visibly
+instead of appearing empty. Repeat a read to observe a changed report.
+
+Each displayed timestamp uses that instant's IANA offset, including 23-hour and
+25-hour reporting days. Report membership follows occurrence instants; an
+Action's separately recorded local date may differ or be unknown. Its canonical
+identity supplies missing metadata without dropping it from the selected report.
+
+Weekly totals use server summaries and complete breakdown pages. Habit adherence
+counts distinct scheduled occurrence days, so multiple actions on one day fulfill
+one day. A selected standalone Habit keeps its period actions from other display
+contexts, matching the native review rule. Flexible progress still uses recorded
+local dates and excludes unknown dates. Invalid dates exit with input status `2`;
+an unsupported caller timezone exits with configuration status `64`. Unusable
+network responses use status `70`; there is no database fallback.
+
 ## Subcommands
 
 ### day

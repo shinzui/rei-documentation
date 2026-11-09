@@ -4,6 +4,15 @@ description: Manage focus cycles for tracking daily focus selections
 icon: RefreshCw
 ---
 
+
+`cycle report list`, `show` and `export` use the configured Rei API without caller
+database settings. List reads every summary page. Show combines actual report
+metadata with its recorded logical JSON document, preserving native formatting.
+Export writes that received document to the caller-selected `--output` path;
+historical payload versions remain exportable without rebuilding their contents.
+A missing report keeps the native absence message. These commands do not start a
+worker or generate a replacement report.
+
 Manage daily focus cycles. A cycle is a bounded time period for tracking daily focus selections.
 
 ## Subcommands

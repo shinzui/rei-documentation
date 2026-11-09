@@ -10,6 +10,56 @@ AI-assisted coaching and review. The agent reads your current state to provide i
 
 The agent requires an LLM backend. Rei can configure provider, transport, model, and reasoning effort separately for each command. See [Configuration](/docs/configuration#optional-ai-agent) for the complete precedence and `llm.commands:` reference.
 
+## Foreground API credentials
+
+Coaching (`coach`, `review`, `nudge`, `reflect today/week`), `assist`,
+`intention-assist`, `create-skill` and `ask-note` keep the provider/tool on your computer and read durable
+context through `REI_API_URL` using `REI_API_TOKEN`. It requires no database settings
+or shared server workspace. Provider, model, effort, debug output, installed kit
+directories and local artifact synchronization retain their caller-side meaning.
+
+The server operator must explicitly grant the credential a recorder profile.
+Existing `REI_API_TOKENS` entries grant direct calls only. Configure the separate
+secret JSON setting `REI_API_CREDENTIAL_POLICIES`, for example:
+
+```json
+[
+  {
+    "token": "human-token",
+    "id": "workstation-owner",
+    "revision": "1",
+    "maxAgeSeconds": 3600,
+    "profiles": {
+      "claude-code": { "agentId": "claude-code", "principal": null, "version": null },
+      "codex": { "agentId": "codex", "principal": null, "version": null }
+    }
+  }
+]
+```
+
+The matching direct mapping is `REI_API_TOKENS=human-token=human`. Each policy ID
+identifies one credential; change its revision when changing that policy. Expiry
+must be from 30 to 86400 seconds. Optional principals must be existing directory
+IDs; leave them absent when unknown. A profile fixes the agent recorder and any
+principal/version, while the direct mapping fixes the performer. Choosing a
+profile cannot impersonate another performer.
+
+These foreground commands select `claude-code` for Anthropic and `codex` for OpenAI. A missing grant
+refuses before launching the tool. The launcher supplies API configuration and
+`REI_API_SESSION_CONTEXT` to the tool, removes database credentials, and closes the
+admission during normal or cancellation cleanup. Nested admission is refused.
+Legacy performer/recorder environment hints do not authorize HTTP provenance.
+
+If admission or closure is uncertain, Rei reports and retains a private request
+JSON file. Inspect that request identity with the owning base bearer at
+`GET /api/v2/agent-sessions/admissions/{requestId}` before starting another session.
+Explicit matching admission recovery reuses its original session/run; there is no
+automatic write replay. Close with
+`POST /api/v2/agent-sessions/admissions/{context}/close`. Inspect/close remain
+available after expiry or profile withdrawal. A failed closure reports the bounded
+expiry and exits with an error. Retained local tool artifacts remain available.
+Closing admission does not fabricate conversation turns or a completed session.
+
 ## Global Options
 
 ### Provider, transport, model, and effort
@@ -90,6 +140,8 @@ rei agent coach -i
 # Interactive intention review
 rei agent review intention_01h455vb4pex -i
 ```
+
+Session inspection (`agent sessions`, `agent session`, including `--chain`) reads the configured Rei API with `REI_API_URL` and `REI_API_TOKEN`. An unfiltered session list defaults to the newest 20; `--limit` preserves the requested window across API pages. Focus and intention filters retain their complete matching history. `agent config` and `agent models` are caller-local and need neither an API URL nor a database.
 
 ## Subcommands
 
@@ -247,6 +299,12 @@ rei agent intention-assist [intention-id]
 
 **Arguments:**
 - `[intention-id]` — Intention ID (optional if fzf is available)
+
+The selected intention, actions, blocker history, guidance and memories are
+loaded from complete API pages. Skill directories and Git synchronization use the
+caller workspace. Debug prints the prompt without admitting or launching a tool.
+A tool exit closes admission and preserves its exit code; it does not claim a
+completed conversation or invent turns.
 
 Unlike `assist`, `intention-assist` loads only the selected intention's hierarchy, its actions, blockers, memories, and guidance. Skills placed in the intention's agent directory are discovered automatically — global workspace skills are not available.
 
@@ -465,5 +523,70 @@ Some subcommands always run interactively (`assist`, `intention-assist`) and hav
 
 - **Non-interactive mode** is read-only — the agent does not modify your data
 - **Interactive mode** gives Claude full CLI access — it can record actions, resolve blockers, etc.
-- All changes in interactive mode are attributed with `--actor claude-code`
+- Changes in interactive mode run as the credential's performer, and the admitted session records the agent. Do not pass `--actor`.
 - The agent reads your events, markdown files, and read models to understand your current state
+
+### Caller-hosted recorded Note questions
+
+`agent ask-note` reads the Note from the configured API and keeps the selected
+provider, transport, model and effort on the caller. Supply `--question` or pipe
+the question on stdin. Debug only prints the composed prompt. Interactive mode
+starts an attended tool; one-shot mode starts a running canonical session and
+reports the actual response, turns and parsed memories through the API.
+
+The credential needs the same explicit recorder grant described above. This does
+not enable operator-configured remote batch execution. Provider subprocesses
+receive API configuration and admitted context with database variables removed.
+The current Baikai subprocess adapter inherits the CLI environment; Rei installs
+and restores that sanitized environment around its single provider call.
+
+A known provider failure records a failed session and exits 70. The complete
+provider diagnostic and input/result remain in a private caller recovery file;
+only a safe failure description is sent to the server. Transport refusal, expiry
+or an interrupted result write retains the actual response and canonical IDs.
+Inspect admission, session turns, memories and the recorded result before applying
+anything again. A captured result without settlement is unconfirmed and is never
+automatically replayed. Closing admission does not fabricate completion.
+
+
+Coaching contexts use complete API pages and the server's named calendar. Nudge
+keeps its native small window; weekly reflection retains full memory recall.
+Blocking comes from the canonical blocked resource, including dependencies.
+Intention review includes its delegation, review criteria and blocker history.
+Caller prompt files still override the built-in prompts for one-shot/debug modes.
+Attended tools propagate their exit status and close admission without inventing
+conversation completion. Only assistance and skill creation synchronize their
+existing skill/artifact scope through Git.
+
+
+### Caller-hosted recorded Note questions
+
+`agent ask-note` reads the Note from the configured API and keeps the selected
+provider, transport, model and effort on the caller. Supply `--question` or pipe
+the question on stdin. Debug only prints the composed prompt. Interactive mode
+starts an attended tool; one-shot mode starts a running canonical session and
+reports the actual response, turns and parsed memories through the API.
+
+The credential needs the same explicit recorder grant described above. This does
+not enable operator-configured remote batch execution. Provider subprocesses
+receive API configuration and admitted context with database variables removed.
+The current Baikai subprocess adapter inherits the CLI environment; Rei installs
+and restores that sanitized environment around its single provider call.
+
+A known provider failure records a failed session and exits 70. The complete
+provider diagnostic and input/result remain in a private caller recovery file;
+only a safe failure description is sent to the server. Transport refusal, expiry
+or an interrupted result write retains the actual response and canonical IDs.
+Inspect admission, session turns, memories and the recorded result before applying
+anything again. A captured result without settlement is unconfirmed and is never
+automatically replayed. Closing admission does not fabricate completion.
+
+
+Coaching contexts use complete API pages and the server's named calendar. Nudge
+keeps its native small window; weekly reflection retains full memory recall.
+Blocking comes from the canonical blocked resource, including dependencies.
+Intention review includes its delegation, review criteria and blocker history.
+Caller prompt files still override the built-in prompts for one-shot/debug modes.
+Attended tools propagate their exit status and close admission without inventing
+conversation completion. Only assistance and skill creation synchronize their
+existing skill/artifact scope through Git.

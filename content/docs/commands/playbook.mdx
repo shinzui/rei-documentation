@@ -4,6 +4,8 @@ description: Run named, parameterized sequences of Rei operations from YAML defi
 icon: ScrollText
 ---
 
+`playbook list`, `show` and `edit` operate on the caller’s workspace YAML and editor/Git configuration. These commands need neither an API URL nor a database connection. Validation, dry-run, execution and history use `REI_API_URL` and `REI_API_TOKEN`. They need no caller database settings.
+
 Playbooks are named, parameterized sequences of Rei operations stored as YAML files
 in your workspace. They codify multi-step property mutations into a single command.
 
@@ -198,6 +200,16 @@ playbooks:
 ```
 
 Without this flag, any playbook containing `run-command` steps will fail schema validation.
+
+## API execution and recovery
+
+`validate` checks the explicit definition against server property definitions without inventing required parameter values. Run-time entity parameters use remote picker candidates. Text parameters retain their native escape hatch, including entity-ID text; typed entity parameters must still match the target kind. Invalid literal identities use the API validation contract.
+
+`run` submits an immutable caller execution. Each step is claimed before its effect: the server applies properties, and the caller executes permitted commands only after matching the returned artifact against its own definition and parameters. Argument boundaries and caller-relative working directories are preserved. Children receive API configuration and any admitted session context, with database settings removed. A local step failure is recorded and exits with validation code 2; later steps remain unapplied. Property summaries and reported local results are bounded to 4096 UTF-8 bytes.
+
+The CLI prints the execution identity before submission. On transport or local failure it retains a private request file, and when available the complete local command result. Inspect `GET /api/v2/playbook-executions/{id}/caller` before taking another action. Report a known saved result through the matching caller step's `/result` API; identical reports are unchanged. An outstanding claim never authorizes re-running the command. The CLI does not automatically repeat writes or process launches.
+
+Existing worker-mode API submissions keep their `local_runner_required` boundary. The CLI's caller workflow creates a separate execution; it does not reinterpret a stopped worker execution or grant permission to run providers.
 
 ## Git Integration
 

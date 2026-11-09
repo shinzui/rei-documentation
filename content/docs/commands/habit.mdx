@@ -942,6 +942,20 @@ rei habit clear-category habit_01abc...
 rei habit clear-category
 ```
 
+
+## API execution and local editing
+
+Configure `REI_API_URL` and `REI_API_TOKEN`; Habit commands need no client
+database configuration. Lists and selectors load all API pages. Tracker requests
+over 366 days use adjacent calendar windows in the caller's timezone.
+
+Note creation prints its canonical ID. `habit note new --stdin` preserves UTF-8
+bytes and every tag; editor creation and `habit note open` use a private local
+draft, then submit content to the server. Cancellation or refusal reports a
+retained draft for recovery. No server filesystem path is opened locally.
+Note updates use the current whole-body writer without a revision precondition.
+A blocker acknowledgement leaves auto-pause to the asynchronous server reactor.
+
 ## Mori property writes
 
 The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.

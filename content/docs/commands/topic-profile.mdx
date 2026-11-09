@@ -19,6 +19,13 @@ rei reflect history --topic acme --kind topic-review --json
 rei topic profile due --json
 ```
 
+All profile commands use `REI_API_URL`; writes also require the secret
+`REI_API_TOKEN`. The caller needs no database settings or shared server files.
+Use paired CLI/server builds: native definition JSON needs the server's actual
+stream-position and selector-presence metadata. Mori configuration belongs to
+the server; setting `MORI_API_URL` in the caller does not configure remote sync.
+Editors and retained drafts stay in the caller's private temporary directory.
+
 The installation must have completed its reader rollout and enabled profile/review writes. Reads report unavailable infrastructure explicitly. The commands operate in the current personal home; they do not grant shared-Space access.
 
 ## Declarations
@@ -58,7 +65,14 @@ rei topic profile due [--health TEXT] [--pursuit pursued|dormant|idle] [--timezo
 
 Create can repair classification after a partial failure without recreating the Topic. Scope reads explain direct and inherited membership. Active intentions and active habits determine pursuit; supporting habits are reported separately. Filters apply before pagination. Member detail includes reflection counts, latest completed TopicReview identity/time, and explicit-schedule cadence comparison. Archiving retains identity, history and assignments.
 
-Collections return one bounded page with `edges` and `pageInfo`. Continue with `--after pageInfo.endCursor` while `hasNextPage` is true. Keep the classifier, filters and calendar unchanged. A cursor from another collection or serving generation is refused.
+Collections return one bounded page with `edges` and `pageInfo`. `--first` remains limited to 1–100 by the parser. After upgrading from native database execution, restart an old cursor walk; API cursors belong to the public resource and cannot reuse native cursor contexts. Continue with `--after pageInfo.endCursor` while `hasNextPage` is true. Keep the classifier, filters and calendar unchanged. A cursor from another collection or serving generation is refused.
+
+Effective scope refuses incomplete cycle/depth traversals instead of returning a
+successful partial membership page. Separate scope diagnostic resources remain
+available. Portfolio JSON retains `associations.complete` from the server beside
+the native counts. An unavailable review's `problem` uses safe public role/detail
+text rather than private Core error constructors.
+
 
 ## Review and repair
 
@@ -70,6 +84,20 @@ The classifier is always explicit. Health values use the mapped property's vocab
 
 Save the printed request ID, normalized review instant, expected version and Reflection ID. These appear on stderr before effects and in the result. Retry with the same ID and exact authored inputs; omitted time/version/Reflection ID recover their original values. A settled retry reports unchanged. Different authored inputs under the same ID refuse, including when the first review changed no property values. A new identity records a new review and reports the newly accepted operation as changed; separate fields describe property, content and Reflection effects.
 
+A fresh editor captures the canonical profile revision and assignment version
+before opening. The server revalidates them; the preparation read reserves nothing.
+Cancellation is a successful no-op and retains unsent text. Refused or uncertain
+submissions retain authored input, canonical targets and acknowledged receipts.
+The CLI never automatically replays a write. If a later display read fails, the
+known mutation result remains acknowledged and its `changed` flag is preserved.
+
+Migration for review JSON: outer outcome and Reflection metadata fields remain.
+The nested `review` now contains bounded public request status, including original
+inputs, `appliedFieldCount`, `staged`, `finalized`, `conflict` and `completed`.
+Consumers of the old private `review.request`/`applied`/`failed` manifest should use
+those fields and the Reflection snapshot API for the original three field snapshots.
+Without a usable command receipt, failure JSON uses `changed: null`.
+
 For an editor retry, original bytes must still match the accepted hash. If unavailable, resupply the exact original `--reflection-text`; later file edits do not become historical content. A property-only request cannot acquire a narrative on retry. Use a new ID for a new decision.
 
 ## Identity rules and sync
@@ -80,9 +108,21 @@ rei topic profile amend CLASSIFIER --identity-scheme mori --allowed-kind docs --
 rei topic profile members CLASSIFIER sync mori://namespace/project/docs/guide --json
 ```
 
+Declaration, amendment and identity preview accept complete ordered selector
+lists, including more than 100 `--allowed-kind` values, in one sealed request.
+The server validates all input before executing the existing owner. Scalar edits
+preserve the complete existing restrictions, including the representation of absent
+and explicitly empty selector lists; both retain their existing unrestricted match
+semantics. Configuration reads expand all selector pages and refuse mixed revisions.
+This is an observation check, not an atomic lock on a later amendment.
+
 Preview pages violations before enabling a rule. Existing members must satisfy it. Repeated `--allowed-kind` values restrict Mori artifact kinds. Omission retains restrictions; `--clear-allowed-kinds` clears that restriction, and `--clear-identity` removes the rule. A required external identity prevents creating an unsupported new member; sync resolves the artifact through Mori and reports acknowledged progress for repair.
 
-Writes report actual `changed` and partial progress. Domain refusals exit 2; unavailable stores/readers or failed I/O exit 70. JSON stdout contains one value, with diagnostics on stderr. See [intention completion](/docs/commands/intention#complete), [Topic reflections](/docs/commands/reflect#topic-reviews), and the [project adapter](/docs/commands/project).
+Sync JSON preserves the command's actual ordered actions, cleanup warnings,
+canonical reference, Topic and reference metadata. These come from the acknowledged
+owner result, including no-op and partial outcomes, rather than later reads.
+
+Writes report actual `changed` and partial progress. Domain refusals exit 2; missing or rejected API credentials exit 64; unavailable readers, transport or I/O exit 70. Parser usage errors retain exit 1. JSON stdout contains one value, with diagnostics on stderr. See [intention completion](/docs/commands/intention#complete), [Topic reflections](/docs/commands/reflect#topic-reviews), and the [project adapter](/docs/commands/project).
 
 
 ## See also

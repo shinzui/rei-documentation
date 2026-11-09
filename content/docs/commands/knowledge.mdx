@@ -4,13 +4,34 @@ description: Knowledge management commands for verifying workspace integrity
 icon: Lightbulb
 ---
 
+
+`knowledge verify` uses the configured Rei API and requires no caller database or
+mounted server workspace. The server checks current files selected by their Note,
+Doc and embed owners. It hashes managed files without downloading their contents
+to the caller. `--embeds` traverses the complete canonical embed pages; an existing
+managed embed without a recorded hash verifies existence only.
+
+Recorded Note content, hashes and embed verification timestamps are separate from
+current filesystem observations. A recorded API-created Note can therefore report
+`[MISSING]` when no managed file has been materialized. A matching file in the
+caller's workspace cannot satisfy that check. Verification changes no Note, Doc or
+embed facts and does not synchronize files.
+
+Historical external paths and absolute/traversing/escaping embed pointers report
+`[EXTERNAL]` and an `Unavailable` summary count. They are never treated as arbitrary
+server-file read capabilities or silently opened on the caller. Reimport external
+Doc bytes through `doc add` when a managed server copy is needed. Modified, missing,
+unreadable, invalid-hash or unavailable results keep verification's issue exit
+class `2`; API configuration and transport failures use `64` and `70`. These are
+observations, with no atomic snapshot or stale-write protection implied.
+
 Knowledge management commands for verifying workspace integrity.
 
 ## Subcommands
 
 ### verify
 
-Verify the integrity of the knowledge base (notes, docs, reflections).
+Verify current managed files for active Notes and Docs with recorded hashes, plus optional embedded files.
 
 ```bash
 rei knowledge verify [options]
@@ -37,10 +58,9 @@ rei knowledge verify -v -e
 ```
 
 This command checks that:
-- All referenced files exist
-- File hashes match stored values (detecting external modifications)
-- Links between entities are valid
-- Embedded files (`![[...]]`) exist when `--embeds` is specified
+- Selected managed Note and Doc files exist
+- File hashes match their recorded values
+- Managed embedded files (`![[...]]`) exist and match any recorded hash when `--embeds` is specified
 
 **Output:**
 

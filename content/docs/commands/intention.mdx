@@ -298,6 +298,11 @@ For comprehensive filtering documentation, see [Intention Filtering](/docs/guide
 
 Show details of a specific intention.
 
+Reads use the configured Rei API and need no local database. JSON preserves the
+native full-view shape, including complete related collections. `--full` selects
+expanded terminal output and, with `--json --with-property-defs`, includes the
+Action, Outcome and Blocker property definitions alongside the Intention's.
+
 ```bash
 rei intention show [id] [options]
 ```
@@ -339,6 +344,19 @@ rei intention show intention_01h455vb4pex --full --json --with-property-defs \
 - Custom properties (any properties assigned to this intention)
 - Child intentions (both Active and Future; excludes Completed/Abandoned)
 - When `--with-property-defs` is set, a top-level `propertyDefinitions` JSON object keyed by property key, whose values are full `CustomPropertyView` records (the same shape returned by `rei custom-property show --json`).
+
+### view
+
+Execute a saved view with an Intention as its scope through the configured API.
+
+```bash
+rei intention view [INTENTION_ID] [VIEW_NAME]
+```
+
+Omitted arguments use the local fzf picker when available. Results retain the
+saved definition's filters, limits, section order and group order. Notes, Tasks,
+Actions and configured inline properties are read from the shared server; no
+local database is needed.
 
 ### tree
 
@@ -541,6 +559,18 @@ rei intention complete intention_01h455vb4pex --explain --profiles --json
 
 **Recovery:** For an authored completion, keep the request ID and exact reason text. Recovery metadata is printed to stderr before effects. Repeating the same request recovers the original version and completion instant when those flags are omitted, finishes missing narrative work, and reports actual changes. A settled retry cannot re-complete an intention that was reopened. Different text or explicit original inputs under the same ID are refused; use a new ID for a new decision.
 
+Completion runs against `REI_API_URL`, including selectors and explanation pages.
+Authored reasons are saved in a private caller-local draft before remote
+prerequisites. If submission fails, the retained JSON recovery document includes
+the exact reason and prepared request identity; nothing is replayed automatically.
+Refusals use the API's safe detail and code instead of internal Haskell constructor
+names. The native JSON result envelopes and recorded conflict identity/time remain
+available. A server that omits retained conflict details is refused explicitly
+instead of returning an incomplete conflict header. If a failed submission supplies no workflow receipt, `outcome.progress`
+is `null`; `uncertainStep` marks an unknown result. In that case, `changed: false`
+means no acknowledged changes, not proof that the server made none. Inspect the
+Intention or original request before deciding whether to submit again.
+
 **Notes:**
 - Without a reason, ordinary completion creates no narrative or durable request.
 - Completion is refused while any immediate child is still `Active`. The error lists the offending children (id + title) so you know what to complete or defer first.
@@ -736,6 +766,15 @@ rei intention guidance [id]
 ```
 
 This opens your configured editor to edit custom guidance that the AI coach uses when reviewing this intention.
+
+This command uses `REI_API_URL` and `REI_API_TOKEN`. It fetches recorded guidance
+into a private local draft and sends the edited content to the server. The output
+now says `Content stored by the API server` instead of printing a workspace file
+path. Use `--content TEXT`, `--file PATH` or `--stdin` to import explicit caller
+content. A server path is never opened locally. Unrecorded guidance requires an
+explicit import; failed or cancelled edits retain their reported draft path.
+The current writer does not provide a revision precondition, so coordinate
+simultaneous edits until revisioned content is available.
 
 ### set-category
 
@@ -951,6 +990,13 @@ rei intention note open intention_01abc...
 # Let fzf pick the intention first, then the note
 rei intention note open
 ```
+
+The selector and content reads use the configured Rei API. The editor receives a
+private caller-local UTF-8 draft; successful submission removes it, while failure
+or cancellation retains its reported path. A server workspace path is never
+opened locally. Legacy unrecorded content must be explicitly imported through
+`rei note open NOTE_ID --stdin` before it can be edited remotely. The current
+whole-body writer has no revision precondition.
 
 ### set-note-guidance
 

@@ -4,6 +4,8 @@ description: Manage agent memories — durable observations recorded across sess
 icon: Brain
 ---
 
+Memory list, show, chain and archive commands use the configured Rei API (`REI_API_URL` and `REI_API_TOKEN`). They need no caller database settings. Filters intersect on the server; a session filter includes its inactive memories. Detail reads traverse every tag page, and repeated archive reports the unchanged receipt. Invalid identities and filters use the API validation exit contract.
+
 Manage agent memories — durable observations that agents record across sessions. Memories provide continuity so agents don't re-discover known information.
 
 Agent memories are automatically recorded during coaching sessions when agents discover important facts, patterns, preferences, or constraints. You can also list, inspect, and archive them.

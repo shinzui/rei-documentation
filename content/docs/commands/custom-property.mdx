@@ -10,6 +10,15 @@ Define and manage custom properties that can be attached to entities (intentions
 
 > **Deprecated:** `local-repo`, the path-valued convention for saying which repository an intention tree belonged to, has been replaced by [project scope](#local-repo-deprecated). Existing values still work and are still readable; nothing new should create or query one.
 
+
+Everyday CustomProperty commands use `REI_API_URL` and `REI_API_TOKEN`. Definition
+lookup, scope resolution, expression parsing, initialization and Mori resolution
+run on the server. Local files, YAML parsing and editors stay on the caller.
+Mori and state-note write capabilities are configured on the server; local flags
+cannot enable a disabled server capability. Initialization captures all matching
+candidates before writing and counts actual changed receipts (or eligible targets
+for `--dry-run`), so overlapping category scopes do not inflate the total.
+
 ## Concepts
 
 **Custom Property** — A user-defined property definition with:
@@ -1368,9 +1377,11 @@ rei custom-property add-state custom_property_01abc blocked --label "Blocked"
 
 State machine properties support one note per intention, property definition ID and state. Same-key definitions in different scopes keep separate notes. Without `--state`, the command reads the selected definition's canonical current value; an override must name a state in that definition.
 
-Qualified creation is currently unavailable, including legacy-key creation. `REI_STATE_NOTE_IDENTITY_WRITES_ENABLED=true` cannot enable it: the required public atomic guard is planned in `mori://shinzui/keiro/plans/306-support-atomic-relational-preconditions-for-synchronous-catalog-commands` and has not been released. Existing notes remain readable. Legacy keys are display information, not stable definition bindings; an explicit audited migration must resolve them before creation can resume. Definition-filtered listings omit unbound legacy notes, which remain accessible by note ID.
+State-note creation uses the server's guarded identity writer. It remains opt-in on the server with `REI_STATE_NOTE_IDENTITY_WRITES_ENABLED=true` after the audited identity migration. The first accepted creation retains its complete content, tags and authenticated provenance. Concurrent requests share one winner; an archived winner is retained, and deletion keeps its identity reserved.
 
-The adoption contract preserves first-write content, tags and provenance and requires concurrent ensures to return the same winner, including an archived note, without another creation fact. Identity claims survive deletion as tombstones; new qualified re-anchoring is disabled. The editor requires an active note and a materialized local file. If another request wins after a local draft is edited, the CLI preserves that draft and reports the winner. Listings include archived notes and notes for states removed from the definition.
+Editors run on the caller's machine. A new interactive draft starts empty because the server allocates the canonical Note ID when it accepts the complete draft. Its final text is recorded verbatim in the first creation fact. Existing notes load their recorded remote content before editing. If another request wins while a draft is being edited, the CLI reports that winner and retains the caller's unsent draft. Refused or uncertain submissions also retain the draft; inspect the remote state before resubmitting.
+
+`--print` materializes the recorded content into a private caller-local file and prints that actual path. The file is a snapshot and is not automatically synchronized. Submit later edits with `rei note open NOTE_ID`; do not edit a printed copy expecting the server to observe it. A fresh print-only creation retains the canonical identity header. Unrecorded legacy content cannot be materialized as an invented empty document. Listings retain archived notes and notes for states removed from the definition.
 
 ### note
 
@@ -1386,7 +1397,7 @@ rei custom-property note PROPERTY_KEY [options]
 **Options:**
 - `-i, --intention <id>` — Intention ID (uses FZF if not provided)
 - `-s, --state <state_id>` — Override state (default: current state from property value)
-- `-p, --print` — Print the note path instead of opening editor
+- `-p, --print` — Print a private caller-local content-copy path instead of opening the editor
 - `-t, --tag <tag>` — Tag to add to the note (can be repeated)
 - `--actor <actor>` — Actor name (overrides global `--actor`)
 - `-c, --category <slug>` — Category scope for property disambiguation
@@ -1624,7 +1635,6 @@ rei custom-property reverify-refs --all --json
 Lookup returns direct current assignments in the caller's Space, in stable entity/property/list order. Prefix matching respects path boundaries and literal wildcard characters. A prefix without a fragment includes anchored references at that path. `--all` on `references` includes archived definitions; superseded history never creates an active match.
 
 Reverify requires an entity pair, property key/ID, URI prefix, or explicit `--all`. An ambiguous key requires `--property-id`. It preserves the original effective time and updates each assignment through guarded commands. Renames add history; alias collisions collapse at the earliest list position. Identical evidence keeps its check time and emits nothing. Outages preserve existing evidence and are reported as unavailable. Dry-run reports proposed values without appending. JSON reports every assignment, including committed changes and `failureClass`; a mixed result exits 2 or 70 when any assignment failed, so retain its result before retrying.
-
 
 
 ## Classification scopes and Topic value restrictions

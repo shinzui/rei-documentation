@@ -5,11 +5,38 @@ Track documentation site updates and synchronization with the source repository.
 ## Sync Status
 
 **Source Repository:** `/Users/shinzui/Keikaku/bokuno/rei-project/rei`
-**Last Source Commit Reviewed:** `13e14845` (2026-10-23, release v8.0.0.0)
+**Last Source Commit Reviewed:** `ea7ecfd3` (2026-11-08, release v9.0.0.0)
 
 ---
 
 ## Changelog
+
+### 2026-11-09
+
+**Reviewed commits:** `13e14845` through `ea7ecfd3` (release v9.0.0.0)
+
+**Theme:** Remote CLI cutover (everyday commands through the Rei API), credential-based attribution, Topic wikilinks, durable project outcomes, Keiro/Kiroku operator inspection and compaction.
+
+**Scope note:** 116 commits in range. User-facing changes were confined to `docs/user/` (37 files plus the new `cli/neglected.md` and `guides/remote-cli.md`) and one help topic (`projects.md`). ADRs, `docs/api/`, plans, friction logs, improvement requests and release evidence are developer material and were not synced.
+
+**Help topics:** `projects` changed; all 24 topics still have a 1:1 guide.
+
+**New guide:**
+- `guides/remote-cli.mdx` — From `docs/user/guides/remote-cli.md`; registered in `guides/meta.json`.
+
+**Updated pages:**
+- `commands/periodic-check.mdx` — Replaced from source; `dormancy` target removed (confirmed in the parser).
+- `commands/neglected.mdx` — Merged the new `neglected.md` into the existing page, keeping its output and severity sections.
+- `commands/note.mdx` — API behavior, Topic wikilinks, `reconcile-topic-references`, typed reference JSON. The site-only Workspace section was rewritten because local files no longer change recorded Notes.
+- `commands/{topic,topic-profile,outcome,project,agent,ops,kiroku,intention,custom-property,doc,knowledge,link,task,view,reflect,review,today,tomorrow,yesterday,cycle,disruption,habit,playbook,checkpoint,agent-memory,agent-schedule}.mdx` — Three-way merged from source.
+- `commands/index.mdx`, `api.mdx`, `configuration.mdx`, `installation.mdx`, `concepts/ai-coaching.mdx`, `guides/automation-exit-contract.mdx`, `guides/projects.mdx` — API server configuration, Topic mentions resource, connect-to-server setup, foreground credentials, API exit classes, project outcomes.
+
+**Corrections beyond source text:**
+- `configuration.mdx` — Mori Federation now states these settings belong on the server, matching `project.md` and `topic-profile.md`; the source's section still reads as if the CLI uses them.
+- `configuration.mdx` — Added `REI_API_CREDENTIAL_POLICIES` to the HTTP API server table.
+- Source references to developer artifacts use `mori://shinzui/rei` URIs on the site. `docs/masterplans/15-*` uses its artifact URI, which the current Mori CLI does not resolve yet.
+
+---
 
 ### 2026-10-23
 

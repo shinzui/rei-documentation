@@ -15,6 +15,13 @@ Rei's release-facing checks use stable process statuses. Normal reports are writ
 | `64` | Required configuration is missing or invalid. |
 | `70` | A database, event store, or worker runtime operation failed. |
 
+Commands that run through the Rei API (see
+[configuration](/docs/configuration#everyday-commands-rei-api-server)) use the same
+classes: `2` when the server refuses the input, `64` when `REI_API_URL` or
+`REI_API_TOKEN` is missing or invalid or the server rejects the token, and `70` when
+the server cannot be reached, does not answer within `REI_API_TIMEOUT`, or reports an
+internal or unavailable failure.
+
 ## Covered commands
 
 The contract currently covers `knowledge verify`, `custom-property list`, `playbook validate`, the `worker` commands, the `rei topic associate` / `dissociate` / `associations` / `entities` family, the `focus` write commands, every primary `note` write (plus the note-anchored `doc attach`, `detach`, and `retitle`), and the four intention property writes — `set-property`, `clear-property`, `append-property`, `remove-property-value` — **when run with `--json`**. It also covers configuration loading and Kiroku connection startup for those commands.
@@ -28,12 +35,12 @@ if [ "$status" -ne 0 ]; then
 fi
 ```
 
-- `knowledge verify` returns `2` when files are modified or missing, and `70` when its database query cannot run.
+- `knowledge verify` returns `2` for modified, missing or unreadable managed files and unavailable external paths. Missing API configuration returns `64`; API transport failure returns `70`.
 - `playbook validate` returns `2` for a missing, malformed, or schema-invalid playbook.
 - `custom-property list` returns `2` when persisted identifiers cannot be decoded, and `70` for other query failures.
 - Worker configuration errors return `64`; startup failures and forced drain return `70`.
 - The [topic-association commands](/docs/commands/topic#exit-status) return `2` for a missing topic, a missing, malformed, or ambiguous entity reference, a declared entity type that disagrees with the ID, an inactive endpoint, or an omitted argument with no terminal to prompt on, and `70` for store failures. They print nothing on standard output when they fail, so a `--json` consumer never sees a partial document followed by a nonzero status.
-- [`rei project`](/docs/commands/project#exit-status) follows the same contract, adding `64` for an unset or unusable `MORI_API_URL`, or a server there that is not Mori's API.
+- [`rei project`](/docs/commands/project#exit-status) follows the same contract, adding `64` for invalid Rei API client configuration or credentials, or when the Rei server has no usable Mori configuration for sync.
 
 ## Intention property writes
 

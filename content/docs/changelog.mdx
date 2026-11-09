@@ -6,6 +6,48 @@ icon: History
 
 Track documentation updates synchronized from the rei source repository.
 
+## 2026-11-09
+
+Rei 9.0.0.0.
+
+### Everyday Commands Run Through the API
+
+Everyday commands now use one configured Rei API server, so the CLI works from any computer with `REI_API_URL` and `REI_API_TOKEN` and needs no database settings. Editors, fzf, templates and provider tools stay on your computer; workers, migrations and repair remain operator commands. The new [remote CLI guide](/docs/guides/remote-cli) covers credentials, local files, recovery and the operator boundary.
+
+- **Recovery** — Failed or uncertain writes keep your draft and report what was acknowledged. Writes are never resent automatically.
+- **Exit codes** — API-backed commands exit `2` for refused input, `64` for missing or rejected configuration, and `70` for outages.
+- **`--actor`** — Identity now comes from the credential. `--actor` can only select a performer the credential already allows.
+- **Foreground agents** — Provider tools stay on the caller, and operators grant recorder profiles with `REI_API_CREDENTIAL_POLICIES`.
+
+### Topic Wikilinks
+
+Write `[[topic:rdf]]` or `[[topic:rdf|RDF]]` in a Note to mention a Topic. Mentions never create an `about` association.
+
+- `rei topic mentions KEY_OR_ID` — List resolved mentions, with stale written keys flagged.
+- `rei note reconcile-topic-references` — Operator command that reclassifies pre-rollout references.
+- `GET /api/v2/topics/{id}/mentions` — A bounded HTTP resource for the same data.
+
+### Project Outcomes
+
+- **`rei outcome record --project`** — Record evidence directly on a project, with a caller-chosen `--id` for safe replay.
+- **`rei outcome list --project`** — List outcomes across a project's effective scope.
+- **`rei project show`** — Includes up to five recent outcomes with their original dates.
+
+### Operations
+
+- **`rei ops aggregate`** — Browse aggregate types and instances, folded state and snapshot status.
+- **`rei ops serve-http`** — Serve the Keiro inspection API under `/keiro` for keiro-ui.
+- **`rei kiroku store identity` and `rei kiroku compaction`** — Inspect the store identity and run manifest-confirmed selective compaction.
+- **`rei ops`** — Adds projection status, category consumers, workflow inspection, pending timers and shard discovery.
+
+### Feature Enhancements
+
+- **`rei doc attach`** — Always imports a managed copy. `doc open` downloads a private local copy.
+- **`rei intention view`** — New command that runs a saved view scoped to an intention.
+- **`rei periodic-check enqueue`** — Targets are now `reminder`, `reflection`, `agent-schedule` and `all`. `dormancy` is gone, and `status` is an operator command.
+- **`rei today --tui`** — Uses `Tab`/`Shift-Tab` to switch sections and loads complete detail through the API.
+- **Topic scope reads** — Refuse with `scope_traversal_incomplete` instead of printing partial results.
+
 ## 2026-10-23
 
 Rei 8.0.0.0.

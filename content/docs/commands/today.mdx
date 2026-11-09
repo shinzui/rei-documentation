@@ -10,6 +10,8 @@ Display a daily dashboard showing today's summary. This is your primary view for
 rei today [options]
 ```
 
+Set `REI_API_URL` to the Rei server. No database credentials or shared workspace are needed. Set `REI_API_TOKEN` for private Agent, Memory, Review and Delegation sections; unavailable private sections are shown explicitly while public sections remain visible.
+
 **Options:**
 - `-c, --context <context>` — Filter by context (e.g., `work`, `personal`)
 - `--include-dormant` — Include dormant intentions (excluded by default)
@@ -21,6 +23,11 @@ rei today [options]
 - `--intentions` — Show only intentions, completed today, tasks, blockers, and related sections
 - `--habits` — Show only habits (scheduled, flexible, and cue-based)
 - `--panels` — Show only dashboard panels
+
+The caller's IANA calendar (`TZ` or the detected system timezone) is forwarded
+explicitly to the API. Its returned day, timezone, context and dormancy scope
+remain fixed across subsequent section and detail reads. An unsupported caller
+timezone is a configuration error (`64`), before requesting a report.
 
 ## Dashboard Sections
 
@@ -132,10 +139,10 @@ rei today --tui
 ## TUI Mode
 
 The `--tui` flag launches an interactive terminal UI where you can:
-- Navigate between sections with `j`/`k` or arrow keys
-- Press `Enter` on an intention to open a full detail view (same as `intention tree --tui` — see [intention docs](/docs/commands/intention) for detail view contents)
-- Press `o` to open notes from the detail view
-- Press `Esc` to close detail view, `q` to quit
+- Use `Tab`/`Shift-Tab` to switch sections and `j`/`k` or arrow keys to select a row
+- Press `Enter` on an Intention or Habit to fetch its complete detail through the API, including later-page related resources
+- Press `Esc`/`q` to cancel loading or close detail; press `q` on the dashboard to quit
+- Use `j`/`k` and page keys to scroll detail. Network failures remain visible, and detail loading has a bounded timeout
 
 **Note:** TUI mode requires a terminal that supports ANSI escape codes.
 
@@ -173,8 +180,8 @@ For full details, see the [Dashboard Panels Guide](/docs/guides/dashboard).
 
 ## Notes
 
-- Times are displayed in your local timezone
-- The dashboard requires a database backend (PostgreSQL)
+- Times and Habit periods use the server summary's explicit IANA calendar throughout a traversal
+- The CLI uses only API configuration; the server owns the database and projections
 - Context filtering shows intentions whose root ancestor has the matching context
 - Linked habits inherit context from their linked intention
 - Dormant intentions (inactive for 30+ days) are excluded by default; use `--include-dormant` to show them

@@ -26,9 +26,19 @@ nix develop
 cabal build all
 ```
 
-### Start the Database
+### Connect to a Rei Server
 
-Rei stores events in PostgreSQL through the kiroku/keiro event store:
+```bash
+export REI_API_URL="https://rei.example.internal"
+export REI_API_TOKEN="<credential supplied by your server operator>"
+rei info show
+```
+
+Everyday commands use this API configuration. Your local workspace, editors and provider tools remain on your computer; no caller database settings or shared server directory are needed. Follow the [remote CLI guide](/docs/guides/remote-cli) for credentials, local content and recovery.
+
+### Run a Rei Server (Operators)
+
+Server operators run `rei-api`, its workers and PostgreSQL migrations as described in the [HTTP API guide](/docs/api). Rei stores events in PostgreSQL through the kiroku/keiro event store:
 
 ```bash
 # Start PostgreSQL container
@@ -45,7 +55,7 @@ just run-migrations
 rei version
 
 # View system info
-rei info
+rei info show
 ```
 
 ## Shell Completions

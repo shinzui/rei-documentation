@@ -1,0 +1,109 @@
+---
+title: Use Rei from Another Computer
+description: Independent callers, credentials, local files, recovery and the operator boundary
+icon: Laptop
+---
+
+Everyday commands run through one configured Rei API server. Install the CLI on
+each computer and give each caller its own workspace and credential. Only the
+server and its workers need PostgreSQL or the managed server files.
+
+## Configure a caller
+
+```bash
+export REI_API_URL="https://rei.example.internal"
+export REI_API_TOKEN="<credential supplied by the server operator>"
+rei intention list
+rei today
+```
+
+The URL is the server base URL; a reverse-proxy prefix such as `/rei` is retained.
+HTTPS uses verified TLS. Credentials belong in secret environment configuration,
+not URLs, checked-in YAML or command arguments. `rei config explain` redacts the
+URL and token. `rei info show` displays local files and configuration presence
+without connecting; its file counts are not remote totals.
+
+Caller YAML (`REI_CONFIG`, or the normal local/XDG discovery) still controls the
+local workspace, editors, provider tools and display preferences. The caller's
+IANA timezone (`TZ` or the detected system timezone) is sent to reporting APIs.
+Reports retain the returned calendar scope across every page and use historical
+offsets when displaying timestamps.
+
+Two independently configured callers observe the same server-owned work and
+content. Lists and selectors traverse bounded pages. This is shared execution in
+the current single-tenant Space; Ren membership, sharing and object authorization
+remain separate work in `mori://shinzui/rei/masterplans/15-ren-multiplayer-rei-over-the-kikan-spines`.
+
+## Identity and foreground tools
+
+The bearer credential fixes the permitted performer. Actor flags select an
+already-authorized performer; local principal hints and flags do not grant access
+or establish a recorder identity.
+
+Foreground agent commands keep provider credentials and executables on the
+caller. The operator must grant a named recorder profile using
+`REI_API_CREDENTIAL_POLICIES`; ordinary token mappings grant none. See the exact
+[agent policy and recovery configuration](/docs/commands/agent#foreground-api-credentials).
+The server admits a credential-bound, expiring context and allocates canonical
+session/run identities. The launcher forwards `REI_API_SESSION_CONTEXT` and the
+bearer to ordinary child CLI commands and removes database credentials. The opaque
+context is not a bearer credential. Foreign, expired, withdrawn or closed contexts
+are refused; they do not fall back to direct attribution.
+
+Normal cleanup closes the admission. An uncertain admission or failed closure
+retains a private request file and reports its request/context identity and expiry.
+Use the owning base bearer to inspect
+`GET /api/v2/agent-sessions/admissions/{context}` and explicitly close with
+`POST /api/v2/agent-sessions/admissions/{context}/close`. Inspection and closure
+remain available after expiry. Follow the reported identity and retained request;
+do not launch another session or replay an ordinary mutation to recover a missing
+receipt. Closing admission does not invent completed conversation history.
+
+## Local files and failed requests
+
+Editors, FZF, templates, provider subprocesses and explicit exports run locally.
+Managed Note/Doc paths describe server storage. Read content through the CLI and
+export it to a caller-selected destination; a local file cannot satisfy a missing
+server-managed file. `knowledge verify` checks the server's managed files.
+
+Private drafts retain edited bytes and acknowledged identities when an editor,
+validation or submission fails. A nonzero editor exit does not submit the draft.
+Successful receipts are authoritative even if a later projection/refresh is
+unavailable. Observe through bounded reads; commands never automatically resend a
+write. After a timeout or lost response, inspect the reported identity and retained
+input before deciding whether to submit again.
+
+`REI_API_TIMEOUT` bounds each request (default 30 seconds).
+`REI_API_OBSERVATION_TIMEOUT` bounds post-write observation (default 10 seconds).
+Both accept 1–600 seconds. Missing/rejected API configuration or credentials exit
+`64`, refused input exits `2`, and an unusable response/outage exits `70`. Explicit
+legacy text-refusal and JSON warning policies remain documented in each command's
+guide. There is no direct-Core/offline fallback or automatic server/worker startup.
+
+This cutover does not add general collaborative revision protection. Reflection
+content retains its existing hash condition; ordinary whole-Note replacement and
+saved-view definition replacement have no new revision precondition. Read fences
+and acknowledgement files are not atomic snapshots across resource owners.
+
+## Operator machines and validation
+
+Workers, migrations, repair/rebuild commands and the mounted `ops` console retain
+their native database runtime. Configure `REI_PG_CONNECTION_STRING` (preferred) or
+`PG_CONNECTION_STRING` there. Everyday commands ignore database settings, even
+when supplied. Local diagnostics, help, completions and installed-version output
+need neither service.
+
+The execution ledger (`docs/api/cli-execution-coverage.json` in `mori://shinzui/rei`, artifact-level URI pending) classifies every
+registered leaf: 450 everyday API commands, 22 local adapters and 99 operator
+commands. There are no source-guard exemptions. The canonical validation command
+joins the real CLI/server workflows to contract, SDK and migration checks:
+
+```bash
+nix develop --command just api-check
+```
+
+For focused development, use `just cli-api-check` and
+`just cli-api-coverage-check --require-complete`. The regression probe rejects both
+an injected persistence call and a misclassified operator dispatch. Fixtures own
+the server/database lifecycle; client tests use isolated HOME/workspaces and
+scrubbed or deliberately unusable database settings.

@@ -4,6 +4,23 @@ description: Manage external links with canonical URL deduplication
 icon: ExternalLink
 ---
 
+
+Everyday Link commands use the configured Rei API and its authenticated owners;
+callers need no database settings. Selectors, listings, filing choices and property
+presentation read complete bounded pages. Canonical URL/title changes preserve
+the separate original filing metadata and attachment identity. `show --json`
+retains the native scalar object, including the server's actual stream position;
+`list --all --json` retains its native snake-case fields.
+
+Creation and inline property assignments are separate owner operations. A private
+caller draft retains normalized requests and acknowledged identities/receipts if a
+later stage fails. Known native text-mode property refusals keep their successful
+exit class and retain the prepared input; JSON, authentication and infrastructure
+failures keep their existing exit classes. No failed write is automatically
+resent. With multiple filings, `detach` and `set-topic` require the actual
+`--attachment` identity, displayed with the candidates. `backfill-domains` remains
+an operator command and requires the database runtime.
+
 Manage external links with canonical URL deduplication. Links are first-class entities with their own lifecycle — the same URL attached to multiple entities shares a single canonical identity.
 
 URLs are automatically normalized using `link-canonical`: tracking parameters are stripped, domain-specific rules applied (YouTube, Amazon, Twitter/X, etc.), and redirect chains resolved. Two different URLs that point to the same resource are recognized as the same link.

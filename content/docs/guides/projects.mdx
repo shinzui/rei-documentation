@@ -235,6 +235,15 @@ row statuses and what fixes each.
 | `project migrate-local-repos` | Convert legacy `local-repo` values to scope |
 | `ontology seed-system` | Seed the system project topic and properties |
 
+## Project Outcomes
+
+```bash
+rei outcome record "Released 5.0.0" --project PROJECT --id OUTCOME_ID --at TIME --json
+rei outcome list --project PROJECT --json
+```
+
+Record evidence directly on the project Topic. Reuse the outcome ID and canonical Topic ID after interruption: the server resumes the original recording and scope membership. Completed replay reports `changed=false`. Project show displays at most five recent outcomes with their original dates; old facts stay old on replay. Lists update asynchronously. Server cohort activation is required for new writes.
+
 ## See also
 
 - [Topics guide](/docs/guides/topics) — associations, effective scope, external references

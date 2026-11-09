@@ -9,6 +9,7 @@
 		"multi-agent-orchestration",
 		"review-checkpoints",
 		"config",
+		"remote-cli",
 		"intention-filtering",
 		"custom-properties",
 		"state-machines",

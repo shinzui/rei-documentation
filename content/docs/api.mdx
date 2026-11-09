@@ -244,6 +244,26 @@ Response IDs use their canonical resource prefixes. Closed statuses and horizons
 
 Keep cursors opaque and reuse the same filters. A cursor binds resource family, parent and normalized semantic filters; project pages additionally bind server timezone and local date. A mismatch or old v1 cursor produces JSON `400 invalid_cursor` before the query; restart the walk. HTTP 405 is a problem document. Protocol rejections 406 (Accept) and 415 (Content-Type) have empty bodies and no Content-Type; they are not declared handler results.
 
+### Topic mentions and typed Note references
+
+`GET /api/v2/topics/{id}/mentions` is a bounded Connection of resolved wikilink
+occurrences. Use `first`/`after` or `last`/`before`; the default page size is 20 and
+maximum is 100. `include-archived=true` includes archived source Notes. Cursors bind
+the Topic ID and archive filter. A missing Topic returns 404, invalid filters 422,
+invalid pagination/cursors 400, and either owning projection group's rebuild fence
+returns 503.
+
+`TopicMentionView` contains `referenceId`, `sourceNoteId`, nullable `sourceTitle`,
+`lineNumber`, nullable `displayText`, `writtenKey`, `currentKey`, `keyIsStale`,
+`discoveredAt` and nullable `resolvedAt`. Ordering is by source Note, line and reference
+ID. Membership follows the retained resolved Topic ID; the stale-key flag compares
+the authored key with the Topic's current key. Reading mentions creates no associations.
+
+`NoteReferenceView` adds `targetKind` (`note` or `topic`), nullable `topicKey` and
+nullable `targetTopicId`. The existing `targetNoteId` is specific to Note targets.
+The outgoing, unresolved and canonical Note inspection resources expose these same
+fields. Unresolved listings require both target IDs to be absent.
+
 ## The OpenAPI document
 
 The document is a **build artifact**, derived from the very types the server serves. It is never hand-written and never hand-edited: if it is wrong, the types are wrong.

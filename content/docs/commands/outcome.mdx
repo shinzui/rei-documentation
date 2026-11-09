@@ -4,13 +4,42 @@ description: Record observable evidence of progress
 icon: Trophy
 ---
 
-Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results. Outcomes can be recorded on both **Active** and **Completed** intentions, allowing retrospective evidence to be added after an intention is finished. Outcomes can also be classified with a category and extended with user-defined custom properties in the same way as intentions; see [`rei custom-property`](/docs/commands/custom-property) for how to define and assign properties.
+Outcomes record observable evidence that something changed. Unlike actions (which track effort), outcomes track results. Outcomes attach to intentions or project Topics. They can be recorded on both **Active** and **Completed** intentions, allowing retrospective evidence to be added after an intention is finished. Outcomes can also be classified with a category and extended with user-defined custom properties in the same way as intentions; see [`rei custom-property`](/docs/commands/custom-property) for how to define and assign properties.
+
+## Project evidence and replay
+
+```bash
+rei outcome record "Released 5.0.0" --project shinzui-rei --id outcome_01kh9280qte2hvc4h8jp0tg5b3 --at 2026-07-15T12:00:00Z --json
+rei outcome list --project shinzui-rei --json
+rei project show shinzui-rei --no-mori
+```
+
+Project recording requires a server cohort with project-outcome writes enabled.
+The first successful call prints `changed: true`; a completed retry with the same
+ID and project prints `changed: false`. The first description, performer, home,
+and original `--at` time are immutable. A different subject using that ID is a
+conflict. New writes require an active, project-classified Topic.
+
+If the call is interrupted, retry with the same ID and canonical Topic ID. The
+server recovers its saved recording and scope Edge before acknowledging success;
+a pending retry uses the original payload even after archival or classification
+changes. Keep the printed ID or supply `--id` before sending. The saved local
+recovery draft also contains the request. The canonical receipt is available at
+`GET /api/v2/outcomes/{id}/project-receipt`, independently of query visibility.
+
+Lists and portfolio samples update asynchronously. Project lists use effective
+scope, including outcomes inherited through scoped intentions, with each outcome
+shown once. Unfiltered `rei outcome list` includes both subjects. Project show
+includes at most five recent outcomes with their dates; its count can be larger.
+Recency uses the original fact time, so replaying an old release today does not
+make it recent. Generic custom properties support both subjects; category
+commands require an intention-owned outcome.
 
 ## Subcommands
 
 ### record
 
-Record an outcome for an intention.
+Record an outcome for an intention or a project.
 
 ```bash
 rei outcome record [description] [options]
@@ -21,10 +50,13 @@ rei outcome record [description] [options]
 
 **Options:**
 - `-i, --intention <id>` — Intention ID (optional if fzf is available)
+- `--project <project>` — Project key, canonical `topic_…` ID, or stored external reference; mutually exclusive with `--intention`
+- `--id <outcome_id>` — Caller-chosen ID for project recording; reuse it to recover or replay
+- `--json` — Print one JSON acknowledgment with `changed`, `outcomeId`, and the subject ID
 - `-t, --at <time>` — When the outcome was achieved (optional, defaults to now)
 - `--actor <actor>` — Actor performing this action (overrides global `--actor`)
 
-> **FZF Support:** If `-i` is not provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
+> **FZF Support:** If neither `--project` nor `-i` is provided and [fzf](https://github.com/junegunn/fzf) is installed, an interactive picker will let you select from active intentions.
 
 > **Completed Intentions:** You can record outcomes on completed intentions too. This is useful when results or evidence are discovered after an intention has been marked complete.
 

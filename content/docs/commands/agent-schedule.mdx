@@ -4,6 +4,8 @@ description: Manage agent schedules for autonomous background work
 icon: Clock
 ---
 
+Every schedule command uses the configured Rei API (`REI_API_URL` and `REI_API_TOKEN`), including picker candidates. The caller needs no database connection. Recurrence clocks retain their UTC interpretation; local `--until` text is converted on the caller before submission. `fire` prints its request identity before sending and then reports durable acceptance. Inspect that execution after an uncertain response; acceptance does not claim provider completion, and the CLI never automatically repeats the request.
+
 Manage agent schedules for autonomous background work. Schedules define when and how agents run tasks — either on a recurring cron-like schedule or triggered by domain events.
 
 ## Overview

@@ -417,3 +417,16 @@ Every schedule creation verb (`daily`, `weekly`, `quarterly`, `yearly`, `on`) ac
 
 History and pending lists return one bounded page. Use `--first` (1–100), and continue with `--after` using `pageInfo.endCursor` while `hasNextPage` is true. History also accepts `--limit` as a page-size alias, and retains `--context`. Topic/kind filters apply before limiting. Historical authored snapshots retain their original identity and hash even if current narrative files change.
 
+## API content and lifecycle commands
+
+`reflect open`, `print`, `complete`, `skip` and recurrence pause/resume/cancel use
+`REI_API_URL` and `REI_API_TOKEN` without a local database. Open/print and recurrence
+selectors retain the pending/all toggle; completion and skip retain their narrow
+status menus. Unchanged mutations report the server's no-op receipt.
+
+Opening edits a private caller-local draft and submits the observed actual content
+hash to the existing replacement condition. A changed server body refuses the
+submission and retains unsent edits at the reported path. Editor cancellation also
+retains the draft. Missing content is an explicit failure; no server file path is
+opened locally. Managed file writes and canonical appends retain their existing
+separate-operation behavior.

@@ -186,7 +186,43 @@ Both accept `--json` for scripting. The report goes to standard output and any w
 
 ## Environment Variables
 
+### Everyday commands: Rei API server
+
+Everyday commands use the Rei HTTP API and run on a computer with only the CLI
+and API configuration. They ignore database settings and never fall back to local
+persistence or start workers. All 450 everyday leaves are complete in
+`docs/api/cli-execution-coverage.json` in `mori://shinzui/rei` (artifact-level URI pending). See the [remote-use guide](/docs/guides/remote-cli)
+for independent callers, local files, identity and recovery.
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `REI_API_URL` | Base URL of the Rei API server, `http` or `https`; a path prefix such as `https://host/rei` is kept | Yes, for everyday commands |
+| `REI_API_TOKEN` | Bearer token the server's `REI_API_TOKENS` accepts (secret) | For writes and sensitive reads |
+| `REI_API_TIMEOUT` | Seconds one request may take, 1–600 (default 30) | No |
+| `REI_API_OBSERVATION_TIMEOUT` | Seconds a command may wait to observe an asynchronous read after a write, 1–600 (default 10) | No |
+| `REI_API_SESSION_CONTEXT` | Opaque admitted foreground-session context; requires its owning bearer and active server grant | No |
+
+The URL must not carry credentials, a query or a fragment. Your identity comes from
+the token alone; `--actor` and similar flags never authenticate. A missing URL or
+token, or a token the server rejects, exits `64`; an unreachable server or a timeout
+exits `70` and is never retried automatically. `rei config explain` lists these keys
+with the token and URL redacted.
+
+```bash
+export REI_API_URL="https://rei.example.internal"
+export REI_API_TOKEN="…"
+rei task list --all
+```
+
+Local diagnostics (`info show`), help, completions, installed version, configuration,
+kits, templates, aliases and caller-local agent/playbook configuration need neither
+the API nor a database.
+
 ### Required: Database
+
+Operator commands, including workers, migrations, repair/rebuild and the mounted
+`ops` console, retain the native database runtime. Everyday commands ignore these
+settings.
 
 Rei stores events in PostgreSQL through the kiroku/keiro event store.
 
@@ -409,13 +445,14 @@ Read by the `rei-api` server only; the CLI ignores them. See [HTTP API](/docs/ap
 |----------|-------------|---------|
 | `REI_API_PORT` | Listen port. An unparseable value falls back to the default rather than failing | 8080 |
 | `REI_API_TOKENS` | Comma-separated `token=actor` pairs, where actor is `human` or `agent:<id>`. Unset means every protected operation is rejected | unset (fail-closed) |
+| `REI_API_CREDENTIAL_POLICIES` | Secret JSON granting credentials named recorder profiles for foreground agent commands. See [foreground API credentials](/docs/commands/agent#foreground-api-credentials) | unset |
 | `MORI_API_URL` | Mori's API, read only by the project sync command. Unset or unusable, the server still starts and a sync answers `503 mori_unconfigured` | unset |
 
 The server reads the same `REI_PG_CONNECTION_STRING`/`PG_CONNECTION_STRING` and OpenTelemetry variables as the CLI, and refuses to start without a connection string.
 
 ### Optional: Mori Federation
 
-Used by `rei project` when it resolves software projects against [Mori](/docs/commands/project#sync). Rei never contacts Mori unless a command asks it to.
+Used by `rei project` when it resolves software projects against [Mori](/docs/commands/project#sync). Rei never contacts Mori unless a command asks it to. Set these on the Rei server: everyday commands run through the API, and a caller-side value is not used.
 
 | Variable | Description | Default |
 |----------|-------------|---------|

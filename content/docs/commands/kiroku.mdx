@@ -4,7 +4,7 @@ description: Operator commands for the Kiroku event store that backs Rei
 icon: Database
 ---
 
-Operator commands for the Kiroku event store that backs Rei. These are low-level inspection tools for diagnosing the keiro reactive layer, not part of the day-to-day coaching workflow.
+Operator commands for the Kiroku event store (`mori://shinzui/kiroku`) that backs Rei. These are low-level inspection and maintenance tools for the keiro reactive layer, not part of the day-to-day coaching workflow.
 
 ## `rei kiroku` or `rei ops`?
 
@@ -47,6 +47,36 @@ rei kiroku subscriptions status --remote-url http://localhost:9091 --format json
 ```
 
 See [`rei worker`](/docs/commands/worker) for how to enable, move, or disable the metrics server on the worker side (`REI_KIROKU_METRICS_PORT`).
+
+### Store identity and selective compaction
+
+These native operator commands use the configured database connection:
+
+```bash
+rei kiroku store identity --format json
+rei kiroku compaction preview --manifest reviewed-manifest.json --format json
+rei kiroku compaction ledger --limit 50 --format json
+```
+
+Migration `kiroku/0017` creates one immutable store identity and an initially empty
+compaction ledger. A restored clone retains an existing store identity. Preview
+checks a digest-sealed manifest against a read-only database snapshot; the ledger
+lists previously applied manifests, with `--limit` bounded to 1–1000.
+
+Selective compaction permanently deletes the manifest's selected originated
+events and acknowledged links. The operator must prove redundancy, archive the
+original envelopes, review both digests and rehearse the manifest on a restored
+copy before applying it to the intended store. Retained event IDs, versions and
+positions keep their values. Apply rechecks the witnesses and requires the
+reviewed manifest digest:
+
+```bash
+rei kiroku compaction apply --manifest reviewed-manifest.json \
+  --confirm-digest REVIEWED_SHA256 --format json
+```
+
+The owning procedure is `docs/user/compaction.md` in `mori://shinzui/kiroku` (artifact-level URI pending). Compaction is a separate
+operator procedure from Rei release preparation and schema migration.
 
 ## Requirements
 

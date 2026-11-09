@@ -4,7 +4,24 @@ description: Attach and manage documents for entities with auto-commit support
 icon: File
 ---
 
-Attach and manage documents for entities. When documents are copied into the workspace (via `doc add` or `doc attach --copy`), they are automatically committed to the workspace git repository.
+Attach and manage documents through `REI_API_URL`, with `REI_API_TOKEN` for writes.
+No database settings or mounted server directory are needed. Local file arguments
+are caller inputs: Rei uploads their exact bytes, and the server allocates the
+Doc identity and manages its storage. Original caller files are retained.
+
+Both `add` and `attach` import a managed copy. Remote `attach` explains that
+`--copy` is implicit; the flag remains accepted. This replaces registering a
+caller path as an in-place server attachment. Historical external attachments
+remain metadata-only until their bytes are explicitly imported. Missing bytes
+are reported as unavailable, never as an empty successful download.
+
+`open` downloads a private caller-local copy and runs the local foreground editor.
+The copy is retained at the printed path after success or cancellation. Edits
+remain local; use `doc add` to import a new document. Opening no longer edits a
+shared server file, and no implicit content writer or automatic upload is added.
+Server refusal, configuration and infrastructure errors use exits 2, 64 and 70.
+Prepared imports and title/move requests survive failed remote prerequisites or
+submission. An uncertain write is never automatically replayed.
 
 ## Subcommands
 
@@ -52,7 +69,7 @@ rei doc add ~/Downloads/rdf-primer.pdf --topic topic_01h455vb4pex --title "RDF p
 
 ### attach
 
-Attach an existing file to an entity. By default, uses the file path as-is. Use `--copy` to copy the file into the workspace first.
+Import an existing caller file into managed server storage and attach it to an entity. `--copy` is implicit for API-backed execution and remains accepted.
 
 ```bash
 rei doc attach <file> [options]
@@ -182,7 +199,7 @@ rei doc set-topic
 
 ### open
 
-Open a document in your editor.
+Download managed document bytes into a private caller-local copy and open it in your editor. The retained copy can be edited independently; importing it with `doc add` creates a new document.
 
 ```bash
 rei doc open [doc-id]

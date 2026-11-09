@@ -6,6 +6,21 @@ icon: ListTodo
 
 Manage tasks discovered from notes and markdown files. Tasks are extracted from checkbox items (`- [ ]` / `- [x]`) in notes attached to intentions, actions, outcomes, and reflections.
 
+All Task commands use `REI_API_URL`; writes require `REI_API_TOKEN`. Neither the
+caller nor its editor needs database settings or a shared server workspace.
+Complete and reopen submit the canonical Task identity to the server's Note
+checkbox writer. Legacy unrecorded source content requires an explicit authorized
+Note import; there is no local-file fallback. Selectors load every candidate page.
+
+`open-note` downloads recorded text to a private caller-local draft, runs the
+foreground editor, and submits explicit bytes through the Note API. Cancellation,
+editor failure and refused/uncertain submissions retain the draft. This replaces
+opening and modifying a mounted server path. Whole-body editing has no atomic
+revision condition; coordinate sequential edits until revisioned content ships.
+Other mutations preserve their prepared canonical request and authored reason or
+time on failure, never retry writes automatically, and keep the existing success
+messages. API refusal/configuration/infrastructure failures exit 2/64/70.
+
 ## Subcommands
 
 ### list
@@ -32,6 +47,14 @@ rei task list [options]
 - `--sort-due` — Sort by due date (earliest first)
 
 > **FZF Support:** If no entity ID is provided and `--all` is not specified, an interactive picker will let you select from available entities.
+
+> **Runs through the Rei API.** `task list` reads every page of tasks from the server
+> named by `REI_API_URL` and needs no database settings (see
+> [configuration](/docs/configuration#everyday-commands-rei-api-server)). The server
+> applies the status and due filters and the due ordering; undated tasks sort first
+> under `--sort-due`. A due bound that is not `YYYY-MM-DD` is ignored, as before. A
+> refusal or an unreachable server now exits with its stable class (`2`, `64` or `70`)
+> instead of printing an error and exiting successfully.
 
 **Examples:**
 

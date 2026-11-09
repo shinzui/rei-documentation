@@ -6,6 +6,8 @@ icon: Terminal
 
 This section documents all rei commands and their options.
 
+Everyday commands use the configured API server. See [remote CLI setup and recovery](/docs/guides/remote-cli); database settings belong to operator commands.
+
 ## Dashboard Commands
 
 ```bash
@@ -23,7 +25,7 @@ rei review week
 rei review week --context personal
 
 # Show system info
-rei info
+rei info show
 
 # Show version
 rei version
@@ -121,9 +123,9 @@ The `today` dashboard includes:
 |---------|-------------|
 | [`rei system`](/docs/commands/system) | Removed — dormancy is now a keiro timer in `rei worker kiroku` |
 | [`rei worker`](/docs/commands/worker) | Run event-stream and queue workers |
-| [`rei ops`](/docs/commands/ops) | Operate the Keiro runtime: streams, subscriptions, timers, queues, rebuilds |
-| [`rei kiroku`](/docs/commands/kiroku) | Live subscription phase from a running worker's metrics endpoint |
-| [`rei periodic-check`](/docs/commands/periodic-check) | Manage periodic checks for automated dormancy and reminders |
+| [`rei ops`](/docs/commands/ops) | Inspect aggregates and runtime health, operate queues/rebuilds and serve the browser console |
+| [`rei kiroku`](/docs/commands/kiroku) | Live subscription phases, store identity and manifest-confirmed compaction |
+| [`rei periodic-check`](/docs/commands/periodic-check) | Enqueue reminder, reflection and agent-schedule checks, and inspect history |
 | [`rei workspace`](/docs/commands/workspace) | Workspace management and git integration |
 | `rei predeploy` | Inventory and gate deployment data (no documentation page yet) |
 
@@ -132,7 +134,7 @@ The `today` dashboard includes:
 | Command | Description |
 |---------|-------------|
 | [`rei help`](/docs/commands/help) | Display help topics for concepts and features |
-| `rei info` | Show workspace, database, and configuration status |
+| `rei info show` | Show local client information without connecting to a server |
 | `rei version` | Show the installed version |
 | `rei alias` | List the command aliases defined in your config |
 | [`rei config`](/docs/configuration#inspecting-configuration) | Explain where configuration values came from (`explain`, `describe`) |

@@ -12,7 +12,37 @@ A topic classified `instance-of project` is a **project**, and [`rei project`](/
 
 Use [`rei topic profile`](/docs/commands/topic-profile) to declare review, completion and identity rules for any classifier, then manage its members and attention queue.
 
+
+Metadata, inspection, association, property and external-reference
+commands use `REI_API_URL` and a secret `REI_API_TOKEN` for writes. They need no
+caller database credentials or shared server files. Ordinary metadata absence,
+duplicate-key and input refusals keep their historical stdout diagnostic and
+successful exit. Reference ownership and identity refusals exit 2; rejected actor
+claims also exit 2. API configuration/credentials exit 64 and infrastructure
+failures exit 70. A failed submission retains private prepared input, including canonical targets and authored fields, for explicit
+inspection and retry; the CLI never automatically resends it.
+
 ## Subcommands
+
+### mentions
+
+```bash
+rei topic mentions KEY_OR_ID [--include-archived] [--json]
+```
+
+Lists resolved `[[topic:KEY]]` occurrences with the source Note ID/title, line and
+optional display text, in source Note, line and reference-ID order. Archived source
+Notes are excluded unless `--include-archived` is given. `--json` prints the complete
+array of `TopicMentionView` objects, including `writtenKey`, `currentKey` and
+`keyIsStale`. Resolution retains the Topic ID, so a stale written key remains a
+mention of the same Topic. Topic key renaming is not currently a command.
+
+This is an API command; caller database settings are unnecessary. A running worker
+extracts and resolves new mentions. Mentions stay separate from deliberate `about`
+associations and direct Note attachments.
+
+See [Topic wikilink syntax](/docs/commands/note#topic-wikilinks) for key validation and
+archive/restore behavior.
 
 ### create
 
@@ -208,11 +238,12 @@ associations.
 
 Some relationships deliberately do **not** pass scope on. A habit *supports* an intention rather than living inside it, a disruption is *addressed by* one, and collections, categories, focuses, and cycles organise things without owning them. All of them can still carry their own direct `scoped-to` edge.
 
-If malformed historical data creates an ownership loop, the traversal stops and says so on stderr rather than hanging or silently shortening the answer:
-
-```
-warning: stopped at intention:intention_01kv... after 4 hops (ownership cycle); results may be incomplete
-```
+If historical data creates an ownership loop or reaches the traversal limit,
+API scope reads refuse with `scope_traversal_incomplete` and exit 2. They do not
+print a partial membership list as a successful result. This replaces the older
+native warning-and-partial-results behavior. Direct association reads remain
+available; the separately paged scope diagnostic resources identify stopped
+branches for inspection.
 
 ## Naming an entity
 
@@ -231,7 +262,7 @@ Error: Ambiguous entity reference '01kv9hqz3we5t8n2k4bdxr7c0m': matches topic, i
 Disambiguate with --entity-type topic|intention
 ```
 
-Omitting `TOPIC` or `ENTITY` entirely opens an fzf picker when you are at a terminal. The unfiltered picker offers the entity families you curate by hand — topics, intentions, habits, collections, focuses, cycles, and disruptions. For the families that grow one row per event or per line — actions, outcomes, blockers, reflections, journal entries, notes, docs, links, tasks, and reminders — pass `--entity-type` first. Outside a terminal, an omitted argument is an error rather than a prompt that hangs.
+Omitting `TOPIC` or `ENTITY` entirely opens an fzf picker when you are at a terminal. The unfiltered picker offers the entity families you curate by hand — topics, intentions, habits, collections, focuses, cycles, and disruptions. For the families that grow one row per event or per line — actions, outcomes, blockers, reflections, journal entries, notes, docs, links, tasks, and reminders — pass `--entity-type` first. Outside a terminal, an omitted argument is an error rather than a prompt that hangs. Candidate selection traverses every API page for the selected kind (or the curated kinds), replacing the former 500-row native picker limit. Canonical source resolution and lifecycle eligibility remain server-owned.
 
 ## Associations versus edges
 
@@ -339,6 +370,15 @@ rei topic append-property TOPIC PROPERTY_KEY VALUE...
 rei topic remove-property-value TOPIC PROPERTY_KEY VALUE...
 ```
 
+`clear-property` runs against the configured Rei API server. Set `REI_API_URL`
+to its HTTP(S) base URL and supply `REI_API_TOKEN` through secret configuration.
+It needs no local database settings. Both a Topic key and a canonical ID are
+accepted, and repeated clears print the same confirmation. Retained
+classification assignments can still be cleared after their scope is withdrawn
+or archived. Server refusals exit with code 2, missing or rejected API
+configuration with 64, and transport failures with 70; scripts that previously
+relied on a printed error returning success should check the exit status.
+
 All three positionals are required. Unlike the other entities' `set-property` commands, which take their subject as a flag, a topic's subject occupies the first positional — so an optional property key could not be told apart from the value.
 
 ```bash
@@ -441,6 +481,16 @@ JSON output keeps direct attachments under `attachments`, explicit graph rows un
 ## Mori property writes
 
 The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.
+
+`set-property`, `append-property` and `remove-property-value` also use
+`REI_API_URL` and `REI_API_TOKEN` without local database settings. Their text and
+JSON results retain changed/no-op outcomes and command-derived Mori references,
+removed references and warnings. Append/remove preserve argv elements containing
+commas or spaces. Large arguments remain one canonical command. Resolver outage
+warnings use the fixed message “Mori resolver unavailable; reference retained as
+unverified”, preserving warning multiplicity while keeping downstream diagnostics
+private. A failed response may follow a committed write; inspect the server state
+before retrying.
 
 ## Related
 

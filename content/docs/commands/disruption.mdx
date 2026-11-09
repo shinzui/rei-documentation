@@ -556,6 +556,19 @@ Disruption actions appear in `rei today` under a dedicated "Disruptions" section
 
 The set/append commands accept `--allow-unresolved`, and set/append/remove accept `--json`. Mori lists use a JSON array for set and separate URI arguments for append/remove. JSON mode requires an explicit subject and returns the stored reference evidence. See [Mori artifact references](/docs/commands/custom-property#mori-artifact-references) for restrictions, statuses, reverse lookup, rechecks, and the default-off reader-first rollout.
 
+## API execution
+
+Configure `REI_API_URL` and `REI_API_TOKEN`; these commands need no local database
+or server filesystem access. Source and action selectors read complete API pages.
+Root creation and occurrence recording are separate writes; retain each printed
+identity on partial failure instead of replaying the recording command.
+
+Notes are created from exact stdin bytes or a private caller-local editor draft,
+then submitted to the server. Cancellation/refusal retains unsent edits at the
+reported path. Creation prints the canonical Note ID; optional category assignment
+runs afterward and may fail independently. Native inspection JSON retains the
+actual root stream position, which does not act as a conditional write guard.
+
 ## Related Commands
 
 - [`rei today`](/docs/commands/today) — Shows disruption actions in the daily dashboard

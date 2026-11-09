@@ -6,6 +6,28 @@ icon: LayoutDashboard
 
 Views provide reusable, multi-section configurations for displaying intentions and their related entities. Each view defines sections that query children, descendants, or all intentions globally, plus notes, tasks, or actions with optional filtering, grouping, and ordering.
 
+All everyday view commands use `REI_API_URL`; mutations and `exec-batch` also
+require `REI_API_TOKEN`. They need no caller database settings. YAML input,
+FZF selection, editing and stdout redirection run on the caller's computer.
+Definitions and query selection remain server owned. Lists and execution traverse
+all result pages. A changed definition revision refuses the read; repeat the read
+to observe it again.
+
+Native JSON envelopes and entity fields are retained. Grouping `groupMetadata`
+now describes values among the selected results, including their actual type and
+state order; it omits unrelated project-wide values. Note category groups and
+category slugs come from the real category catalog, including retired categories. Authentication and transport
+failures use the shared nonzero exit policy. Declared per-item batch outcomes
+remain ordered warnings with a null result, and a missing NAME under `exec --json`
+remains a warning without interactive selection.
+
+Create/update inputs and edited YAML are retained privately when parsing,
+submission or the editor fails. A nonzero editor exit does not submit changes.
+Successful writes record the server acknowledgement before printing success and
+are never automatically replayed. Definition replacement has no conditional
+revision guard; inspect before retrying an uncertain submission. YAML export
+retains stable section IDs; its existing shorthand serialization remains local.
+
 ## Overview
 
 Views are configured via YAML files and can be executed with an optional scope (an intention to focus on). This enables custom dashboards for different contexts like "daily planning", "project review", or "quarterly OKRs".
@@ -62,8 +84,8 @@ Created view: daily-planning
 ```
 
 **Notes:**
-- View names must be unique. If a view with the same name already exists, an error is returned:
-  `Error: a view named 'daily-planning' already exists`
+- View names must be unique. A duplicate creation is refused by the server with
+  input exit status `2`; the diagnostic includes its typed problem code.
 
 ### list
 
